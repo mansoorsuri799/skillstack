@@ -59,40 +59,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
+    error: "/auth/error",
   },
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider !== "google") return true;
 
-      const email =
-        typeof user.email === "string"
-          ? user.email.toLowerCase().trim()
-          : "";
-      if (!email) return false;
+      try {
+        const email =
+          typeof user.email === "string"
+            ? user.email.toLowerCase().trim()
+            : "";
+        if (!email) {
+          console.error("[auth] Google sign-in missing email");
+          return "/auth/error?error=AccessDenied";
+        }
 
-      await connectDB();
+        await connectDB();
 
-      let dbUser = await User.findOne({ email });
+        let dbUser = await User.findOne({ email });
 
-      if (!dbUser) {
-        dbUser = await User.create({
-          name: user.name?.trim() || "SkillStack user",
-          email,
-          password: null,
-          emailVerified: new Date(),
-          googleId: account.providerAccountId,
-          image: user.image ?? null,
-        });
-      } else {
-        dbUser.googleId = account.providerAccountId;
-        dbUser.emailVerified = dbUser.emailVerified ?? new Date();
-        if (user.image) dbUser.image = user.image;
-        if (user.name?.trim()) dbUser.name = user.name.trim();
-        await dbUser.save();
+        if (!dbUser) {
+          dbUser = await User.create({
+            name: user.name?.trim() || "SkillStack user",
+            email,
+            password: null,
+            emailVerified: new Date(),
+            googleId: account.providerAccountId,
+            image: user.image ?? null,
+          });
+        } else {
+          dbUser.googleId = account.providerAccountId;
+          dbUser.emailVerified = dbUser.emailVerified ?? new Date();
+          if (user.image) dbUser.image = user.image;
+          if (user.name?.trim()) dbUser.name = user.name.trim();
+          await dbUser.save();
+        }
+
+        user.id = dbUser._id.toString();
+        return true;
+      } catch (err) {
+        console.error("[auth] Google sign-in failed:", err);
+        // Surface as AccessDenied so the custom error page can explain prod DB issues
+        return "/auth/error?error=AccessDenied";
       }
-
-      user.id = dbUser._id.toString();
-      return true;
     },
     async jwt({ token, user }) {
       if (user?.id) {
