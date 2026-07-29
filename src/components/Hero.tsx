@@ -33,7 +33,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_70%_20%,rgba(45,212,191,0.1),transparent_55%),radial-gradient(ellipse_60%_40%_at_10%_80%,rgba(56,100,140,0.12),transparent_50%)]"
       />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pb-12 pt-20 sm:gap-10 sm:px-6 sm:pb-20 sm:pt-28 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8">
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pb-12 pt-16 sm:gap-10 sm:px-6 sm:pb-20 sm:pt-[4.5rem] md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8 md:pt-28">
         <motion.div
           variants={container}
           initial="hidden"

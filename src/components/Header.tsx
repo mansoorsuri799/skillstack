@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
+import { HEADER_HEIGHT_CLASS } from "@/lib/layout";
 
 const links = [
   { href: "/services", label: "Services" },
@@ -41,13 +42,13 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,backdrop-filter] duration-200 ${
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,backdrop-filter] duration-200 ${HEADER_HEIGHT_CLASS} ${
         solid || menuOpen
           ? "border-white/10 bg-[#0d1117]/95 backdrop-blur-md"
-          : "border-transparent bg-[#010409]/80 backdrop-blur-sm"
+          : "border-white/10 bg-[#010409]/90 backdrop-blur-sm"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 md:px-8">
+      <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 md:px-8">
         <Logo size="sm" className="relative z-10 shrink-0" />
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
@@ -119,7 +120,7 @@ export default function Header() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="max-h-[calc(100svh-3.5rem)] overflow-y-auto border-t border-white/10 bg-[#0d1117] px-4 pb-6 pt-2 md:hidden"
+          className="absolute inset-x-0 top-full max-h-[calc(100svh-4rem)] overflow-y-auto border-b border-white/10 bg-[#0d1117] px-4 pb-6 pt-2 sm:max-h-[calc(100svh-4.5rem)] md:hidden"
           aria-label="Mobile"
         >
           <ul className="flex flex-col">

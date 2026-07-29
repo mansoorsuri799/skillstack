@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 
 const DOT_CLASS =
-  "pointer-events-none absolute origin-center rounded-full bg-white will-change-transform";
+  "pointer-events-none absolute origin-center rounded-full bg-[#2cd4bf] will-change-transform";
 
 /** Raised to sit mid–lower on the SkillStack letters */
 const BASELINE = "1.08em";

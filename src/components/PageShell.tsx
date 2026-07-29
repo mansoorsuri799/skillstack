@@ -1,5 +1,6 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { HEADER_OFFSET_CLASS } from "@/lib/layout";
 
 export default function PageShell({
   children,
@@ -9,7 +10,9 @@ export default function PageShell({
   return (
     <>
       <Header />
-      <main className="min-h-[100svh] bg-[#010409] pt-24">{children}</main>
+      <main className={`min-h-[100svh] bg-[#010409] ${HEADER_OFFSET_CLASS}`}>
+        {children}
+      </main>
       <Footer />
     </>
   );

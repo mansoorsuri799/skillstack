@@ -112,11 +112,11 @@ export default function ServicesScrollStack() {
       className="relative"
       style={{ height: `${services.length * 80}vh` }}
     >
-      <div className="sticky top-0 flex h-[100svh] flex-col justify-center overflow-hidden">
-        <div className="mx-auto w-full max-w-6xl px-6 md:px-8">
+      <div className="sticky top-0 flex h-[100svh] flex-col justify-start overflow-hidden pt-16 sm:pt-[4.5rem]">
+        <div className="mx-auto w-full max-w-6xl px-6 pb-8 pt-8 md:px-8 md:pt-10">
           <SectionIntro />
 
-          <div className="relative mt-10 h-[260px] md:h-[300px]">
+          <div className="relative mt-16 h-[320px] md:mt-20 md:h-[360px]">
             {services.map((s, i) => (
               <ServicePanel
                 key={s.n}
@@ -131,12 +131,12 @@ export default function ServicesScrollStack() {
             ))}
           </div>
 
-          <div className="mt-8 flex items-center gap-3">
+          <div className="mt-10 flex items-center gap-3 md:mt-12">
             <ol className="flex gap-2" aria-label="Service progress">
               {services.map((s, i) => (
                 <li
                   key={s.n}
-                  className={`h-1 w-10 rounded-full transition-colors duration-300 ${
+                  className={`h-1.5 w-11 rounded-full transition-colors duration-300 ${
                     i === active ? "bg-accent" : "bg-white/12"
                   }`}
                   aria-current={i === active ? "step" : undefined}
@@ -193,11 +193,6 @@ function ServicePanel({
     [center - segment * 0.85, center, center + segment * 0.85],
     [0, 1, 0],
   );
-  const watermarkX = useTransform(
-    progress,
-    [center - segment, center, center + segment],
-    [24, 0, -40],
-  );
   const ruleScale = useTransform(
     progress,
     [center - segment * 0.4, center, center + segment * 0.4],
@@ -218,27 +213,19 @@ function ServicePanel({
         pointerEvents: isActive ? "auto" : "none",
       }}
     >
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute -left-2 -top-12 select-none font-display text-[9rem] font-bold leading-none tabular-nums text-white/[0.055]"
-        style={{ x: watermarkX }}
-      >
-        {n}
-      </motion.span>
-
-      <div className="relative">
-        <p className="font-display text-sm tabular-nums tracking-[0.2em] text-accent">
+      <div className="relative pt-2">
+        <p className="font-display text-base tabular-nums tracking-[0.22em] text-accent md:text-lg">
           {n}
         </p>
-        <h3 className="font-display mt-3 max-w-xl text-2xl font-bold tracking-tight text-snow md:text-3xl">
+        <h3 className="font-display mt-3 max-w-2xl text-3xl font-bold tracking-tight text-snow md:mt-4 md:text-4xl">
           {title}
         </h3>
         <motion.div
-          className="mt-4 h-px origin-left bg-gradient-to-r from-accent to-transparent"
+          className="mt-5 h-px origin-left bg-gradient-to-r from-accent to-transparent md:mt-6"
           style={{ scaleX: ruleScale }}
           aria-hidden
         />
-        <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-muted">
+        <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-muted md:mt-6 md:text-xl">
           {summary}
         </p>
       </div>

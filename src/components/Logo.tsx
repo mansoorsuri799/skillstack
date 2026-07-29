@@ -18,8 +18,8 @@ export default function Logo({
   variant = "full",
   size = "md",
 }: LogoProps) {
-  const px = size === "sm" ? 28 : 32;
-  const textSize = size === "sm" ? "text-sm" : "text-lg";
+  const px = size === "sm" ? 34 : 40;
+  const textSize = size === "sm" ? "text-base" : "text-xl";
 
   const mark = (
     <Image
@@ -36,14 +36,14 @@ export default function Logo({
     variant === "mark" ? (
       mark
     ) : (
-      <span className="inline-flex items-center gap-2.5">
+      <span className="inline-flex items-center gap-1.5">
         {mark}
         <span
           className={`font-display font-bold tracking-tight text-white ${textSize}`}
         >
           SkillStack
           <span
-            className="ml-0.5 inline-block align-super text-[0.45em] text-accent"
+            className="ml-0.5 inline-block align-super text-[0.45em] text-[#2cd4bf]"
             aria-hidden
           >
             ●

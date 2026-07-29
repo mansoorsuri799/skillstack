@@ -8,39 +8,39 @@ type AuthShellProps = {
   footer: ReactNode;
 };
 
-/** GitHub-style centered auth layout */
+/** GitHub-style centered auth layout — fixed viewport, no page scroll */
 export default function AuthShell({ title, children, footer }: AuthShellProps) {
   return (
-    <main className="flex min-h-[100svh] flex-col items-center bg-[#010409] px-4 py-10 sm:px-6 sm:py-16">
+    <main className="flex h-[100svh] max-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[#010409] px-4 sm:px-6">
       <div className="flex w-full max-w-[340px] flex-col items-center sm:max-w-[368px]">
         <Link
           href="/"
-          className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm transition hover:opacity-90 sm:h-[72px] sm:w-[72px]"
+          className="transition hover:opacity-90"
           aria-label="SkillStack home"
         >
           <Image
             src="/brand/skill-stack.webp"
             alt=""
-            width={40}
-            height={40}
-            className="h-9 w-9 sm:h-10 sm:w-10"
+            width={48}
+            height={48}
+            className="h-11 w-11 invert sm:h-12 sm:w-12"
             priority
           />
         </Link>
 
-        <h1 className="mt-6 text-center text-[22px] font-light tracking-tight text-snow sm:mt-7 sm:text-2xl">
+        <h1 className="mt-5 text-center text-[22px] font-light tracking-tight text-snow sm:mt-6 sm:text-2xl">
           {title}
         </h1>
 
-        <div className="mt-6 w-full rounded-md border border-white/15 bg-[#0d1117] p-4 sm:mt-7 sm:p-5">
+        <div className="mt-5 w-full rounded-md border border-white/15 bg-[#0d1117] p-4 sm:mt-6 sm:p-5">
           {children}
         </div>
 
-        <div className="mt-4 w-full rounded-md border border-white/10 bg-transparent px-4 py-4 text-center text-sm text-ink-muted sm:mt-5">
+        <div className="mt-3 w-full rounded-md border border-white/10 bg-transparent px-4 py-3 text-center text-sm text-ink-muted sm:mt-4 sm:py-4">
           {footer}
         </div>
 
-        <p className="mt-8 text-center text-xs text-ink-muted">
+        <p className="mt-5 text-center text-xs text-ink-muted sm:mt-6">
           <Link href="/" className="hover:text-accent hover:underline">
             ← Back to SkillStack
           </Link>
