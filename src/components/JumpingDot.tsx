@@ -5,8 +5,8 @@ import { motion, useReducedMotion } from "framer-motion";
 const DOT_CLASS =
   "pointer-events-none absolute origin-center rounded-full bg-white will-change-transform";
 
-/** Raised to align with SkillStack letters */
-const BASELINE = "0.82em";
+/** Raised to sit mid–lower on the SkillStack letters */
+const BASELINE = "1.08em";
 
 const sizeClass =
   "h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-5 lg:w-5";

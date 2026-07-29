@@ -20,7 +20,7 @@ export default function ServicesPage() {
               Services
             </p>
             <h1 className="font-display mt-3 max-w-3xl text-4xl font-bold tracking-tight text-snow sm:text-5xl">
-              Everything between a blank domain and a ranking business.
+              Services that take you from research to revenue.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
               One team for research, build, content, authority, and ads — so

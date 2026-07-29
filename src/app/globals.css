@@ -56,4 +56,36 @@ body {
   html {
     scroll-behavior: auto;
   }
+
+  .process-marquee-track,
+  .reasons-marquee-track {
+    animation: none !important;
+  }
+}
+
+@keyframes process-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.process-marquee-track {
+  animation: process-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.process-marquee:hover .process-marquee-track {
+  animation-play-state: paused;
+}
+
+.reasons-marquee-track {
+  animation: process-marquee 32s linear infinite;
+  will-change: transform;
+}
+
+.reasons-marquee:hover .reasons-marquee-track {
+  animation-play-state: paused;
 }

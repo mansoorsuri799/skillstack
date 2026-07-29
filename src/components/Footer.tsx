@@ -30,9 +30,8 @@ export default function Footer() {
             </Link>
           ))}
         </nav>
-        <p className="text-sm sm:max-w-xs sm:text-right">
-          © {new Date().getFullYear()} SkillStack.com.pk · Web development, SEO
-          & digital growth
+        <p className="text-sm sm:text-right">
+          © {new Date().getFullYear()} SkillStack.com.pk
         </p>
       </div>
     </footer>

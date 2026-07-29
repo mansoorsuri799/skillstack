@@ -5,28 +5,28 @@ import { useCallback, useRef, useState } from "react";
 
 const layers = [
   {
+    label: "Keyword Research",
+    tone: "from-[#1a3028] to-[#0f2018]",
+    border: "border-emerald-500/25",
+    text: "text-emerald-100/85",
+  },
+  {
     label: "Content Writing",
     tone: "from-[#1a3a3a] to-[#0f2a2a]",
     border: "border-teal-500/30",
     text: "text-teal-100/90",
   },
   {
-    label: "SEO & Fast Ranking",
-    tone: "from-[#163040] to-[#0d1f2c]",
-    border: "border-sky-500/25",
-    text: "text-sky-100/85",
-  },
-  {
-    label: "WordPress & Next.js",
+    label: "Web Dev · WP & Next.js",
     tone: "from-[#1c2433] to-[#111820]",
     border: "border-white/15",
     text: "text-white/85",
   },
   {
-    label: "Keyword Research",
-    tone: "from-[#1a3028] to-[#0f2018]",
-    border: "border-emerald-500/25",
-    text: "text-emerald-100/85",
+    label: "SEO · AEO · AIO · GEO",
+    tone: "from-[#163040] to-[#0d1f2c]",
+    border: "border-sky-500/25",
+    text: "text-sky-100/85",
   },
   {
     label: "Backlinks & Authority",
@@ -38,6 +38,8 @@ const layers = [
 
 const GAP = 44;
 const OFFSET = 28;
+/** Parent stack tilt — cancel this on hover so the card faces the camera (stands flat / 90°) */
+const STACK_TILT = 12;
 
 export default function SkillAmalgamation() {
   const reduceMotion = useReducedMotion();
@@ -67,44 +69,75 @@ export default function SkillAmalgamation() {
     >
       <div
         className="absolute inset-0"
-        style={{ transformStyle: "preserve-3d", transform: "rotateX(12deg)" }}
+        style={{
+          transformStyle: "preserve-3d",
+          transform: `rotateX(${STACK_TILT}deg)`,
+        }}
       >
         {layers.map((layer, i) => {
           const fromBottom = layers.length - 1 - i;
           const yRest = fromBottom * GAP + OFFSET;
+          const isHovered = hovered === i;
 
-          // Open space around hovered card: ones below slip down, ones above slip up
           let yOffset = 0;
           if (hovered !== null && !reduceMotion) {
             if (i < hovered) yOffset = 22;
             else if (i > hovered) yOffset = -22;
-            else yOffset = 4;
+            else yOffset = -18;
           }
 
-          const isHovered = hovered === i;
+          const idle =
+            !reduceMotion &&
+            hovered === null &&
+            ({
+              y: [yRest, yRest - 10, yRest, yRest - 6, yRest],
+              opacity: 1,
+              scale: [1, 1.03, 1, 1, 1],
+              rotateX: 0,
+            } as const);
+
+          const hoverOrStatic = {
+            y: yRest + yOffset,
+            opacity: 1,
+            scale: isHovered && !reduceMotion ? 1.06 : 1,
+            // Undo parent tilt → card stands facing the camera
+            rotateX: isHovered && !reduceMotion ? -STACK_TILT : 0,
+          };
 
           return (
             <motion.div
               key={layer.label}
-              className={`pointer-events-none absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)] ${layer.tone} ${layer.border}`}
-              style={{ zIndex: isHovered ? 30 : i + 1 }}
+              className={`pointer-events-none absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)] ${layer.tone} ${
+                isHovered ? "border-accent/50" : layer.border
+              }`}
+              style={{
+                zIndex: isHovered ? 40 : i + 1,
+                transformStyle: "preserve-3d",
+                transformOrigin: "center bottom",
+              }}
               initial={
                 reduceMotion
-                  ? { y: yRest, opacity: 1, scale: 1 }
-                  : { y: yRest + 70, opacity: 0, scale: 0.94 }
+                  ? { y: yRest, opacity: 1, scale: 1, rotateX: 0 }
+                  : { y: yRest + 70, opacity: 0, scale: 0.94, rotateX: 0 }
               }
-              animate={{
-                y: yRest + yOffset,
-                opacity: 1,
-                scale: isHovered && !reduceMotion ? 1.03 : 1,
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 320,
-                damping: 28,
-                mass: 0.7,
-                delay: hovered === null && !reduceMotion ? i * 0.05 : 0,
-              }}
+              animate={idle ?? hoverOrStatic}
+              transition={
+                idle
+                  ? {
+                      duration: 4.8,
+                      delay: i * 0.14,
+                      repeat: Infinity,
+                      repeatDelay: 1.4,
+                      ease: [0.22, 1, 0.36, 1],
+                      times: [0, 0.28, 0.42, 0.62, 1],
+                    }
+                  : {
+                      type: "spring",
+                      stiffness: 360,
+                      damping: 26,
+                      mass: 0.55,
+                    }
+              }
             >
               <div className="flex items-center justify-between gap-3">
                 <span
@@ -121,7 +154,6 @@ export default function SkillAmalgamation() {
           );
         })}
 
-        {/* Fixed hit strips — cards can slip; hover targets never move */}
         {layers.map((layer, i) => {
           const fromBottom = layers.length - 1 - i;
           const yRest = fromBottom * GAP + OFFSET;
