@@ -6,6 +6,7 @@ import RegisterForm from "@/components/RegisterForm";
 export const metadata: Metadata = {
   title: "Sign up",
   description: "Create a SkillStack account.",
+  robots: { index: false, follow: false },
 };
 
 export default function RegisterPage() {

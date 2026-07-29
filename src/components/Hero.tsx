@@ -44,7 +44,10 @@ export default function Hero() {
             variants={item}
             className="relative inline-block overflow-visible pr-3 sm:pr-4"
           >
-            <p className="font-display text-[2.35rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl">
+            <p
+              className="font-display text-[2.35rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
+              data-speakable
+            >
               SkillStack
             </p>
             <JumpingDot />

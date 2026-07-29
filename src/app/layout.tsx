@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Syne, Public_Sans } from "next/font/google";
 import Providers from "@/components/Providers";
+import JsonLd from "@/components/JsonLd";
+import { SITE_URL, siteGraphJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const syne = Syne({
@@ -15,10 +17,8 @@ const publicSans = Public_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const siteUrl = "https://skillstack.com.pk";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "SkillStack — Web Development & SEO for Pakistan & Beyond",
     template: "%s · SkillStack",
@@ -27,19 +27,26 @@ export const metadata: Metadata = {
     "SkillStack builds websites, ranks keywords on Google, and monetizes traffic with AdSense and Adsterra. Led by Mansoor Khan — serving clients nationwide and internationally.",
   keywords: [
     "SkillStack",
+    "SkillStack.com.pk",
+    "Skill Stack",
     "web development Pakistan",
-    "SEO services",
+    "SEO services Pakistan",
     "keyword ranking",
     "AdSense website",
     "backlinking",
     "Mansoor Khan",
+    "AEO",
+    "GEO SEO",
   ],
-  authors: [{ name: "Mansoor Khan", url: siteUrl }],
+  authors: [{ name: "Mansoor Khan", url: `${SITE_URL}/about` }],
   creator: "SkillStack",
+  publisher: "SkillStack Private Limited",
+  applicationName: "SkillStack",
+  category: "Business",
   openGraph: {
     type: "website",
     locale: "en_PK",
-    url: siteUrl,
+    url: SITE_URL,
     siteName: "SkillStack",
     title: "SkillStack — From keyword to Google's first page",
     description:
@@ -49,7 +56,7 @@ export const metadata: Metadata = {
         url: "/brand/skill-stack.webp",
         width: 512,
         height: 512,
-        alt: "SkillStack",
+        alt: "SkillStack logo",
       },
     ],
   },
@@ -67,37 +74,21 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-  },
-  alternates: {
-    canonical: siteUrl,
-  },
-};
-
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "SkillStack Private Limited",
-  url: siteUrl,
-  email: "hello@skillstack.com.pk",
-  description:
-    "Web development and SEO company specializing in keyword ranking, content, backlinks, and ad monetization — serving national and international clients.",
-  founder: {
-    "@type": "Person",
-    name: "Mansoor Khan",
-    jobTitle: "CEO",
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "PK",
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
     },
   },
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "PK",
+  alternates: {
+    canonical: SITE_URL,
   },
-  areaServed: ["PK", "Worldwide"],
-  logo: `${siteUrl}/brand/skill-stack.webp`,
-  image: `${siteUrl}/brand/skill-stack.webp`,
-  sameAs: [],
+  other: {
+    "geo.region": "PK-GB",
+    "geo.placename": "Gilgit-Baltistan",
+  },
 };
 
 export default function RootLayout({
@@ -107,7 +98,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-PK"
       data-scroll-behavior="smooth"
       className={`${syne.variable} ${publicSans.variable} h-full bg-[#010409] antialiased`}
       suppressHydrationWarning
@@ -116,12 +107,7 @@ export default function RootLayout({
         className="flex min-h-full flex-col bg-bg font-sans text-ink"
         suppressHydrationWarning
       >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd),
-          }}
-        />
+        <JsonLd data={siteGraphJsonLd()} />
         <Providers>{children}</Providers>
       </body>
     </html>

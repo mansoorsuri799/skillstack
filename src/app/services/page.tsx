@@ -1,23 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import JsonLd from "@/components/JsonLd";
 import PageCTA from "@/components/PageCTA";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import ServicesCatalog from "@/components/ServicesCatalog";
+import { services } from "@/lib/content";
+import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Services",
   description:
     "Keyword research, websites, SEO content, monetization, keyword packages, and backlinking from SkillStack Private Limited.",
+  alternates: { canonical: absoluteUrl("/services") },
+  openGraph: {
+    url: absoluteUrl("/services"),
+    title: "SkillStack Services",
+    description:
+      "Research, build, content, authority, and ads — one team from keyword to revenue.",
+  },
 };
 
 export default function ServicesPage() {
   return (
     <PageShell>
+      <JsonLd
+        data={[
+          webPageJsonLd({
+            path: "/services",
+            title: "SkillStack Services",
+            description:
+              "Keyword research, websites, SEO content, monetization, keyword packages, and backlinking.",
+            type: "CollectionPage",
+          }),
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "SkillStack services",
+            itemListElement: services.map((service, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              name: service.title,
+              description: service.summary,
+              url: `${SITE_URL}/services#service-${service.n}`,
+              item: {
+                "@type": "Service",
+                name: service.title,
+                description: service.summary,
+                provider: { "@id": `${SITE_URL}/#organization` },
+                areaServed: ["PK", "Worldwide"],
+              },
+            })),
+          },
+        ]}
+      />
       <PageHero
         eyebrow="Services"
         title="Services that take you from research to revenue."
         lead="One team for research, build, content, authority, and ads — so strategy never gets lost between freelancers. Pick a service or combine them into a full stack engagement."
+        breadcrumbs={[{ label: "Services" }]}
       >
         <div className="flex flex-wrap gap-3">
           <Link

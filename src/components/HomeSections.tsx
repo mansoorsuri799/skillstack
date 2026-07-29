@@ -1,7 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import FadeIn from "./FadeIn";
+import FaqSection from "./FaqSection";
 import ProcessPath from "./ProcessPath";
 import ReasonsMarquee from "./ReasonsMarquee";
 import ServicesScrollStack from "./ServicesScrollStack";
@@ -69,6 +68,8 @@ export default function HomeSections() {
           </FadeIn>
         </div>
       </section>
+
+      <FaqSection />
 
       <section className="border-t border-white/10 bg-[#010409] py-16 sm:py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">

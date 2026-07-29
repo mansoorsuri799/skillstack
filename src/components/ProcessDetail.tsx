@@ -27,7 +27,10 @@ export default function ProcessDetail() {
       <div className="mx-auto max-w-6xl space-y-10 px-6 py-14 md:space-y-14 md:px-8 md:py-20">
         {processSteps.map((step, i) => (
           <FadeIn key={step.n} delay={reduceMotion ? 0 : i * 0.05}>
-            <article className="grid gap-8 md:grid-cols-[minmax(0,200px)_1fr] md:gap-12">
+            <article
+              id={`step-${i + 1}`}
+              className="grid scroll-mt-28 gap-8 md:grid-cols-[minmax(0,200px)_1fr] md:gap-12"
+            >
               <div className="md:sticky md:top-[5.5rem] md:self-start">
                 <motion.span
                   className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-accent/40 bg-[#0d1117] font-display text-sm font-semibold tabular-nums text-accent"

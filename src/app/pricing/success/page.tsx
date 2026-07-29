@@ -6,6 +6,7 @@ import PageShell from "@/components/PageShell";
 export const metadata: Metadata = {
   title: "Payment successful",
   description: "Your SkillStack payment was received.",
+  robots: { index: false, follow: false },
 };
 
 export default async function PricingSuccessPage({

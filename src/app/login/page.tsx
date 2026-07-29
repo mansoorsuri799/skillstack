@@ -6,6 +6,7 @@ import LoginForm from "@/components/LoginForm";
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to your SkillStack account.",
+  robots: { index: false, follow: false },
 };
 
 export default function LoginPage() {

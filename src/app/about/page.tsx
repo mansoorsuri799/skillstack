@@ -1,14 +1,23 @@
 import type { Metadata } from "next";
 import FadeIn from "@/components/FadeIn";
+import JsonLd from "@/components/JsonLd";
 import PageCTA from "@/components/PageCTA";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import { aboutHighlights } from "@/lib/content";
+import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "About us",
   description:
     "Meet SkillStack Private Limited and CEO Mansoor Khan — web development and SEO for Pakistan and the world.",
+  alternates: { canonical: absoluteUrl("/about") },
+  openGraph: {
+    url: absoluteUrl("/about"),
+    title: "About SkillStack",
+    description:
+      "Built in Pakistan. Aimed beyond borders. Led by CEO Mansoor Khan.",
+  },
 };
 
 const facts = [
@@ -20,10 +29,28 @@ const facts = [
 export default function AboutPage() {
   return (
     <PageShell>
+      <JsonLd
+        data={[
+          webPageJsonLd({
+            path: "/about",
+            title: "About SkillStack",
+            description:
+              "Meet SkillStack Private Limited and CEO Mansoor Khan — web development and SEO for Pakistan and the world.",
+            type: "AboutPage",
+          }),
+          {
+            "@context": "https://schema.org",
+            "@type": "ProfilePage",
+            mainEntity: { "@id": `${SITE_URL}/#mansoor-khan` },
+            url: absoluteUrl("/about"),
+          },
+        ]}
+      />
       <PageHero
         eyebrow="About us"
         title="Built in Pakistan. Aimed beyond borders."
         lead="SkillStack Private Limited helps clients turn domains into ranking, readable, and monetizable sites — with transparent craft and a team that keeps learning."
+        breadcrumbs={[{ label: "About" }]}
       />
 
       <div className="relative overflow-hidden border-b border-white/10 bg-[#010409]">

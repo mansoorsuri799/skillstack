@@ -1,20 +1,31 @@
 import type { Metadata } from "next";
 import FadeIn from "@/components/FadeIn";
 import ContactForm from "@/components/ContactForm";
+import JsonLd from "@/components/JsonLd";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
+import {
+  OFFICE,
+  SITE_EMAIL,
+  SITE_URL,
+  absoluteUrl,
+  webPageJsonLd,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Contact us",
   description:
-    "Contact SkillStack Private Limited for websites, SEO, keywords, and backlinking projects.",
+    "Contact SkillStack Private Limited for websites, SEO, keywords, and backlinking projects. Office in Gilgit-Baltistan, Pakistan.",
+  alternates: { canonical: absoluteUrl("/contact") },
+  openGraph: {
+    url: absoluteUrl("/contact"),
+    title: "Contact SkillStack",
+    description:
+      "Tell us your niche and goals — hello@skillstack.com.pk · Gilgit-Baltistan, Pakistan.",
+  },
 };
 
-const OFFICE_MAPS_URL = "https://maps.app.goo.gl/EWJHVAP4QonegUM5A";
-/** Resolved from the office Maps pin (Gilgit-Baltistan). */
-const OFFICE_LAT = 35.901162;
-const OFFICE_LNG = 74.361646;
-const OFFICE_EMBED_SRC = `https://www.google.com/maps?q=${OFFICE_LAT},${OFFICE_LNG}&z=15&output=embed`;
+const OFFICE_EMBED_SRC = `https://www.google.com/maps?q=${OFFICE.lat},${OFFICE.lng}&z=15&output=embed`;
 
 const details: {
   label: string;
@@ -28,8 +39,8 @@ const details: {
   },
   {
     label: "Office",
-    value: "Gilgit-Baltistan, Pakistan",
-    href: OFFICE_MAPS_URL,
+    value: OFFICE.label,
+    href: OFFICE.mapsUrl,
     hint: "Open in Google Maps",
   },
   {
@@ -45,10 +56,34 @@ const details: {
 export default function ContactPage() {
   return (
     <PageShell>
+      <JsonLd
+        data={[
+          webPageJsonLd({
+            path: "/contact",
+            title: "Contact SkillStack",
+            description:
+              "Contact SkillStack Private Limited for websites, SEO, keywords, and backlinking projects.",
+            type: "ContactPage",
+          }),
+          {
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            url: absoluteUrl("/contact"),
+            mainEntity: { "@id": `${SITE_URL}/#business` },
+            about: {
+              "@type": "Organization",
+              name: "SkillStack Private Limited",
+              email: SITE_EMAIL,
+              url: SITE_URL,
+            },
+          },
+        ]}
+      />
       <PageHero
         eyebrow="Contact us"
         title="Tell us what you want to rank or build."
         lead="Share your niche, target market, and whether you need a full stack, SEO only, keywords, or links. We’ll reply with next steps."
+        breadcrumbs={[{ label: "Contact" }]}
       />
 
       <div className="relative overflow-hidden">
@@ -64,10 +99,10 @@ export default function ContactPage() {
                 Direct
               </p>
               <a
-                href="mailto:hello@skillstack.com.pk"
+                href={`mailto:${SITE_EMAIL}`}
                 className="mt-4 block font-display text-2xl font-semibold tracking-tight text-snow transition-colors hover:text-accent sm:text-3xl"
               >
-                hello@skillstack.com.pk
+                {SITE_EMAIL}
               </a>
               <p className="mt-4 text-sm leading-relaxed text-ink-muted">
                 Prefer email? Reach out anytime — attach niche notes or keywords if
@@ -119,11 +154,11 @@ export default function ContactPage() {
                     Office map
                   </p>
                   <p className="mt-1 text-sm text-ink-muted">
-                    SkillStack · Gilgit-Baltistan, Pakistan
+                    SkillStack · {OFFICE.label}
                   </p>
                 </div>
                 <a
-                  href={OFFICE_MAPS_URL}
+                  href={OFFICE.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm font-medium text-accent hover:underline"

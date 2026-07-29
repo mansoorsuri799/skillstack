@@ -1,17 +1,21 @@
 import type { ReactNode } from "react";
+import Breadcrumbs from "./Breadcrumbs";
 import FadeIn from "./FadeIn";
+import type { Crumb } from "@/lib/seo";
 
 export default function PageHero({
   eyebrow,
   title,
   lead,
   tone = "soft",
+  breadcrumbs,
   children,
 }: {
   eyebrow: string;
   title: string;
   lead: ReactNode;
   tone?: "soft" | "elevated" | "deep";
+  breadcrumbs?: Crumb[];
   children?: ReactNode;
 }) {
   const bg =
@@ -31,6 +35,7 @@ export default function PageHero({
       />
       <div className="relative z-10 mx-auto max-w-6xl px-6 md:px-8">
         <FadeIn>
+          {breadcrumbs?.length ? <Breadcrumbs items={breadcrumbs} /> : null}
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent sm:text-sm">
             {eyebrow}
           </p>
