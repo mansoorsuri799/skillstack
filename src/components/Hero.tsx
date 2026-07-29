@@ -40,25 +40,25 @@ export default function Hero() {
           animate="show"
           className="max-w-xl"
         >
-          <motion.div
+          <motion.h1
             variants={item}
             className="relative inline-block overflow-visible pr-2 sm:pr-4"
           >
-            <p
+            <span
               className="font-display text-[2.35rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
               data-speakable
             >
               SkillStack
-            </p>
+            </span>
             <JumpingDot />
-          </motion.div>
-          <motion.h1
+          </motion.h1>
+          <motion.p
             variants={item}
             className="mt-3 max-w-xl text-base font-medium leading-snug tracking-tight text-white/90 sm:mt-5 sm:text-3xl"
           >
             From keyword to Google&apos;s first page — websites built to rank and
             earn.
-          </motion.h1>
+          </motion.p>
           <motion.p
             variants={item}
             className="mt-2.5 max-w-md text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-lg"
@@ -77,10 +77,10 @@ export default function Hero() {
               Talk to Mansoor
             </a>
             <a
-              href="/services"
+              href="/pricing"
               className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-3 py-2.5 text-center text-sm font-medium text-white/90 transition-colors hover:border-white/40 hover:bg-white/10 sm:px-6 sm:py-3"
             >
-              See services
+              View pricing
             </a>
           </motion.div>
         </motion.div>

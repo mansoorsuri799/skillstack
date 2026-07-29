@@ -55,25 +55,20 @@ export const metadata: Metadata = {
     title: "SkillStack — From keyword to Google's first page",
     description:
       "Web development, SEO blogging, keyword packages, backlinks, and ad monetization — built to rank and earn.",
-    images: [
-      {
-        url: "/brand/skill-stack.webp",
-        width: 512,
-        height: 512,
-        alt: "SkillStack logo",
-      },
-    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "SkillStack — Web Development & SEO",
     description:
       "Websites and SEO built to rank on Google and earn through ads. Serving Pakistan and international clients.",
-    images: ["/brand/skill-stack.webp"],
   },
   icons: {
-    icon: [{ url: "/brand/skill-stack.ico", sizes: "any" }],
-    apple: [{ url: "/brand/skill-stack.webp", type: "image/webp" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/brand/skill-stack.webp", type: "image/webp", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
   },
   robots: {
     index: true,
@@ -89,6 +84,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
   other: {
     "geo.region": "PK-GB",
     "geo.placename": "Gilgit-Baltistan",

@@ -8,7 +8,6 @@ import {
   LINKEDIN_URL,
   OFFICE,
   SITE_EMAIL,
-  SITE_URL,
   X_URL,
   absoluteUrl,
   webPageJsonLd,
@@ -71,28 +70,13 @@ export default function ContactPage() {
   return (
     <PageShell>
       <JsonLd
-        data={[
-          webPageJsonLd({
-            path: "/contact",
-            title: "Contact SkillStack",
-            description:
-              "Contact SkillStack Private Limited for websites, SEO, keywords, and backlinking projects.",
-            type: "ContactPage",
-          }),
-          {
-            "@context": "https://schema.org",
-            "@type": "ContactPage",
-            url: absoluteUrl("/contact"),
-            mainEntity: { "@id": `${SITE_URL}/#business` },
-            about: {
-              "@type": "Organization",
-              name: "SkillStack Private Limited",
-              email: SITE_EMAIL,
-              url: SITE_URL,
-              sameAs: [LINKEDIN_URL, X_URL],
-            },
-          },
-        ]}
+        data={webPageJsonLd({
+          path: "/contact",
+          title: "Contact SkillStack",
+          description:
+            "Contact SkillStack Private Limited for websites, SEO, keywords, and backlinking projects.",
+          type: "ContactPage",
+        })}
       />
       <PageHero
         eyebrow="Contact us"

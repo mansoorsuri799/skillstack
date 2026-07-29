@@ -28,6 +28,12 @@ export default function HomeSections() {
             >
               See the full process →
             </Link>
+            <Link
+              href="/pricing"
+              className="mt-2 ml-0 block text-sm font-medium text-ink-muted hover:text-accent sm:mt-0 sm:ml-4 sm:inline-block"
+            >
+              View pricing →
+            </Link>
           </FadeIn>
           <ProcessPath />
         </div>

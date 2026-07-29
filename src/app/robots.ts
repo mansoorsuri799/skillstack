@@ -12,6 +12,7 @@ export default function robots(): MetadataRoute.Robots {
           "/login",
           "/register",
           "/verify-email",
+          "/auth/",
           "/pricing/success",
           "/pricing/cancel",
           "/profile",

@@ -197,14 +197,6 @@ export function siteGraphJsonLd() {
           "From keyword to Google's first page — websites built to rank and earn.",
         publisher: { "@id": `${SITE_URL}/#organization` },
         inLanguage: "en-PK",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${SITE_URL}/services?q={search_term_string}`,
-          },
-          "query-input": "required name=search_term_string",
-        },
       },
       {
         "@type": "Person",

@@ -16,12 +16,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const user = await User.findOne({ username: username.toLowerCase() });
   if (!user) return { title: "Profile not found" };
   const p = toPublicProfile(user);
+  const isSubstantive =
+    Boolean(p.username) &&
+    ((p.bio?.trim().length ?? 0) >= 80 || (p.skills?.length ?? 0) >= 3);
   return {
     title: `${p.name}${p.headline ? ` · ${p.headline}` : ""}`,
     description:
       p.bio?.slice(0, 155) ||
       `${p.name} on SkillStack${p.skills.length ? ` — ${p.skills.slice(0, 6).join(", ")}` : ""}`,
     alternates: { canonical: absoluteUrl(`/u/${p.username}`) },
+    robots: isSubstantive
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
     openGraph: {
       title: p.name,
       description: p.headline || p.bio?.slice(0, 140) || "SkillStack profile",
