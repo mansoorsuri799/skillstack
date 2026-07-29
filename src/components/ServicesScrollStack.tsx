@@ -210,7 +210,7 @@ function ServicePanel({
         <p className="font-display text-sm tabular-nums tracking-[0.2em] text-accent">
           {n}
         </p>
-        <h3 className="font-display mt-3 max-w-xl text-3xl font-bold tracking-tight text-snow sm:text-4xl md:text-5xl">
+        <h3 className="font-display mt-3 max-w-xl text-2xl font-bold tracking-tight text-snow sm:text-3xl">
           {title}
         </h3>
         <motion.div
