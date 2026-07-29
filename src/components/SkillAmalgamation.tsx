@@ -87,23 +87,20 @@ export default function SkillAmalgamation() {
             else yOffset = -18;
           }
 
-          const idle =
-            !reduceMotion &&
-            hovered === null &&
-            ({
-              y: [yRest, yRest - 10, yRest, yRest - 6, yRest],
-              opacity: 1,
-              scale: [1, 1.03, 1, 1, 1],
-              rotateX: 0,
-            } as const);
-
-          const hoverOrStatic = {
-            y: yRest + yOffset,
-            opacity: 1,
-            scale: isHovered && !reduceMotion ? 1.06 : 1,
-            // Undo parent tilt → card stands facing the camera
-            rotateX: isHovered && !reduceMotion ? -STACK_TILT : 0,
-          };
+          const idleActive = !reduceMotion && hovered === null;
+          const animate = idleActive
+            ? {
+                y: [yRest, yRest - 10, yRest, yRest - 6, yRest],
+                opacity: 1,
+                scale: [1, 1.03, 1, 1, 1],
+                rotateX: 0,
+              }
+            : {
+                y: yRest + yOffset,
+                opacity: 1,
+                scale: isHovered && !reduceMotion ? 1.06 : 1,
+                rotateX: isHovered && !reduceMotion ? -STACK_TILT : 0,
+              };
 
           return (
             <motion.div
@@ -121,9 +118,9 @@ export default function SkillAmalgamation() {
                   ? { y: yRest, opacity: 1, scale: 1, rotateX: 0 }
                   : { y: yRest + 70, opacity: 0, scale: 0.94, rotateX: 0 }
               }
-              animate={idle ?? hoverOrStatic}
+              animate={animate}
               transition={
-                idle
+                idleActive
                   ? {
                       duration: 4.8,
                       delay: i * 0.14,
