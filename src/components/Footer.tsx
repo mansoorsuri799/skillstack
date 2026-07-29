@@ -1,39 +1,50 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { LINKEDIN_URL, X_URL } from "@/lib/seo";
-
-const nav = [
-  { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/process", label: "Process" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
+import { LINKEDIN_URL, SITE_EMAIL, SITE_URL, X_URL } from "@/lib/seo";
 
 const legal = [
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy policy" },
+  { href: "/terms", label: "Terms of service" },
+  { href: "/sitemap.xml", label: "Sitemap" },
 ];
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="relative z-10 border-t border-white/10 bg-[#010409] px-6 py-10 text-ink-muted md:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
-          <div className="flex min-w-0 flex-col items-center gap-2 sm:items-start">
-            <div className="flex items-center gap-2.5">
+    <footer className="relative z-10 border-t border-white/10 bg-[#010409]">
+      <div
+        aria-hidden
+        className="h-px w-full bg-gradient-to-r from-transparent via-accent/40 to-transparent"
+      />
+
+      <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 md:py-14">
+        <div className="flex flex-col items-center gap-10 text-center md:flex-row md:items-end md:justify-between md:text-left">
+          <div className="flex max-w-sm flex-col items-center gap-4 md:items-start">
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 md:justify-start">
               <Logo size="sm" />
-              <span className="text-xs text-ink-muted">smc-private limited</span>
+              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/35">
+                smc-private limited
+              </span>
             </div>
-            <p className="max-w-xs text-sm leading-relaxed text-ink-muted">
+            <p className="text-sm leading-relaxed text-white/45">
               Web development &amp; SEO — built to rank and earn.
             </p>
-            <div className="mt-1 flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:justify-start">
+              <a
+                href={`mailto:${SITE_EMAIL}`}
+                className="text-white/55 transition-colors hover:text-accent"
+              >
+                {SITE_EMAIL}
+              </a>
+              <span className="hidden text-white/20 sm:inline" aria-hidden>
+                |
+              </span>
               <a
                 href={LINKEDIN_URL}
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="text-xs font-medium transition-colors hover:text-accent"
+                className="text-white/55 transition-colors hover:text-accent"
               >
                 LinkedIn
               </a>
@@ -41,43 +52,45 @@ export default function Footer() {
                 href={X_URL}
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="text-xs font-medium transition-colors hover:text-accent"
+                className="text-white/55 transition-colors hover:text-accent"
               >
                 X
               </a>
             </div>
           </div>
 
-          <nav aria-label="Footer" className="flex flex-col items-center gap-6 sm:items-end">
-            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-end">
-              {nav.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-ink-muted transition-colors hover:text-accent"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-end">
-              {legal.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-xs text-white/40 transition-colors hover:text-accent"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <nav
+            aria-label="Legal"
+            className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 md:justify-end"
+          >
+            {legal.map((link, i) => (
+              <span key={link.href} className="flex items-center">
+                {i > 0 ? (
+                  <span className="mx-3 text-white/15" aria-hidden>
+                    ·
+                  </span>
+                ) : null}
+                <Link
+                  href={link.href}
+                  className="text-sm text-white/45 transition-colors hover:text-snow"
+                >
+                  {link.label}
+                </Link>
+              </span>
+            ))}
           </nav>
         </div>
+      </div>
 
-        <p className="border-t border-white/10 pt-6 text-center text-sm sm:text-left">
-          © {new Date().getFullYear()} SkillStack.com.pk
+      <div className="border-t border-white/[0.06]">
+        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/35 md:px-8">
+          © {year}{" "}
+          <Link
+            href={SITE_URL}
+            className="text-white/55 transition-colors hover:text-accent"
+          >
+            SkillStack.com.pk
+          </Link>
         </p>
       </div>
     </footer>

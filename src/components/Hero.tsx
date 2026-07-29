@@ -77,10 +77,10 @@ export default function Hero() {
               Talk to Mansoor
             </a>
             <a
-              href="/pricing"
+              href="/services"
               className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-3 py-2.5 text-center text-sm font-medium text-white/90 transition-colors hover:border-white/40 hover:bg-white/10 sm:px-6 sm:py-3"
             >
-              View pricing
+              See services
             </a>
           </motion.div>
         </motion.div>
