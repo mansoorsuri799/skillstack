@@ -46,19 +46,23 @@ export const metadata: Metadata = {
       "Web development, SEO blogging, keyword packages, backlinks, and ad monetization — built to rank and earn.",
     images: [
       {
-        url: "/brand/skillstack-logo.png",
-        width: 1200,
-        height: 675,
-        alt: "SkillStack — web development & SEO",
+        url: "/brand/skill-stack.webp",
+        width: 512,
+        height: 512,
+        alt: "SkillStack",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "SkillStack — Web Development & SEO",
     description:
       "Websites and SEO built to rank on Google and earn through ads. Serving Pakistan and international clients.",
-    images: ["/brand/skillstack-logo.png"],
+    images: ["/brand/skill-stack.webp"],
+  },
+  icons: {
+    icon: [{ url: "/brand/skill-stack.ico", sizes: "any" }],
+    apple: [{ url: "/brand/skill-stack.webp", type: "image/webp" }],
   },
   robots: {
     index: true,
@@ -91,8 +95,8 @@ const organizationJsonLd = {
     addressCountry: "PK",
   },
   areaServed: ["PK", "Worldwide"],
-  logo: `${siteUrl}/brand/skillstack-logo.png`,
-  image: `${siteUrl}/brand/skillstack-mark.png`,
+  logo: `${siteUrl}/brand/skill-stack.webp`,
+  image: `${siteUrl}/brand/skill-stack.webp`,
   sameAs: [],
 };
 

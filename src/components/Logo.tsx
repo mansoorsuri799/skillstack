@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type LogoProps = {
@@ -5,35 +6,11 @@ type LogoProps = {
   className?: string;
   /** Icon + wordmark (default) or icon only */
   variant?: "full" | "mark";
-  /** Slightly smaller footer treatment */
+  /** Slightly smaller footer / header treatment */
   size?: "sm" | "md";
 };
 
-function Mark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden
-    >
-      {/* Bottom brick */}
-      <path d="M10 42 L32 53 L54 42 L32 31 Z" fill="#4A5568" />
-      <path d="M10 42 L32 53 L32 58 L10 47 Z" fill="#2D3748" />
-      <path d="M54 42 L32 53 L32 58 L54 47 Z" fill="#1A202C" />
-      {/* Middle brick */}
-      <path d="M10 30 L32 41 L54 30 L32 19 Z" fill="#0F766E" />
-      <path d="M10 30 L32 41 L32 46 L10 35 Z" fill="#0A5C56" />
-      <path d="M54 30 L32 41 L32 46 L54 35 Z" fill="#064E49" />
-      {/* Top brick */}
-      <path d="M10 18 L32 29 L54 18 L32 7 Z" fill="#2DD4BF" />
-      <path d="M10 18 L32 29 L32 34 L10 23 Z" fill="#14B8A6" />
-      <path d="M54 18 L32 29 L32 34 L54 23 Z" fill="#0D9488" />
-      <circle cx="52" cy="14" r="3.2" fill="#F0F3F6" />
-    </svg>
-  );
-}
+const MARK_SRC = "/brand/skill-stack.webp";
 
 export default function Logo({
   href = "/",
@@ -41,15 +18,26 @@ export default function Logo({
   variant = "full",
   size = "md",
 }: LogoProps) {
-  const markSize = size === "sm" ? "h-7 w-7" : "h-8 w-8";
+  const px = size === "sm" ? 28 : 32;
   const textSize = size === "sm" ? "text-sm" : "text-lg";
+
+  const mark = (
+    <Image
+      src={MARK_SRC}
+      alt=""
+      width={px}
+      height={px}
+      className="shrink-0 invert"
+      priority
+    />
+  );
 
   const inner =
     variant === "mark" ? (
-      <Mark className={markSize} />
+      mark
     ) : (
       <span className="inline-flex items-center gap-2.5">
-        <Mark className={markSize} />
+        {mark}
         <span
           className={`font-display font-bold tracking-tight text-white ${textSize}`}
         >

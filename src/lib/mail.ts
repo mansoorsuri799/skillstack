@@ -55,9 +55,9 @@ function buildVerificationHtml(name: string, verifyUrl: string) {
                   <td>
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td style="width:36px;height:36px;vertical-align:middle;">
+                        <td style="width:36px;height:36px;vertical-align:middle;background:#ffffff;border-radius:8px;padding:4px;">
                           <!--[if mso]><span style="font-size:18px;color:#2dd4bf;">■</span><![endif]-->
-                          <img src="https://skillstack.com.pk/brand/skillstack-mark.png" width="36" height="36" alt="SkillStack" style="display:block;border:0;width:36px;height:36px;border-radius:8px;" />
+                          <img src="https://skillstack.com.pk/brand/skill-stack.webp" width="28" height="28" alt="SkillStack" style="display:block;border:0;width:28px;height:28px;" />
                         </td>
                         <td style="padding-left:12px;vertical-align:middle;">
                           <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.03em;color:#f0f3f6;">SkillStack<span style="color:#2dd4bf;font-size:10px;vertical-align:super;">●</span></span>

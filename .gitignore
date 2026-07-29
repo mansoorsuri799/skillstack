@@ -43,3 +43,5 @@ next-env.d.ts
 
 # Local scrape cache
 .firecrawl/
+
+.DS_Store
