@@ -5,6 +5,7 @@ import JsonLd from "@/components/JsonLd";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import {
+  LINKEDIN_URL,
   OFFICE,
   SITE_EMAIL,
   SITE_URL,
@@ -36,6 +37,12 @@ const details: {
   {
     label: "Company",
     value: "SkillStack Private Limited",
+  },
+  {
+    label: "LinkedIn",
+    value: "Skill Stack on LinkedIn",
+    href: LINKEDIN_URL,
+    hint: "Follow the company page",
   },
   {
     label: "Office",
@@ -75,6 +82,7 @@ export default function ContactPage() {
               name: "SkillStack Private Limited",
               email: SITE_EMAIL,
               url: SITE_URL,
+              sameAs: [LINKEDIN_URL],
             },
           },
         ]}
