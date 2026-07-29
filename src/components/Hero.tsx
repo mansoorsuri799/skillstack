@@ -68,13 +68,13 @@ export default function Hero() {
             className="mt-9 flex flex-wrap items-center gap-4"
           >
             <a
-              href="#contact"
+              href="/contact"
               className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-[#010409] transition-colors hover:bg-accent-deep"
             >
               Talk to Mansoor
             </a>
             <a
-              href="#services"
+              href="/services"
               className="rounded-md border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 transition-colors hover:border-white/40 hover:bg-white/10"
             >
               See services

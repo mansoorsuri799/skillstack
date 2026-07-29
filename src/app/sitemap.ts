@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
 
+const base = "https://skillstack.com.pk";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: "https://skillstack.com.pk",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-  ];
+  const paths = ["", "/services", "/process", "/about", "/contact"];
+  return paths.map((path) => ({
+    url: `${base}${path}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: path === "" ? 1 : 0.8,
+  }));
 }
