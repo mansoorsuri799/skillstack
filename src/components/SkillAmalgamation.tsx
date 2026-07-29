@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const layers = [
   {
@@ -36,13 +36,25 @@ const layers = [
   },
 ];
 
-const GAP = 44;
-const OFFSET = 28;
-/** Parent stack tilt — cancel this on hover so the card faces the camera (stands flat / 90°) */
-const STACK_TILT = 12;
+const DESKTOP = { gap: 44, offset: 28, tilt: 12, height: 360 };
+const MOBILE = { gap: 34, offset: 12, tilt: 8, height: 268 };
+
+function useCompactStack(breakpoint = 640) {
+  const [compact, setCompact] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const sync = () => setCompact(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [breakpoint]);
+  return compact;
+}
 
 export default function SkillAmalgamation() {
   const reduceMotion = useReducedMotion();
+  const compact = useCompactStack();
+  const metrics = compact ? MOBILE : DESKTOP;
   const [hovered, setHovered] = useState<number | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -59,11 +71,13 @@ export default function SkillAmalgamation() {
     setHovered((prev) => (prev === next ? prev : next));
   }, []);
 
+  const { gap: GAP, offset: OFFSET, tilt: STACK_TILT, height } = metrics;
+
   return (
     <div
       ref={rootRef}
-      className="relative mx-auto mt-1 h-[240px] w-full max-w-md touch-pan-y sm:mt-0 sm:h-[360px]"
-      style={{ perspective: "900px" }}
+      className="relative mx-auto w-full max-w-md touch-pan-y"
+      style={{ perspective: "900px", height }}
       onPointerMove={(e) => resolveHover(e.clientX, e.clientY)}
       onPointerDown={(e) => resolveHover(e.clientX, e.clientY)}
       onPointerLeave={() => setHovered(null)}
@@ -82,30 +96,31 @@ export default function SkillAmalgamation() {
 
           let yOffset = 0;
           if (hovered !== null && !reduceMotion) {
-            if (i < hovered) yOffset = 22;
-            else if (i > hovered) yOffset = -22;
-            else yOffset = -18;
+            if (i < hovered) yOffset = compact ? 14 : 22;
+            else if (i > hovered) yOffset = compact ? -14 : -22;
+            else yOffset = compact ? -12 : -18;
           }
 
           const idleActive = !reduceMotion && hovered === null;
+          const bob = compact ? 6 : 10;
           const animate = idleActive
             ? {
-                y: [yRest, yRest - 10, yRest, yRest - 6, yRest],
+                y: [yRest, yRest - bob, yRest, yRest - bob * 0.6, yRest],
                 opacity: 1,
-                scale: [1, 1.03, 1, 1, 1],
+                scale: [1, 1.02, 1, 1, 1],
                 rotateX: 0,
               }
             : {
                 y: yRest + yOffset,
                 opacity: 1,
-                scale: isHovered && !reduceMotion ? 1.06 : 1,
+                scale: isHovered && !reduceMotion ? (compact ? 1.04 : 1.06) : 1,
                 rotateX: isHovered && !reduceMotion ? -STACK_TILT : 0,
               };
 
           return (
             <motion.div
               key={layer.label}
-              className={`pointer-events-none absolute left-1/2 w-[92%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:w-[88%] sm:px-5 sm:py-4 ${layer.tone} ${
+              className={`pointer-events-none absolute left-1/2 w-[94%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-3.5 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:w-[88%] sm:px-5 sm:py-4 ${layer.tone} ${
                 isHovered ? "border-accent/50" : layer.border
               }`}
               style={{
@@ -116,7 +131,7 @@ export default function SkillAmalgamation() {
               initial={
                 reduceMotion
                   ? { y: yRest, opacity: 1, scale: 1, rotateX: 0 }
-                  : { y: yRest + 70, opacity: 0, scale: 0.94, rotateX: 0 }
+                  : { y: yRest + 48, opacity: 0, scale: 0.94, rotateX: 0 }
               }
               animate={animate}
               transition={
@@ -137,17 +152,17 @@ export default function SkillAmalgamation() {
                     }
               }
             >
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`font-display text-xs font-semibold tracking-tight sm:text-base ${layer.text}`}
+                  className={`min-w-0 truncate font-display text-[11px] font-semibold tracking-tight sm:text-base ${layer.text}`}
                 >
                   {layer.label}
                 </span>
-                <span className="font-display text-[10px] tabular-nums text-white/35">
+                <span className="shrink-0 font-display text-[10px] tabular-nums text-white/35 sm:text-[10px]">
                   {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
-              <div className="mt-2 h-px w-full bg-gradient-to-r from-accent/40 to-transparent" />
+              <div className="mt-1.5 h-px w-full bg-gradient-to-r from-accent/40 to-transparent sm:mt-2" />
             </motion.div>
           );
         })}
@@ -160,7 +175,7 @@ export default function SkillAmalgamation() {
             <div
               key={`hit-${layer.label}`}
               data-stack-hit={i}
-              className="absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2"
+              className="absolute left-1/2 w-[90%] max-w-[340px] -translate-x-1/2"
               style={{
                 top: 0,
                 height: GAP,
@@ -172,7 +187,7 @@ export default function SkillAmalgamation() {
         })}
       </div>
 
-      <div className="pointer-events-none absolute bottom-2 left-1/2 h-10 w-52 -translate-x-1/2 rounded-[100%] bg-accent/15 blur-2xl" />
+      <div className="pointer-events-none absolute bottom-1 left-1/2 h-8 w-44 -translate-x-1/2 rounded-[100%] bg-accent/15 blur-2xl sm:bottom-2 sm:h-10 sm:w-52" />
     </div>
   );
 }

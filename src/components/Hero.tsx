@@ -33,7 +33,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_70%_20%,rgba(45,212,191,0.1),transparent_55%),radial-gradient(ellipse_60%_40%_at_10%_80%,rgba(56,100,140,0.12),transparent_50%)]"
       />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pb-12 pt-16 sm:gap-10 sm:px-6 sm:pb-20 sm:pt-[4.5rem] md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8 md:pt-28">
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pb-10 pt-28 sm:gap-8 sm:px-6 sm:pb-16 sm:pt-32 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8 md:pb-20 md:pt-36">
         <motion.div
           variants={container}
           initial="hidden"
@@ -44,45 +44,45 @@ export default function Hero() {
             variants={item}
             className="relative inline-block overflow-visible pr-3 sm:pr-4"
           >
-            <p className="font-display text-4xl font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl">
+            <p className="font-display text-[2.35rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl">
               SkillStack
             </p>
             <JumpingDot />
           </motion.div>
           <motion.h1
             variants={item}
-            className="mt-4 max-w-xl text-lg font-medium leading-snug tracking-tight text-white/90 sm:mt-5 sm:text-3xl"
+            className="mt-3 max-w-xl text-base font-medium leading-snug tracking-tight text-white/90 sm:mt-5 sm:text-3xl"
           >
             From keyword to Google&apos;s first page — websites built to rank and
             earn.
           </motion.h1>
           <motion.p
             variants={item}
-            className="mt-3 max-w-md text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-lg"
+            className="mt-2.5 max-w-md text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-lg"
           >
             Web development, SEO content, and monetization — built for clients
             across Pakistan and worldwide.
           </motion.p>
           <motion.div
             variants={item}
-            className="mt-6 flex w-full flex-col gap-2.5 sm:mt-9 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+            className="mt-5 grid w-full grid-cols-2 gap-2.5 sm:mt-9 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-4"
           >
             <a
               href="/contact"
-              className="inline-flex items-center justify-center rounded-md bg-accent px-5 py-3 text-sm font-semibold text-[#010409] transition-colors hover:bg-accent-deep sm:px-6"
+              className="inline-flex items-center justify-center rounded-md bg-accent px-3 py-2.5 text-center text-sm font-semibold text-[#010409] transition-colors hover:bg-accent-deep sm:px-6 sm:py-3"
             >
               Talk to Mansoor
             </a>
             <a
               href="/services"
-              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-5 py-3 text-sm font-medium text-white/90 transition-colors hover:border-white/40 hover:bg-white/10 sm:px-6"
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/5 px-3 py-2.5 text-center text-sm font-medium text-white/90 transition-colors hover:border-white/40 hover:bg-white/10 sm:px-6 sm:py-3"
             >
               See services
             </a>
           </motion.div>
         </motion.div>
 
-        <div className="min-h-0 md:min-h-[360px]">
+        <div className="min-h-0 w-full overflow-visible md:min-h-[360px]">
           <SkillAmalgamation />
         </div>
       </div>
