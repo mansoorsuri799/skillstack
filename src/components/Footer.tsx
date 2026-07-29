@@ -1,5 +1,5 @@
 import Logo from "@/components/Logo";
-import { LINKEDIN_URL } from "@/lib/seo";
+import { LINKEDIN_URL, X_URL } from "@/lib/seo";
 
 export default function Footer() {
   return (
@@ -12,14 +12,24 @@ export default function Footer() {
               smc-private limited
             </span>
           </div>
-          <a
-            href={LINKEDIN_URL}
-            target="_blank"
-            rel="noopener noreferrer me"
-            className="text-xs font-medium text-ink-muted transition-colors hover:text-accent"
-          >
-            LinkedIn
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href={LINKEDIN_URL}
+              target="_blank"
+              rel="noopener noreferrer me"
+              className="text-xs font-medium text-ink-muted transition-colors hover:text-accent"
+            >
+              LinkedIn
+            </a>
+            <a
+              href={X_URL}
+              target="_blank"
+              rel="noopener noreferrer me"
+              className="text-xs font-medium text-ink-muted transition-colors hover:text-accent"
+            >
+              X
+            </a>
+          </div>
         </div>
         <p className="shrink-0 text-sm">
           © {new Date().getFullYear()} SkillStack.com.pk

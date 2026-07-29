@@ -4,6 +4,7 @@ export const LEGAL_NAME = "SkillStack Private Limited";
 export const SITE_EMAIL = "hello@skillstack.com.pk";
 export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
+export const X_URL = "https://x.com/skillstack_co";
 
 /** Office pin from Google Maps */
 export const OFFICE = {
@@ -114,7 +115,7 @@ export function siteGraphJsonLd() {
         image: logo,
         description:
           "Web development and SEO company specializing in keyword ranking, content, backlinks, and ad monetization — serving national and international clients.",
-        sameAs: [LINKEDIN_URL],
+        sameAs: [LINKEDIN_URL, X_URL],
         founder: { "@id": `${SITE_URL}/#mansoor-khan` },
         foundingLocation: {
           "@type": "Place",
@@ -163,7 +164,7 @@ export function siteGraphJsonLd() {
         image: logo,
         email: SITE_EMAIL,
         priceRange: "$$",
-        sameAs: [LINKEDIN_URL],
+        sameAs: [LINKEDIN_URL, X_URL],
         parentOrganization: { "@id": `${SITE_URL}/#organization` },
         address: {
           "@type": "PostalAddress",

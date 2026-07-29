@@ -9,6 +9,7 @@ import {
   OFFICE,
   SITE_EMAIL,
   SITE_URL,
+  X_URL,
   absoluteUrl,
   webPageJsonLd,
 } from "@/lib/seo";
@@ -43,6 +44,12 @@ const details: {
     value: "Skill Stack on LinkedIn",
     href: LINKEDIN_URL,
     hint: "Follow the company page",
+  },
+  {
+    label: "X",
+    value: "@SkillStack_co",
+    href: X_URL,
+    hint: "Follow on X",
   },
   {
     label: "Office",
@@ -82,7 +89,7 @@ export default function ContactPage() {
               name: "SkillStack Private Limited",
               email: SITE_EMAIL,
               url: SITE_URL,
-              sameAs: [LINKEDIN_URL],
+              sameAs: [LINKEDIN_URL, X_URL],
             },
           },
         ]}
