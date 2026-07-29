@@ -9,7 +9,7 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const reasons = [
   {
@@ -34,8 +34,21 @@ const reasons = [
   },
 ];
 
+function useIsMobile(breakpoint = 640) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const sync = () => setMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [breakpoint]);
+  return mobile;
+}
+
 export default function ReasonsMarquee() {
   const reduceMotion = useReducedMotion();
+  const mobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -60,16 +73,18 @@ export default function ReasonsMarquee() {
 
   if (reduceMotion) {
     return (
-      <ul className="mx-auto mt-10 grid max-w-6xl gap-4 px-6 sm:grid-cols-2 md:px-8 lg:grid-cols-4">
+      <ul className="mx-auto mt-8 grid max-w-6xl gap-3 px-4 sm:mt-10 sm:grid-cols-2 sm:gap-4 sm:px-6 md:px-8 lg:grid-cols-4">
         {reasons.map((reason) => (
           <li
             key={reason.n}
-            className="rounded-lg border border-white/10 bg-gradient-to-br from-[#161b22] to-[#0d1117] px-5 py-6"
+            className="rounded-lg border border-white/10 bg-gradient-to-br from-[#161b22] to-[#0d1117] px-4 py-5 sm:px-5 sm:py-6"
           >
             <span className="font-display text-sm tabular-nums text-accent">
               {reason.n}
             </span>
-            <h3 className="mt-3 text-lg font-semibold text-snow">{reason.title}</h3>
+            <h3 className="mt-2 text-base font-semibold text-snow sm:mt-3 sm:text-lg">
+              {reason.title}
+            </h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">
               {reason.body}
             </p>
@@ -79,14 +94,16 @@ export default function ReasonsMarquee() {
     );
   }
 
+  const unit = mobile ? 70 : 85;
+
   return (
     <div
       ref={containerRef}
       className="relative"
-      style={{ height: `${reasons.length * 85}vh` }}
+      style={{ height: `${reasons.length * unit}vh` }}
     >
-      <div className="sticky top-[4.5rem] flex h-[calc(100svh-5rem)] flex-col justify-center overflow-hidden sm:top-24">
-        <div className="relative mx-auto h-[240px] w-full max-w-2xl px-6 sm:h-[280px] md:px-8">
+      <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col justify-start overflow-hidden pt-6 sm:top-24 sm:h-[calc(100svh-5rem)] sm:justify-center sm:pt-0">
+        <div className="relative mx-auto h-[210px] w-full max-w-2xl px-4 sm:h-[280px] sm:px-6 md:px-8">
           {reasons.map((reason, i) => (
             <ReasonCard
               key={reason.n}
@@ -95,16 +112,17 @@ export default function ReasonsMarquee() {
               active={active}
               progress={smooth}
               total={reasons.length}
+              mobile={mobile}
             />
           ))}
         </div>
 
-        <div className="mx-auto mt-8 flex w-full max-w-2xl items-center gap-3 px-6 md:px-8">
-          <ol className="flex gap-2" aria-label="Why choose us progress">
+        <div className="mx-auto mt-5 flex w-full max-w-2xl flex-wrap items-center gap-2 px-4 sm:mt-8 sm:gap-3 sm:px-6 md:px-8">
+          <ol className="flex gap-1.5 sm:gap-2" aria-label="Why choose us progress">
             {reasons.map((r, i) => (
               <li
                 key={r.n}
-                className={`h-1.5 w-8 rounded-full transition-colors duration-300 ${
+                className={`h-1.5 w-6 rounded-full transition-colors duration-300 sm:w-8 ${
                   i === active ? "bg-accent" : "bg-white/15"
                 }`}
               />
@@ -125,12 +143,14 @@ function ReasonCard({
   active,
   progress,
   total,
+  mobile,
 }: {
   reason: (typeof reasons)[number];
   index: number;
   active: number;
   progress: MotionValue<number>;
   total: number;
+  mobile: boolean;
 }) {
   const segment = 1 / Math.max(1, total - 1);
   const center = index * segment;
@@ -138,22 +158,22 @@ function ReasonCard({
   const y = useTransform(
     progress,
     [center - segment, center, center + segment],
-    [72, 0, -48],
+    [mobile ? 40 : 72, 0, mobile ? -28 : -48],
   );
   const scale = useTransform(
     progress,
     [center - segment, center, center + segment],
-    [0.88, 1, 0.94],
+    [0.92, 1, 0.94],
   );
   const opacity = useTransform(
     progress,
     [center - segment * 0.85, center, center + segment * 0.85],
-    [0, 1, 0.25],
+    [0, 1, 0.2],
   );
   const blur = useTransform(
     progress,
     [center - segment, center, center + segment],
-    [6, 0, 2],
+    [mobile ? 3 : 6, 0, 2],
   );
   const filter = useTransform(blur, (b) => `blur(${b}px)`);
 
@@ -162,7 +182,7 @@ function ReasonCard({
 
   return (
     <motion.article
-      className="absolute inset-x-6 top-0 rounded-lg border bg-gradient-to-br from-[#161b22] to-[#0d1117] px-6 py-7 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:inset-x-8 sm:px-8 sm:py-9"
+      className="absolute inset-x-0 top-0 rounded-lg border bg-gradient-to-br from-[#161b22] to-[#0d1117] px-4 py-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:inset-x-0 sm:px-8 sm:py-9"
       style={{
         y,
         scale,
@@ -186,10 +206,10 @@ function ReasonCard({
           aria-hidden
         />
       </div>
-      <h3 className="font-display mt-4 text-2xl font-bold tracking-tight text-snow sm:text-3xl">
+      <h3 className="font-display mt-3 text-lg font-bold tracking-tight text-snow sm:mt-4 sm:text-3xl">
         {reason.title}
       </h3>
-      <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted sm:text-base">
+      <p className="mt-2 text-sm leading-relaxed text-ink-muted sm:mt-3 sm:text-base">
         {reason.body}
       </p>
     </motion.article>

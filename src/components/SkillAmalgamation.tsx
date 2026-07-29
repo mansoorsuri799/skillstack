@@ -62,9 +62,10 @@ export default function SkillAmalgamation() {
   return (
     <div
       ref={rootRef}
-      className="relative mx-auto h-[300px] w-full max-w-md touch-none sm:h-[360px]"
+      className="relative mx-auto mt-2 h-[260px] w-full max-w-md touch-pan-y sm:mt-0 sm:h-[360px]"
       style={{ perspective: "900px" }}
       onPointerMove={(e) => resolveHover(e.clientX, e.clientY)}
+      onPointerDown={(e) => resolveHover(e.clientX, e.clientY)}
       onPointerLeave={() => setHovered(null)}
     >
       <div
@@ -107,7 +108,7 @@ export default function SkillAmalgamation() {
           return (
             <motion.div
               key={layer.label}
-              className={`pointer-events-none absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)] ${layer.tone} ${
+              className={`pointer-events-none absolute left-1/2 w-[92%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:w-[88%] sm:px-5 sm:py-4 ${layer.tone} ${
                 isHovered ? "border-accent/50" : layer.border
               }`}
               style={{
@@ -141,7 +142,7 @@ export default function SkillAmalgamation() {
             >
               <div className="flex items-center justify-between gap-3">
                 <span
-                  className={`font-display text-sm font-semibold tracking-tight sm:text-base ${layer.text}`}
+                  className={`font-display text-xs font-semibold tracking-tight sm:text-base ${layer.text}`}
                 >
                   {layer.label}
                 </span>

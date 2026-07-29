@@ -73,8 +73,14 @@ body {
 }
 
 .process-marquee-track {
-  animation: process-marquee 28s linear infinite;
+  animation: process-marquee 22s linear infinite;
   will-change: transform;
+}
+
+@media (min-width: 640px) {
+  .process-marquee-track {
+    animation-duration: 28s;
+  }
 }
 
 .process-marquee:hover .process-marquee-track {
