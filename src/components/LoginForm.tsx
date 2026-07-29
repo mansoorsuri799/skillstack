@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+
+const inputClass =
+  "mt-1.5 w-full rounded-md border border-white/15 bg-[#010409] px-3 py-2 text-sm text-snow outline-none transition placeholder:text-white/30 focus:border-accent";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -55,18 +57,18 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="mt-8 space-y-5">
+    <div className="space-y-4">
       <GoogleSignInButton />
 
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-white/10" />
-        <span className="text-xs uppercase tracking-wide text-ink-muted">
+        <span className="text-[11px] uppercase tracking-wide text-ink-muted">
           or
         </span>
         <div className="h-px flex-1 bg-white/10" />
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form onSubmit={onSubmit} className="space-y-3">
         {error ? (
           <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
             {error}
@@ -74,42 +76,35 @@ export default function LoginForm() {
         ) : null}
 
         <label className="block">
-          <span className="text-sm text-ink-muted">Email</span>
+          <span className="text-sm font-medium text-snow">Email address</span>
           <input
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+            className={inputClass}
           />
         </label>
 
         <label className="block">
-          <span className="text-sm text-ink-muted">Password</span>
+          <span className="text-sm font-medium text-snow">Password</span>
           <input
             name="password"
             type="password"
             required
             autoComplete="current-password"
-            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+            className={inputClass}
           />
         </label>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-60"
+          className="mt-1 w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-60"
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
-
-      <p className="text-center text-sm text-ink-muted">
-        No account?{" "}
-        <Link href="/register" className="text-accent hover:underline">
-          Register
-        </Link>
-      </p>
     </div>
   );
 }

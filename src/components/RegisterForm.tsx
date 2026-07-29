@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+
+const inputClass =
+  "mt-1.5 w-full rounded-md border border-white/15 bg-[#010409] px-3 py-2 text-sm text-snow outline-none transition placeholder:text-white/30 focus:border-accent";
 
 export default function RegisterForm() {
   const [error, setError] = useState("");
@@ -42,18 +44,18 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="mt-8 space-y-5">
+    <div className="space-y-4">
       <GoogleSignInButton label="Sign up with Google" />
 
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-white/10" />
-        <span className="text-xs uppercase tracking-wide text-ink-muted">
+        <span className="text-[11px] uppercase tracking-wide text-ink-muted">
           or
         </span>
         <div className="h-px flex-1 bg-white/10" />
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form onSubmit={onSubmit} className="space-y-3">
         {error ? (
           <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
             {error}
@@ -66,37 +68,37 @@ export default function RegisterForm() {
         ) : null}
 
         <label className="block">
-          <span className="text-sm text-ink-muted">Full name</span>
+          <span className="text-sm font-medium text-snow">Full name</span>
           <input
             name="name"
             type="text"
             required
             autoComplete="name"
             minLength={2}
-            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+            className={inputClass}
           />
         </label>
 
         <label className="block">
-          <span className="text-sm text-ink-muted">Email</span>
+          <span className="text-sm font-medium text-snow">Email address</span>
           <input
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+            className={inputClass}
           />
         </label>
 
         <label className="block">
-          <span className="text-sm text-ink-muted">Password</span>
+          <span className="text-sm font-medium text-snow">Password</span>
           <input
             name="password"
             type="password"
             required
             autoComplete="new-password"
             minLength={8}
-            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+            className={inputClass}
           />
           <span className="mt-1 block text-xs text-ink-muted">
             At least 8 characters
@@ -106,18 +108,11 @@ export default function RegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-60"
+          className="mt-1 w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-60"
         >
           {loading ? "Creating account..." : "Create account"}
         </button>
       </form>
-
-      <p className="text-center text-sm text-ink-muted">
-        Already registered?{" "}
-        <Link href="/login" className="text-accent hover:underline">
-          Sign in
-        </Link>
-      </p>
     </div>
   );
 }
