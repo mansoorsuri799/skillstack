@@ -45,7 +45,6 @@ function SectionIntro() {
   );
 }
 
-/** Compact list for phones — no sticky empty viewport */
 function MobileServicesList() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -69,86 +68,6 @@ function MobileServicesList() {
           </FadeIn>
         ))}
       </ul>
-    </div>
-  );
-}
-
-export default function ServicesScrollStack() {
-  const reduceMotion = useReducedMotion();
-  const mobile = useIsMobile();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => setReady(true), []);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 140,
-    damping: 30,
-    mass: 0.4,
-  });
-
-  useMotionValueEvent(smoothProgress, "change", (v) => {
-    const next = Math.min(
-      services.length - 1,
-      Math.max(0, Math.round(v * (services.length - 1))),
-    );
-    setActive((prev) => (prev === next ? prev : next));
-  });
-
-  // Avoid SSR mismatch: default compact on first paint for small screens
-  if (!ready || mobile || reduceMotion) {
-    return <MobileServicesList />;
-  }
-
-  return (
-    <div
-      ref={containerRef}
-      className="relative"
-      style={{ height: `${services.length * 80}vh` }}
-    >
-      <div className="sticky top-0 flex h-[100svh] flex-col justify-start overflow-hidden pt-16 sm:pt-[4.5rem]">
-        <div className="mx-auto w-full max-w-6xl px-6 pb-8 pt-8 md:px-8 md:pt-10">
-          <SectionIntro />
-
-          <div className="relative mt-16 h-[320px] md:mt-20 md:h-[360px]">
-            {services.map((s, i) => (
-              <ServicePanel
-                key={s.n}
-                index={i}
-                active={active}
-                n={s.n}
-                title={s.title}
-                summary={s.summary}
-                progress={smoothProgress}
-                total={services.length}
-              />
-            ))}
-          </div>
-
-          <div className="mt-10 flex items-center gap-3 md:mt-12">
-            <ol className="flex gap-2" aria-label="Service progress">
-              {services.map((s, i) => (
-                <li
-                  key={s.n}
-                  className={`h-1.5 w-11 rounded-full transition-colors duration-300 ${
-                    i === active ? "bg-accent" : "bg-white/12"
-                  }`}
-                  aria-current={i === active ? "step" : undefined}
-                />
-              ))}
-            </ol>
-            <p className="font-display text-xs tabular-nums text-ink-muted">
-              {services[active].n} / {String(services.length).padStart(2, "0")}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -231,4 +150,90 @@ function ServicePanel({
       </div>
     </motion.article>
   );
+}
+
+/** Mounted only when the scroll target div is actually rendered. */
+function ServicesStackDesktop() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 140,
+    damping: 30,
+    mass: 0.4,
+  });
+
+  useMotionValueEvent(smoothProgress, "change", (v) => {
+    const next = Math.min(
+      services.length - 1,
+      Math.max(0, Math.round(v * (services.length - 1))),
+    );
+    setActive((prev) => (prev === next ? prev : next));
+  });
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+      style={{ height: `${services.length * 80}vh` }}
+    >
+      <div className="sticky top-0 flex h-[100svh] flex-col justify-start overflow-hidden pt-16 sm:pt-[4.5rem]">
+        <div className="mx-auto w-full max-w-6xl px-6 pb-8 pt-8 md:px-8 md:pt-10">
+          <SectionIntro />
+
+          <div className="relative mt-16 h-[320px] md:mt-20 md:h-[360px]">
+            {services.map((s, i) => (
+              <ServicePanel
+                key={s.n}
+                index={i}
+                active={active}
+                n={s.n}
+                title={s.title}
+                summary={s.summary}
+                progress={smoothProgress}
+                total={services.length}
+              />
+            ))}
+          </div>
+
+          <div className="mt-10 flex items-center gap-3 md:mt-12">
+            <ol className="flex gap-2" aria-label="Service progress">
+              {services.map((s, i) => (
+                <li
+                  key={s.n}
+                  className={`h-1.5 w-11 rounded-full transition-colors duration-300 ${
+                    i === active ? "bg-accent" : "bg-white/12"
+                  }`}
+                  aria-current={i === active ? "step" : undefined}
+                />
+              ))}
+            </ol>
+            <p className="font-display text-xs tabular-nums text-ink-muted">
+              {services[active].n} / {String(services.length).padStart(2, "0")}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ServicesScrollStack() {
+  const reduceMotion = useReducedMotion();
+  const mobile = useIsMobile();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => setReady(true), []);
+
+  // Never call useScroll unless the target element is mounted.
+  if (!ready || mobile || reduceMotion) {
+    return <MobileServicesList />;
+  }
+
+  return <ServicesStackDesktop />;
 }

@@ -126,15 +126,11 @@ function MobileReasonsList() {
   );
 }
 
-export default function ReasonsMarquee() {
-  const reduceMotion = useReducedMotion();
-  const mobile = useIsMobile();
+/** Mounted only when the scroll target div is actually rendered. */
+function ReasonsStackDesktop() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => setReady(true), []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -159,10 +155,6 @@ export default function ReasonsMarquee() {
     });
   });
 
-  if (!ready || mobile || reduceMotion) {
-    return <MobileReasonsList />;
-  }
-
   const behind = reasons
     .slice(active + 1, active + 3)
     .map((reason, i) => ({ reason, depth: i + 1 }));
@@ -181,7 +173,6 @@ export default function ReasonsMarquee() {
             className="relative mx-auto mt-10 h-[240px] max-w-2xl md:mt-12 md:h-[280px]"
             style={{ perspective: "1400px" }}
           >
-            {/* Depth stack under the active card */}
             {behind
               .slice()
               .reverse()
@@ -260,4 +251,19 @@ export default function ReasonsMarquee() {
       </div>
     </div>
   );
+}
+
+export default function ReasonsMarquee() {
+  const reduceMotion = useReducedMotion();
+  const mobile = useIsMobile();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => setReady(true), []);
+
+  // Never call useScroll unless the target element is mounted.
+  if (!ready || mobile || reduceMotion) {
+    return <MobileReasonsList />;
+  }
+
+  return <ReasonsStackDesktop />;
 }
