@@ -12,9 +12,10 @@ import {
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { services } from "@/lib/content";
+import FadeIn from "./FadeIn";
 
-function useIsMobile(breakpoint = 640) {
-  const [mobile, setMobile] = useState(false);
+function useIsMobile(breakpoint = 768) {
+  const [mobile, setMobile] = useState(true);
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
     const sync = () => setMobile(mq.matches);
@@ -25,11 +26,61 @@ function useIsMobile(breakpoint = 640) {
   return mobile;
 }
 
+function SectionIntro() {
+  return (
+    <>
+      <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent sm:text-sm">
+        Services
+      </p>
+      <h2 className="font-display mt-2 max-w-2xl text-2xl font-bold tracking-tight text-snow sm:mt-3 sm:text-4xl md:text-5xl">
+        Everything between a blank domain and a ranking business.
+      </h2>
+      <Link
+        href="/services"
+        className="mt-3 inline-block text-sm font-medium text-accent hover:underline sm:mt-4"
+      >
+        View all services →
+      </Link>
+    </>
+  );
+}
+
+/** Compact list for phones — no sticky empty viewport */
+function MobileServicesList() {
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <FadeIn>
+        <SectionIntro />
+      </FadeIn>
+      <ul className="mt-8 space-y-0">
+        {services.map((s, i) => (
+          <FadeIn key={s.n} delay={i * 0.05}>
+            <li className="border-t border-white/10 py-5">
+              <span className="font-display text-xs tabular-nums text-accent">
+                {s.n}
+              </span>
+              <h3 className="mt-1.5 text-lg font-semibold tracking-tight text-snow">
+                {s.title}
+              </h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                {s.summary}
+              </p>
+            </li>
+          </FadeIn>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function ServicesScrollStack() {
   const reduceMotion = useReducedMotion();
   const mobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => setReady(true), []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -50,65 +101,22 @@ export default function ServicesScrollStack() {
     setActive((prev) => (prev === next ? prev : next));
   });
 
-  if (reduceMotion) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 md:px-8">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent sm:text-sm">
-          Services
-        </p>
-        <h2 className="font-display mt-3 max-w-2xl text-2xl font-bold tracking-tight text-snow sm:text-4xl md:text-5xl">
-          Everything between a blank domain and a ranking business.
-        </h2>
-        <Link
-          href="/services"
-          className="mt-4 inline-block text-sm font-medium text-accent hover:underline"
-        >
-          View all services →
-        </Link>
-        <ul className="mt-10 space-y-10 sm:mt-12 sm:space-y-14">
-          {services.map((s) => (
-            <li key={s.n} className="relative max-w-3xl">
-              <p className="font-display text-sm tabular-nums tracking-[0.2em] text-accent">
-                {s.n}
-              </p>
-              <h3 className="mt-2 font-display text-xl font-bold tracking-tight text-snow sm:text-2xl">
-                {s.title}
-              </h3>
-              <div className="mt-3 h-px w-14 bg-accent/70" aria-hidden />
-              <p className="mt-3 text-sm leading-relaxed text-ink-muted sm:text-base">
-                {s.summary}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
+  // Avoid SSR mismatch: default compact on first paint for small screens
+  if (!ready || mobile || reduceMotion) {
+    return <MobileServicesList />;
   }
-
-  const unit = mobile ? 72 : 90;
 
   return (
     <div
       ref={containerRef}
       className="relative"
-      style={{ height: `${services.length * unit}vh` }}
+      style={{ height: `${services.length * 80}vh` }}
     >
-      <div className="sticky top-0 flex h-[100svh] flex-col justify-start overflow-hidden pt-20 sm:justify-center sm:pt-0">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent sm:text-sm">
-            Services
-          </p>
-          <h2 className="font-display mt-2 max-w-2xl text-2xl font-bold tracking-tight text-snow sm:mt-3 sm:text-4xl md:text-5xl">
-            Everything between a blank domain and a ranking business.
-          </h2>
-          <Link
-            href="/services"
-            className="mt-3 inline-block text-sm font-medium text-accent hover:underline sm:mt-4"
-          >
-            View all services →
-          </Link>
+      <div className="sticky top-0 flex h-[100svh] flex-col justify-center overflow-hidden">
+        <div className="mx-auto w-full max-w-6xl px-6 md:px-8">
+          <SectionIntro />
 
-          <div className="relative mt-8 h-[200px] sm:mt-12 sm:h-[280px] md:h-[300px]">
+          <div className="relative mt-10 h-[260px] md:h-[300px]">
             {services.map((s, i) => (
               <ServicePanel
                 key={s.n}
@@ -119,17 +127,16 @@ export default function ServicesScrollStack() {
                 summary={s.summary}
                 progress={smoothProgress}
                 total={services.length}
-                mobile={mobile}
               />
             ))}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2 sm:mt-8 sm:gap-3">
-            <ol className="flex flex-wrap gap-1.5 sm:gap-2" aria-label="Service progress">
+          <div className="mt-8 flex items-center gap-3">
+            <ol className="flex gap-2" aria-label="Service progress">
               {services.map((s, i) => (
                 <li
                   key={s.n}
-                  className={`h-1 w-7 rounded-full transition-colors duration-300 sm:w-10 ${
+                  className={`h-1 w-10 rounded-full transition-colors duration-300 ${
                     i === active ? "bg-accent" : "bg-white/12"
                   }`}
                   aria-current={i === active ? "step" : undefined}
@@ -154,7 +161,6 @@ function ServicePanel({
   summary,
   progress,
   total,
-  mobile,
 }: {
   index: number;
   active: number;
@@ -163,22 +169,19 @@ function ServicePanel({
   summary: string;
   progress: MotionValue<number>;
   total: number;
-  mobile: boolean;
 }) {
   const segment = 1 / Math.max(1, total - 1);
   const center = index * segment;
-  const enter = mobile ? 64 : 130;
-  const exit = mobile ? -72 : -160;
 
   const x = useTransform(
     progress,
     [center - segment, center, center + segment],
-    [enter, 0, exit],
+    [100, 0, -120],
   );
   const y = useTransform(
     progress,
     [center - segment, center, center + segment],
-    [mobile ? 16 : 28, 0, -8],
+    [20, 0, -8],
   );
   const scale = useTransform(
     progress,
@@ -217,25 +220,25 @@ function ServicePanel({
     >
       <motion.span
         aria-hidden
-        className="pointer-events-none absolute -left-1 -top-6 select-none font-display text-[4.5rem] font-bold leading-none tabular-nums text-white/[0.05] sm:-left-2 sm:-top-12 sm:text-[9rem]"
+        className="pointer-events-none absolute -left-2 -top-12 select-none font-display text-[9rem] font-bold leading-none tabular-nums text-white/[0.055]"
         style={{ x: watermarkX }}
       >
         {n}
       </motion.span>
 
       <div className="relative">
-        <p className="font-display text-xs tabular-nums tracking-[0.2em] text-accent sm:text-sm">
+        <p className="font-display text-sm tabular-nums tracking-[0.2em] text-accent">
           {n}
         </p>
-        <h3 className="font-display mt-2 max-w-xl text-xl font-bold tracking-tight text-snow sm:mt-3 sm:text-3xl">
+        <h3 className="font-display mt-3 max-w-xl text-2xl font-bold tracking-tight text-snow md:text-3xl">
           {title}
         </h3>
         <motion.div
-          className="mt-3 h-px origin-left bg-gradient-to-r from-accent to-transparent sm:mt-5"
+          className="mt-4 h-px origin-left bg-gradient-to-r from-accent to-transparent"
           style={{ scaleX: ruleScale }}
           aria-hidden
         />
-        <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted sm:mt-5 sm:text-lg">
+        <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-muted">
           {summary}
         </p>
       </div>

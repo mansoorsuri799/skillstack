@@ -62,7 +62,7 @@ export default function SkillAmalgamation() {
   return (
     <div
       ref={rootRef}
-      className="relative mx-auto mt-2 h-[260px] w-full max-w-md touch-pan-y sm:mt-0 sm:h-[360px]"
+      className="relative mx-auto mt-1 h-[240px] w-full max-w-md touch-pan-y sm:mt-0 sm:h-[360px]"
       style={{ perspective: "900px" }}
       onPointerMove={(e) => resolveHover(e.clientX, e.clientY)}
       onPointerDown={(e) => resolveHover(e.clientX, e.clientY)}

@@ -12,20 +12,19 @@ export default function HomeSections() {
       <section className="border-t border-white/10 bg-[#0d1117]">
         <ServicesScrollStack />
 
-        <div className="border-t border-white/10 pt-10 sm:pt-12">
+        <div className="border-t border-white/10 pt-10 pb-10 sm:pt-12 sm:pb-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
             <FadeIn>
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent sm:text-sm">
                 Why choose us
               </p>
-              <h2 className="font-display mt-3 max-w-xl text-xl font-bold tracking-tight text-snow sm:text-3xl">
+              <h2 className="font-display mt-2 max-w-xl text-xl font-bold tracking-tight text-snow sm:mt-3 sm:text-3xl">
                 Why clients stay with SkillStack.
               </h2>
             </FadeIn>
           </div>
           <ReasonsMarquee />
         </div>
-        <div className="h-12 sm:h-16 md:h-24" aria-hidden />
       </section>
 
       <section className="border-t border-white/10 bg-[#161b22] py-16 sm:py-24 md:py-32">

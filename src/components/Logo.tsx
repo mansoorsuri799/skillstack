@@ -71,7 +71,9 @@ export default function Logo({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center transition-opacity hover:opacity-90 ${className}`}
+      className={`items-center transition-opacity hover:opacity-90 ${
+        className.includes("hidden") ? "" : "inline-flex"
+      } ${className}`}
       aria-label="SkillStack home"
     >
       {inner}
