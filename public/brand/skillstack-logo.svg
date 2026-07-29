@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none" role="img" aria-label="SkillStack">
+  <g transform="translate(0,2) scale(0.9)">
+    <path d="M10 42 L32 53 L54 42 L32 31 Z" fill="#4A5568"/>
+    <path d="M10 42 L32 53 L32 58 L10 47 Z" fill="#2D3748"/>
+    <path d="M54 42 L32 53 L32 58 L54 47 Z" fill="#1A202C"/>
+    <path d="M10 30 L32 41 L54 30 L32 19 Z" fill="#0F766E"/>
+    <path d="M10 30 L32 41 L32 46 L10 35 Z" fill="#0A5C56"/>
+    <path d="M54 30 L32 41 L32 46 L54 35 Z" fill="#064E49"/>
+    <path d="M10 18 L32 29 L54 18 L32 7 Z" fill="#2DD4BF"/>
+    <path d="M10 18 L32 29 L32 34 L10 23 Z" fill="#14B8A6"/>
+    <path d="M54 18 L32 29 L32 34 L54 23 Z" fill="#0D9488"/>
+    <circle cx="52" cy="14" r="3.2" fill="#F0F3F6"/>
+  </g>
+  <text
+    x="58"
+    y="42"
+    fill="#F0F3F6"
+    font-family="Syne, ui-sans-serif, system-ui, sans-serif"
+    font-size="28"
+    font-weight="700"
+    letter-spacing="-0.04em"
+  >SkillStack</text>
+  <circle cx="228" cy="28" r="3" fill="#2DD4BF"/>
+</svg>

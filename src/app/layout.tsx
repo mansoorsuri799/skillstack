@@ -44,12 +44,21 @@ export const metadata: Metadata = {
     title: "SkillStack — From keyword to Google's first page",
     description:
       "Web development, SEO blogging, keyword packages, backlinks, and ad monetization — built to rank and earn.",
+    images: [
+      {
+        url: "/brand/skillstack-logo.png",
+        width: 1200,
+        height: 675,
+        alt: "SkillStack — web development & SEO",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "SkillStack — Web Development & SEO",
     description:
       "Websites and SEO built to rank on Google and earn through ads. Serving Pakistan and international clients.",
+    images: ["/brand/skillstack-logo.png"],
   },
   robots: {
     index: true,
@@ -82,6 +91,8 @@ const organizationJsonLd = {
     addressCountry: "PK",
   },
   areaServed: ["PK", "Worldwide"],
+  logo: `${siteUrl}/brand/skillstack-logo.png`,
+  image: `${siteUrl}/brand/skillstack-mark.png`,
   sameAs: [],
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useRef, useState } from "react";
 
 const layers = [
   {
@@ -35,14 +36,34 @@ const layers = [
   },
 ];
 
+const GAP = 44;
+const OFFSET = 28;
+
 export default function SkillAmalgamation() {
   const reduceMotion = useReducedMotion();
+  const [hovered, setHovered] = useState<number | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  const resolveHover = useCallback((clientX: number, clientY: number) => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const el = document.elementFromPoint(clientX, clientY);
+    const hit = el?.closest<HTMLElement>("[data-stack-hit]");
+    if (!hit || !root.contains(hit)) return;
+
+    const next = Number(hit.dataset.stackHit);
+    if (Number.isNaN(next)) return;
+    setHovered((prev) => (prev === next ? prev : next));
+  }, []);
 
   return (
     <div
-      className="relative mx-auto h-[300px] w-full max-w-md sm:h-[360px]"
+      ref={rootRef}
+      className="relative mx-auto h-[300px] w-full max-w-md touch-none sm:h-[360px]"
       style={{ perspective: "900px" }}
-      aria-hidden="true"
+      onPointerMove={(e) => resolveHover(e.clientX, e.clientY)}
+      onPointerLeave={() => setHovered(null)}
     >
       <div
         className="absolute inset-0"
@@ -50,39 +71,40 @@ export default function SkillAmalgamation() {
       >
         {layers.map((layer, i) => {
           const fromBottom = layers.length - 1 - i;
-          const yRest = fromBottom * 44 + 28;
+          const yRest = fromBottom * GAP + OFFSET;
+
+          // Open space around hovered card: ones below slip down, ones above slip up
+          let yOffset = 0;
+          if (hovered !== null && !reduceMotion) {
+            if (i < hovered) yOffset = 22;
+            else if (i > hovered) yOffset = -22;
+            else yOffset = 4;
+          }
+
+          const isHovered = hovered === i;
 
           return (
             <motion.div
               key={layer.label}
-              className={`absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)] ${layer.tone} ${layer.border}`}
-              style={{ zIndex: i + 1 }}
+              className={`pointer-events-none absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)] ${layer.tone} ${layer.border}`}
+              style={{ zIndex: isHovered ? 30 : i + 1 }}
               initial={
                 reduceMotion
-                  ? { y: yRest, opacity: 1 }
+                  ? { y: yRest, opacity: 1, scale: 1 }
                   : { y: yRest + 70, opacity: 0, scale: 0.94 }
               }
-              animate={
-                reduceMotion
-                  ? { y: yRest, opacity: 1 }
-                  : {
-                      y: [yRest + 70, yRest - 10, yRest, yRest - 6, yRest],
-                      opacity: [0, 1, 1, 1, 1],
-                      scale: [0.94, 1.03, 1, 1, 1],
-                    }
-              }
-              transition={
-                reduceMotion
-                  ? undefined
-                  : {
-                      duration: 4.8,
-                      delay: i * 0.14,
-                      repeat: Infinity,
-                      repeatDelay: 1.4,
-                      ease: [0.22, 1, 0.36, 1],
-                      times: [0, 0.28, 0.42, 0.62, 1],
-                    }
-              }
+              animate={{
+                y: yRest + yOffset,
+                opacity: 1,
+                scale: isHovered && !reduceMotion ? 1.03 : 1,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 320,
+                damping: 28,
+                mass: 0.7,
+                delay: hovered === null && !reduceMotion ? i * 0.05 : 0,
+              }}
             >
               <div className="flex items-center justify-between gap-3">
                 <span
@@ -96,6 +118,26 @@ export default function SkillAmalgamation() {
               </div>
               <div className="mt-2 h-px w-full bg-gradient-to-r from-accent/40 to-transparent" />
             </motion.div>
+          );
+        })}
+
+        {/* Fixed hit strips — cards can slip; hover targets never move */}
+        {layers.map((layer, i) => {
+          const fromBottom = layers.length - 1 - i;
+          const yRest = fromBottom * GAP + OFFSET;
+
+          return (
+            <div
+              key={`hit-${layer.label}`}
+              data-stack-hit={i}
+              className="absolute left-1/2 w-[88%] max-w-[340px] -translate-x-1/2"
+              style={{
+                top: 0,
+                height: GAP,
+                transform: `translateY(${yRest}px)`,
+                zIndex: 50,
+              }}
+            />
           );
         })}
       </div>

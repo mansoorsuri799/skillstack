@@ -37,6 +37,15 @@ export async function POST(request: Request) {
     await connectDB();
 
     const existing = await User.findOne({ email });
+    if (existing?.googleId && !existing.password) {
+      return NextResponse.json(
+        {
+          error:
+            "This email is already signed up with Google. Use Continue with Google.",
+        },
+        { status: 409 },
+      );
+    }
     if (existing?.emailVerified) {
       return NextResponse.json(
         { error: "An account with this email already exists." },

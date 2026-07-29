@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 const footerLinks = [
   { href: "/services", label: "Services" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/process", label: "Process" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -12,10 +14,8 @@ export default function Footer() {
     <footer className="relative z-10 border-t border-white/10 bg-[#010409] px-6 py-10 text-ink-muted md:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="font-display text-sm font-semibold text-snow/80">
-            SkillStack
-          </p>
-          <p className="mt-1 text-xs text-ink-muted">
+          <Logo size="sm" />
+          <p className="mt-2 text-xs text-ink-muted">
             SkillStack Private Limited
           </p>
         </div>

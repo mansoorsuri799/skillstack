@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import JumpingDot from "./JumpingDot";
 import SkillAmalgamation from "./SkillAmalgamation";
+import HeroMiniStacks from "./HeroMiniStacks";
 
 export default function Hero() {
   const reduceMotion = useReducedMotion();
@@ -32,6 +33,7 @@ export default function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_70%_20%,rgba(45,212,191,0.1),transparent_55%),radial-gradient(ellipse_60%_40%_at_10%_80%,rgba(56,100,140,0.12),transparent_50%)]"
       />
+      <HeroMiniStacks />
 
       <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-28 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8">
         <motion.div

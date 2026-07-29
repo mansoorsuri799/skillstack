@@ -27,6 +27,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!user.password) {
+      return NextResponse.json(
+        {
+          error: "GOOGLE_ONLY",
+          message: "This account uses Google. Continue with Google instead.",
+        },
+        { status: 401 },
+      );
+    }
+
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return NextResponse.json(

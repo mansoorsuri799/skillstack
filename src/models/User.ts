@@ -10,10 +10,13 @@ const UserSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true },
+    /** Optional — Google OAuth users may not set a password */
+    password: { type: String, required: false, default: null },
     emailVerified: { type: Date, default: null },
     verificationToken: { type: String, default: null },
     verificationTokenExpires: { type: Date, default: null },
+    googleId: { type: String, default: null, index: true },
+    image: { type: String, default: null },
   },
   { timestamps: true },
 );

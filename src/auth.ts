@@ -1,5 +1,6 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
@@ -10,6 +11,11 @@ class EmailNotVerifiedError extends CredentialsSignin {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -32,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         await connectDB();
         const user = await User.findOne({ email: email.toLowerCase().trim() });
 
-        if (!user) return null;
+        if (!user || !user.password) return null;
 
         if (!user.emailVerified) {
           throw new EmailNotVerifiedError();
@@ -45,6 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user._id.toString(),
           name: user.name,
           email: user.email,
+          image: user.image ?? undefined,
         };
       },
     }),
@@ -54,8 +61,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider !== "google") return true;
+
+      const email =
+        typeof user.email === "string"
+          ? user.email.toLowerCase().trim()
+          : "";
+      if (!email) return false;
+
+      await connectDB();
+
+      let dbUser = await User.findOne({ email });
+
+      if (!dbUser) {
+        dbUser = await User.create({
+          name: user.name?.trim() || "SkillStack user",
+          email,
+          password: null,
+          emailVerified: new Date(),
+          googleId: account.providerAccountId,
+          image: user.image ?? null,
+        });
+      } else {
+        dbUser.googleId = account.providerAccountId;
+        dbUser.emailVerified = dbUser.emailVerified ?? new Date();
+        if (user.image) dbUser.image = user.image;
+        if (user.name?.trim()) dbUser.name = user.name.trim();
+        await dbUser.save();
+      }
+
+      user.id = dbUser._id.toString();
+      return true;
+    },
     async jwt({ token, user }) {
-      if (user) {
+      if (user?.id) {
         token.id = user.id;
       }
       return token;

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function RegisterForm() {
   const [error, setError] = useState("");
@@ -41,63 +42,75 @@ export default function RegisterForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 space-y-5">
-      {error ? (
-        <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-          {error}
-        </p>
-      ) : null}
-      {success ? (
-        <p className="rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent">
-          {success}
-        </p>
-      ) : null}
+    <div className="mt-8 space-y-5">
+      <GoogleSignInButton label="Sign up with Google" />
 
-      <label className="block">
-        <span className="text-sm text-ink-muted">Full name</span>
-        <input
-          name="name"
-          type="text"
-          required
-          autoComplete="name"
-          minLength={2}
-          className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
-        />
-      </label>
-
-      <label className="block">
-        <span className="text-sm text-ink-muted">Email</span>
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
-        />
-      </label>
-
-      <label className="block">
-        <span className="text-sm text-ink-muted">Password</span>
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="new-password"
-          minLength={8}
-          className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
-        />
-        <span className="mt-1 block text-xs text-ink-muted">
-          At least 8 characters
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/10" />
+        <span className="text-xs uppercase tracking-wide text-ink-muted">
+          or
         </span>
-      </label>
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-60"
-      >
-        {loading ? "Creating account..." : "Create account"}
-      </button>
+      <form onSubmit={onSubmit} className="space-y-5">
+        {error ? (
+          <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            {error}
+          </p>
+        ) : null}
+        {success ? (
+          <p className="rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent">
+            {success}
+          </p>
+        ) : null}
+
+        <label className="block">
+          <span className="text-sm text-ink-muted">Full name</span>
+          <input
+            name="name"
+            type="text"
+            required
+            autoComplete="name"
+            minLength={2}
+            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm text-ink-muted">Email</span>
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm text-ink-muted">Password</span>
+          <input
+            name="password"
+            type="password"
+            required
+            autoComplete="new-password"
+            minLength={8}
+            className="mt-2 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2.5 text-snow outline-none transition focus:border-accent"
+          />
+          <span className="mt-1 block text-xs text-ink-muted">
+            At least 8 characters
+          </span>
+        </label>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-60"
+        >
+          {loading ? "Creating account..." : "Create account"}
+        </button>
+      </form>
 
       <p className="text-center text-sm text-ink-muted">
         Already registered?{" "}
@@ -105,6 +118,6 @@ export default function RegisterForm() {
           Sign in
         </Link>
       </p>
-    </form>
+    </div>
   );
 }

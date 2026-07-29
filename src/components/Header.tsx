@@ -4,9 +4,11 @@ import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
+import Logo from "@/components/Logo";
 
 const links = [
   { href: "/services", label: "Services" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/process", label: "Process" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -43,12 +45,7 @@ export default function Header() {
       style={{ borderBottomWidth: 1 }}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
-        <Link
-          href="/"
-          className="font-display text-lg font-bold tracking-tight text-white"
-        >
-          SkillStack
-        </Link>
+        <Logo />
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
           {links.map((link) => (
             <Link
