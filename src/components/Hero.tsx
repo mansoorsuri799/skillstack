@@ -42,7 +42,7 @@ export default function Hero() {
         >
           <motion.div
             variants={item}
-            className="relative inline-block overflow-visible pr-3 sm:pr-4"
+            className="relative inline-block overflow-visible pr-2 sm:pr-4"
           >
             <p
               className="font-display text-[2.35rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"

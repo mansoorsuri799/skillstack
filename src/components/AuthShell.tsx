@@ -28,7 +28,7 @@ export default function AuthShell({ title, children, footer }: AuthShellProps) {
           />
         </Link>
 
-        <h1 className="mt-5 text-center text-[22px] font-light tracking-tight text-snow sm:mt-6 sm:text-2xl">
+        <h1 className="mt-5 text-center text-[22px] font-normal tracking-tight text-snow sm:mt-6 sm:text-2xl">
           {title}
         </h1>
 

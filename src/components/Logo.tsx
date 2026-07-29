@@ -8,6 +8,8 @@ type LogoProps = {
   variant?: "full" | "mark";
   /** Slightly smaller footer / header treatment */
   size?: "sm" | "md";
+  /** Only for above-the-fold LCP (e.g. header). Avoid on footer. */
+  priority?: boolean;
 };
 
 const MARK_SRC = "/brand/skill-stack.webp";
@@ -17,6 +19,7 @@ export default function Logo({
   className = "",
   variant = "full",
   size = "md",
+  priority = false,
 }: LogoProps) {
   const px = size === "sm" ? 34 : 40;
   const textSize = size === "sm" ? "text-base" : "text-xl";
@@ -28,7 +31,7 @@ export default function Logo({
       width={px}
       height={px}
       className="shrink-0 invert"
-      priority
+      priority={priority}
     />
   );
 

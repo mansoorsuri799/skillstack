@@ -49,7 +49,7 @@ export default function Header() {
       }`}
     >
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 md:px-8">
-        <Logo size="sm" className="relative z-10 shrink-0" />
+        <Logo size="sm" priority className="relative z-10 shrink-0" />
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
           {links.map((link) => (
