@@ -162,3 +162,41 @@ Web development · SEO · Digital growth`,
     html: buildVerificationHtml(options.name, verifyUrl),
   });
 }
+
+export async function sendContactInquiry(options: {
+  name: string;
+  email: string;
+  topic: string;
+  message: string;
+  userId?: string;
+}) {
+  const from = process.env.EMAIL_FROM || process.env.SMTP_USER!;
+  const to = process.env.CONTACT_TO || "hello@skillstack.com.pk";
+  const transporter = getTransporter();
+
+  const safeName = escapeHtml(options.name);
+  const safeEmail = escapeHtml(options.email);
+  const safeTopic = escapeHtml(options.topic);
+  const safeMessage = escapeHtml(options.message).replace(/\n/g, "<br/>");
+
+  await transporter.sendMail({
+    from,
+    to,
+    replyTo: options.email,
+    subject: `SkillStack inquiry — ${options.topic}`,
+    text: `Name: ${options.name}
+Email: ${options.email}
+Topic: ${options.topic}
+User ID: ${options.userId || "n/a"}
+
+${options.message}`,
+    html: `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#010409;color:#e6edf3;padding:24px;">
+<p><strong>Name:</strong> ${safeName}</p>
+<p><strong>Email:</strong> ${safeEmail}</p>
+<p><strong>Topic:</strong> ${safeTopic}</p>
+<p><strong>User ID:</strong> ${escapeHtml(options.userId || "n/a")}</p>
+<hr style="border-color:#21262d"/>
+<p style="white-space:pre-wrap;line-height:1.55;">${safeMessage}</p>
+</body></html>`,
+  });
+}

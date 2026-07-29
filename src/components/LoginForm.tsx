@@ -1,15 +1,22 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 const inputClass =
   "mt-1.5 w-full rounded-md border border-white/15 bg-[#010409] px-3 py-2 text-sm text-snow outline-none transition placeholder:text-white/30 focus:border-accent";
 
-export default function LoginForm() {
+function safeCallbackUrl(raw: string | null) {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
+function LoginFormInner() {
   const router = useRouter();
+  const params = useSearchParams();
+  const callbackUrl = safeCallbackUrl(params.get("callbackUrl"));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +55,7 @@ export default function LoginForm() {
         return;
       }
 
-      router.push("/");
+      router.push(callbackUrl);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -58,7 +65,7 @@ export default function LoginForm() {
 
   return (
     <div className="space-y-4">
-      <GoogleSignInButton />
+      <GoogleSignInButton callbackUrl={callbackUrl} />
 
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-white/10" />
@@ -106,5 +113,13 @@ export default function LoginForm() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<p className="text-sm text-ink-muted">Loading…</p>}>
+      <LoginFormInner />
+    </Suspense>
   );
 }

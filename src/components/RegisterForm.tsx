@@ -1,12 +1,20 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 const inputClass =
   "mt-1.5 w-full rounded-md border border-white/15 bg-[#010409] px-3 py-2 text-sm text-snow outline-none transition placeholder:text-white/30 focus:border-accent";
 
-export default function RegisterForm() {
+function safeCallbackUrl(raw: string | null) {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
+function RegisterFormInner() {
+  const params = useSearchParams();
+  const callbackUrl = safeCallbackUrl(params.get("callbackUrl"));
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,7 +53,10 @@ export default function RegisterForm() {
 
   return (
     <div className="space-y-4">
-      <GoogleSignInButton label="Sign up with Google" />
+      <GoogleSignInButton
+        label="Sign up with Google"
+        callbackUrl={callbackUrl}
+      />
 
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-white/10" />
@@ -114,5 +125,13 @@ export default function RegisterForm() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense fallback={<p className="text-sm text-ink-muted">Loading…</p>}>
+      <RegisterFormInner />
+    </Suspense>
   );
 }

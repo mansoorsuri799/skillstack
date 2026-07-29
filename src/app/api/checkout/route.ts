@@ -29,12 +29,19 @@ export async function POST(request: Request) {
       "http://localhost:3000";
 
     const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Sign in required to purchase a package." },
+        { status: 401 },
+      );
+    }
+
     const stripe = getStripe();
 
     const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      customer_email: session?.user?.email || undefined,
+      customer_email: session.user.email,
       line_items: [
         {
           quantity: 1,
@@ -51,7 +58,7 @@ export async function POST(request: Request) {
       metadata: {
         planId: plan.id,
         planName: plan.name,
-        userId: session?.user?.id || "",
+        userId: session.user.id || "",
       },
       success_url: `${baseUrl}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing/cancel`,

@@ -1,27 +1,87 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { FormEvent, useEffect, useState } from "react";
 
 export default function ContactForm() {
-  const [status, setStatus] = useState<"idle" | "sent">("idle");
+  const { data: session, status } = useSession();
+  const [name, setName] = useState("");
+  const [topic, setTopic] = useState("Full stack project");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (session?.user?.name) setName(session.user.name);
+  }, [session?.user?.name]);
+
+  if (status === "loading") {
+    return (
+      <div className="rounded-lg border border-white/10 bg-[#0d1117] px-6 py-10 text-center text-sm text-ink-muted md:px-8">
+        Checking your session…
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#0d1117] p-6 md:p-8">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent via-accent/40 to-transparent"
+        />
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
+          Sign in required
+        </p>
+        <h3 className="mt-3 font-display text-xl font-semibold text-snow">
+          Log in to send a brief
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+          Contact submissions are limited to authenticated SkillStack accounts so
+          we can reply to a verified email.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/login?callbackUrl=/contact"
+            className="inline-flex rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-[#010409] hover:bg-accent-deep"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/register?callbackUrl=/contact"
+            className="inline-flex rounded-md border border-white/20 px-5 py-2.5 text-sm font-medium text-snow hover:bg-white/5"
+          >
+            Create account
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formEl = e.currentTarget;
-    const form = new FormData(formEl);
-    const name = String(form.get("name") || "");
-    const email = String(form.get("email") || "");
-    const topic = String(form.get("topic") || "");
-    const message = String(form.get("message") || "");
-
-    const subject = encodeURIComponent(
-      `SkillStack inquiry — ${topic || "General"}`,
-    );
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\n${message}`,
-    );
-    window.location.href = `mailto:hello@skillstack.com.pk?subject=${subject}&body=${body}`;
-    setStatus("sent");
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, topic, message }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not send.");
+        setLoading(false);
+        return;
+      }
+      setSent(true);
+      setMessage("");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    }
+    setLoading(false);
   }
 
   return (
@@ -38,7 +98,9 @@ export default function ContactForm() {
           Send a brief
         </p>
         <p className="mt-2 text-sm text-ink-muted">
-          Opens your email app with everything filled in — no account required.
+          Signed in as{" "}
+          <span className="text-snow">{session.user.email}</span>. We’ll reply to
+          this address.
         </p>
       </div>
       <label className="block">
@@ -46,6 +108,8 @@ export default function ContactForm() {
         <input
           name="name"
           required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="mt-2 w-full rounded-md border border-white/10 bg-[#010409] px-3 py-2.5 text-snow outline-none transition-colors focus:border-accent"
         />
       </label>
@@ -54,8 +118,9 @@ export default function ContactForm() {
         <input
           name="email"
           type="email"
-          required
-          className="mt-2 w-full rounded-md border border-white/10 bg-[#010409] px-3 py-2.5 text-snow outline-none transition-colors focus:border-accent"
+          value={session.user.email ?? ""}
+          readOnly
+          className="mt-2 w-full rounded-md border border-white/10 bg-[#010409]/80 px-3 py-2.5 text-ink-muted outline-none"
         />
       </label>
       <label className="block">
@@ -63,8 +128,9 @@ export default function ContactForm() {
         <span className="relative mt-2 block">
           <select
             name="topic"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
             className="w-full appearance-none rounded-md border border-white/10 bg-[#010409] py-2.5 pl-3 pr-11 text-snow outline-none transition-colors focus:border-[#2cd4bf]"
-            defaultValue="Full stack project"
           >
             <option>Full stack project</option>
             <option>Website build</option>
@@ -102,19 +168,23 @@ export default function ContactForm() {
           name="message"
           required
           rows={5}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
           className="mt-2 w-full resize-y rounded-md border border-white/10 bg-[#010409] px-3 py-2.5 text-snow outline-none transition-colors focus:border-accent"
           placeholder="Niche, market, timeline, and goals…"
         />
       </label>
       <button
         type="submit"
-        className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-[#010409] hover:bg-accent-deep sm:w-auto"
+        disabled={loading || sent}
+        className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-[#010409] hover:bg-accent-deep disabled:opacity-60 sm:w-auto"
       >
-        Open email draft
+        {loading ? "Sending…" : sent ? "Sent" : "Send brief"}
       </button>
-      {status === "sent" ? (
+      {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {sent ? (
         <p className="text-sm text-accent">
-          Your mail app should open with the message filled in.
+          Thanks — your brief was sent. We’ll reply within 1–2 business days.
         </p>
       ) : null}
     </form>

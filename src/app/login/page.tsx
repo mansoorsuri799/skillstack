@@ -16,7 +16,7 @@ export default function LoginPage() {
       footer={
         <>
           New to SkillStack?{" "}
-          <Link href="/register" className="font-medium text-accent hover:underline">
+          <Link href="/register?callbackUrl=/contact" className="font-medium text-accent hover:underline">
             Create an account
           </Link>
         </>
