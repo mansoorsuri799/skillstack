@@ -2,20 +2,17 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
 export default function ContactForm() {
   const { data: session, status } = useSession();
-  const [name, setName] = useState("");
+  const [name, setName] = useState<string | null>(null);
   const [topic, setTopic] = useState("Full stack project");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
-
-  useEffect(() => {
-    if (session?.user?.name) setName(session.user.name);
-  }, [session?.user?.name]);
+  const resolvedName = name ?? session?.user?.name ?? "";
 
   if (status === "loading") {
     return (
@@ -68,7 +65,7 @@ export default function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, topic, message }),
+        body: JSON.stringify({ name: resolvedName, topic, message }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -108,7 +105,7 @@ export default function ContactForm() {
         <input
           name="name"
           required
-          value={name}
+          value={resolvedName}
           onChange={(e) => setName(e.target.value)}
           className="mt-2 w-full rounded-md border border-white/10 bg-[#010409] px-3 py-2.5 text-snow outline-none transition-colors focus:border-accent"
         />

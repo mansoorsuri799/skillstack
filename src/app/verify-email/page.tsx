@@ -7,16 +7,17 @@ import { Suspense, useEffect, useState } from "react";
 function VerifyContent() {
   const params = useSearchParams();
   const token = params.get("token");
-  const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
-  const [message, setMessage] = useState("Verifying your email...");
+  const [status, setStatus] = useState<"loading" | "ok" | "error">(
+    token ? "loading" : "error",
+  );
+  const [message, setMessage] = useState(
+    token ? "Verifying your email..." : "Missing verification token.",
+  );
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      setMessage("Missing verification token.");
-      return;
-    }
+    if (!token) return;
 
+    let cancelled = false;
     fetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -24,6 +25,7 @@ function VerifyContent() {
     })
       .then(async (res) => {
         const data = await res.json();
+        if (cancelled) return;
         if (!res.ok) {
           setStatus("error");
           setMessage(data.error || "Verification failed.");
@@ -33,9 +35,14 @@ function VerifyContent() {
         setMessage(data.message || "Email verified.");
       })
       .catch(() => {
+        if (cancelled) return;
         setStatus("error");
         setMessage("Something went wrong. Please try again.");
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
   return (

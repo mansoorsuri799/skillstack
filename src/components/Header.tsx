@@ -18,13 +18,8 @@ const links = [
 export default function Header() {
   const { scrollY } = useScroll();
   const [solid, setSolid] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session, status } = useSession();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -37,8 +32,8 @@ export default function Header() {
     setSolid(y > 48);
   });
 
-  const showAuth = mounted && status === "authenticated" && session?.user;
-  const showGuest = mounted && status !== "loading" && !showAuth;
+  const showAuth = status === "authenticated" && Boolean(session?.user);
+  const showGuest = status === "unauthenticated";
 
   return (
     <header
@@ -65,13 +60,21 @@ export default function Header() {
 
         <div className="relative z-10 flex shrink-0 items-center gap-2">
           {showAuth ? (
-            <button
-              type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
-            >
-              Sign out
-            </button>
+            <>
+              <Link
+                href="/profile"
+                className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
+              >
+                Profile
+              </Link>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
+              >
+                Sign out
+              </button>
+            </>
           ) : null}
 
           {showGuest ? (
@@ -139,16 +142,25 @@ export default function Header() {
 
           <div className="mt-5 flex flex-col gap-2">
             {showAuth ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  void signOut({ callbackUrl: "/" });
-                }}
-                className="w-full rounded-md border border-white/20 px-4 py-3 text-sm font-medium text-white"
-              >
-                Sign out
-              </button>
+              <>
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full rounded-md border border-accent/40 bg-accent/10 px-4 py-3 text-center text-sm font-medium text-accent"
+                >
+                  Profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    void signOut({ callbackUrl: "/" });
+                  }}
+                  className="w-full rounded-md border border-white/20 px-4 py-3 text-sm font-medium text-white"
+                >
+                  Sign out
+                </button>
+              </>
             ) : null}
             {showGuest ? (
               <>

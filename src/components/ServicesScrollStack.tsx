@@ -10,20 +10,20 @@ import {
   type MotionValue,
 } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { services } from "@/lib/content";
 import FadeIn from "./FadeIn";
 
 function useIsMobile(breakpoint = 768) {
-  const [mobile, setMobile] = useState(true);
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
-    const sync = () => setMobile(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, [breakpoint]);
-  return mobile;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+      mq.addEventListener("change", onStoreChange);
+      return () => mq.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia(`(max-width: ${breakpoint}px)`).matches,
+    () => true,
+  );
 }
 
 function SectionIntro() {
@@ -226,12 +226,8 @@ function ServicesStackDesktop() {
 export default function ServicesScrollStack() {
   const reduceMotion = useReducedMotion();
   const mobile = useIsMobile();
-  const [ready, setReady] = useState(false);
 
-  useEffect(() => setReady(true), []);
-
-  // Never call useScroll unless the target element is mounted.
-  if (!ready || mobile || reduceMotion) {
+  if (mobile || reduceMotion) {
     return <MobileServicesList />;
   }
 
