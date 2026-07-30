@@ -14,6 +14,7 @@ export type PageSitemapEntry = {
     | "never";
 };
 
+/** Static marketing + legal pages (service detail pages added from `services`). */
 export const pageSitemapEntries: PageSitemapEntry[] = [
   { path: "", priority: 1, changeFrequency: "weekly" },
   { path: "/services", priority: 0.9, changeFrequency: "monthly" },
@@ -76,12 +77,57 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
       },
     ],
   },
+  ...services.map((service) => ({
+    pagePath: `/services/${service.slug}`,
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: `SkillStack — ${service.title}`,
+      },
+    ],
+  })),
+  {
+    pagePath: "/pricing",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "SkillStack pricing",
+      },
+    ],
+  },
+  {
+    pagePath: "/process",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "SkillStack process",
+      },
+    ],
+  },
   {
     pagePath: "/contact",
     images: [
       {
         loc: `${SITE_URL}/brand/skill-stack.webp`,
         title: "SkillStack contact",
+      },
+    ],
+  },
+  {
+    pagePath: "/privacy",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "SkillStack privacy policy",
+      },
+    ],
+  },
+  {
+    pagePath: "/terms",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "SkillStack terms of service",
       },
     ],
   },

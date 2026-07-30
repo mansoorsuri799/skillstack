@@ -66,10 +66,7 @@ export default function PrivacyPage() {
         eyebrow="Legal"
         title="Privacy policy"
         lead="Last updated: 30 July 2026. Clear rules for how we handle your data on SkillStack."
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Privacy" },
-        ]}
+        breadcrumbs={[{ label: "Privacy" }]}
       />
       <div className="mx-auto max-w-3xl space-y-10 px-6 py-12 md:px-8 md:py-16">
         {sections.map((s) => (

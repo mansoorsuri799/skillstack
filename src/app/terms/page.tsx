@@ -70,10 +70,7 @@ export default function TermsPage() {
         eyebrow="Legal"
         title="Terms of service"
         lead="Last updated: 30 July 2026. The rules for using SkillStack and buying our services."
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Terms" },
-        ]}
+        breadcrumbs={[{ label: "Terms" }]}
       />
       <div className="mx-auto max-w-3xl space-y-10 px-6 py-12 md:px-8 md:py-16">
         {sections.map((s) => (

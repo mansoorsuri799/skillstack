@@ -3,7 +3,10 @@ import JsonLd from "@/components/JsonLd";
 import { breadcrumbJsonLd, type Crumb } from "@/lib/seo";
 
 export default function Breadcrumbs({ items }: { items: Crumb[] }) {
-  const crumbs: Crumb[] = [{ label: "Home", href: "/" }, ...items];
+  const withoutHome = items.filter(
+    (item) => !(item.label === "Home" && (item.href === "/" || !item.href)),
+  );
+  const crumbs: Crumb[] = [{ label: "Home", href: "/" }, ...withoutHome];
 
   return (
     <>
