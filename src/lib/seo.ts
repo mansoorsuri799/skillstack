@@ -2,6 +2,8 @@ export const SITE_URL = "https://skillstack.com.pk";
 export const SITE_NAME = "SkillStack";
 export const LEGAL_NAME = "SkillStack Private Limited";
 export const SITE_EMAIL = "hello@skillstack.com.pk";
+/** Opens Gmail compose addressed to SITE_EMAIL */
+export const SITE_EMAIL_HREF = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(SITE_EMAIL)}`;
 export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
 export const X_URL = "https://x.com/skillstack_co";

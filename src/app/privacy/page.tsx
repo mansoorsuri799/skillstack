@@ -3,7 +3,7 @@ import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
-import { SITE_EMAIL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
+import { SITE_EMAIL, SITE_EMAIL_HREF, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
@@ -84,7 +84,12 @@ export default function PrivacyPage() {
         ))}
         <p className="text-sm text-ink-muted">
           Questions?{" "}
-          <a href={`mailto:${SITE_EMAIL}`} className="text-accent hover:underline">
+          <a
+            href={SITE_EMAIL_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
             {SITE_EMAIL}
           </a>
           {" · "}

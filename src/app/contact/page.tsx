@@ -8,6 +8,7 @@ import {
   LINKEDIN_URL,
   OFFICE,
   SITE_EMAIL,
+  SITE_EMAIL_HREF,
   X_URL,
   absoluteUrl,
   webPageJsonLd,
@@ -98,7 +99,9 @@ export default function ContactPage() {
                 Direct
               </p>
               <a
-                href={`mailto:${SITE_EMAIL}`}
+                href={SITE_EMAIL_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="mt-4 block font-display text-2xl font-semibold tracking-tight text-snow transition-colors hover:text-accent sm:text-3xl"
               >
                 {SITE_EMAIL}

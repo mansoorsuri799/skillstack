@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { LINKEDIN_URL, SITE_EMAIL, SITE_URL, X_URL } from "@/lib/seo";
+import { LINKEDIN_URL, SITE_EMAIL, SITE_EMAIL_HREF, SITE_URL, X_URL } from "@/lib/seo";
 
 const legal = [
   { href: "/privacy", label: "Privacy policy" },
@@ -32,7 +32,9 @@ export default function Footer() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:justify-start">
               <a
-                href={`mailto:${SITE_EMAIL}`}
+                href={SITE_EMAIL_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-white/55 transition-colors hover:text-accent"
               >
                 {SITE_EMAIL}
