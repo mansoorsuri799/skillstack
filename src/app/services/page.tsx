@@ -11,13 +11,13 @@ import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Keyword research, websites, SEO content, monetization, keyword packages, and backlinking from SkillStack Private Limited.",
+    "Keyword research, SEO ranking, WordPress & Next.js websites, backlinking, ad monetization, and keyword packages from SkillStack.",
   alternates: { canonical: absoluteUrl("/services") },
   openGraph: {
     url: absoluteUrl("/services"),
     title: "SkillStack Services",
     description:
-      "Research, build, content, authority, and ads — one team from keyword to revenue.",
+      "Research, SEO ranking content, build, authority, and ads — one team from keyword to revenue.",
   },
 };
 
@@ -30,7 +30,7 @@ export default function ServicesPage() {
             path: "/services",
             title: "SkillStack Services",
             description:
-              "Keyword research, websites, SEO content, monetization, keyword packages, and backlinking.",
+              "Keyword research, SEO ranking, websites, backlinking, monetization, and keyword packages.",
             type: "CollectionPage",
           }),
           {
@@ -42,11 +42,12 @@ export default function ServicesPage() {
               position: i + 1,
               name: service.title,
               description: service.summary,
-              url: `${SITE_URL}/services#service-${service.n}`,
+              url: `${SITE_URL}/services/${service.slug}`,
               item: {
                 "@type": "Service",
                 name: service.title,
                 description: service.summary,
+                url: `${SITE_URL}/services/${service.slug}`,
                 provider: { "@id": `${SITE_URL}/#organization` },
                 areaServed: ["PK", "Worldwide"],
               },

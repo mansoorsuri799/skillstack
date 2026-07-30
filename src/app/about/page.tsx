@@ -67,7 +67,7 @@ export default function AboutPage() {
               From freelance craft to a company that ranks and earns.
             </h2>
             <p className="mt-6 text-base leading-relaxed text-ink-muted">
-              SkillStack grew from focused freelance work — websites, SEO blogging,
+              SkillStack grew from focused freelance work — websites, SEO ranking,
               keyword systems, and ad-driven traffic sites — into a company led by{" "}
               <span className="font-semibold text-snow">Mansoor Khan</span>, CEO.
               What started as shipping reliable ranking projects is now a structured

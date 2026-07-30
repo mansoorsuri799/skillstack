@@ -31,7 +31,7 @@ export const siteFaqs = [
   {
     question: "What services does SkillStack offer?",
     answer:
-      "SkillStack offers keyword research and ranking, websites built from scratch (WordPress or Next.js), SEO blogging and content, AdSense and Adsterra monetization layouts, keyword packages, and risk-aware backlinking.",
+      "SkillStack offers keyword research, SEO ranking content, websites built from scratch (WordPress or Next.js), high-authority backlinking, AdSense and Adsterra monetization, and keyword packages.",
   },
   {
     question: "Who runs SkillStack?",
@@ -180,11 +180,11 @@ export function siteGraphJsonLd() {
         areaServed: ["PK", "Worldwide"],
         serviceType: [
           "Web Development",
-          "SEO",
+          "SEO Ranking",
           "Keyword Research",
-          "Content Marketing",
           "Link Building",
           "Ad Monetization",
+          "Keyword Packages",
         ],
       },
       {

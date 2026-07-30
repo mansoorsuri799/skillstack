@@ -59,11 +59,22 @@ function MobileServicesList() {
                 {s.n}
               </span>
               <h3 className="mt-1.5 text-lg font-semibold tracking-tight text-snow">
-                {s.title}
+                <Link
+                  href={`/services/${s.slug}`}
+                  className="transition-colors hover:text-accent"
+                >
+                  {s.title}
+                </Link>
               </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
                 {s.summary}
               </p>
+              <Link
+                href={`/services/${s.slug}`}
+                className="mt-2 inline-block text-sm font-medium text-accent hover:underline"
+              >
+                Learn more →
+              </Link>
             </li>
           </FadeIn>
         ))}
@@ -78,6 +89,7 @@ function ServicePanel({
   n,
   title,
   summary,
+  slug,
   progress,
   total,
 }: {
@@ -86,6 +98,7 @@ function ServicePanel({
   n: string;
   title: string;
   summary: string;
+  slug: string;
   progress: MotionValue<number>;
   total: number;
 }) {
@@ -137,7 +150,12 @@ function ServicePanel({
           {n}
         </p>
         <h3 className="font-display mt-3 max-w-2xl text-3xl font-bold tracking-tight text-snow md:mt-4 md:text-4xl">
-          {title}
+          <Link
+            href={`/services/${slug}`}
+            className="transition-colors hover:text-accent"
+          >
+            {title}
+          </Link>
         </h3>
         <motion.div
           className="mt-5 h-px origin-left bg-gradient-to-r from-accent to-transparent md:mt-6"
@@ -195,6 +213,7 @@ function ServicesStackDesktop() {
                 n={s.n}
                 title={s.title}
                 summary={s.summary}
+                slug={s.slug}
                 progress={smoothProgress}
                 total={services.length}
               />

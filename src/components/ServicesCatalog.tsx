@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { services } from "@/lib/content";
 import FadeIn from "./FadeIn";
@@ -63,7 +64,7 @@ export default function ServicesCatalog() {
                   {service.n}
                 </span>
                 <span className="mt-0.5 block text-sm font-medium leading-snug">
-                  {service.title.split("&")[0].trim()}
+                  {service.shortTitle}
                 </span>
               </button>
             );
@@ -100,7 +101,12 @@ export default function ServicesCatalog() {
                 </p>
               </div>
               <h2 className="font-display mt-3 text-2xl font-bold tracking-tight text-snow sm:text-3xl">
-                {service.title}
+                <Link
+                  href={`/services/${service.slug}`}
+                  className="transition-colors hover:text-accent"
+                >
+                  {service.title}
+                </Link>
               </h2>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
                 {service.summary}
@@ -116,6 +122,12 @@ export default function ServicesCatalog() {
                   </li>
                 ))}
               </ul>
+              <Link
+                href={`/services/${service.slug}`}
+                className="mt-7 inline-flex text-sm font-medium text-accent hover:underline"
+              >
+                Read the full guide →
+              </Link>
             </article>
           </FadeIn>
         ))}

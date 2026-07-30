@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     siteName: "SkillStack",
     title: "SkillStack — From keyword to Google's first page",
     description:
-      "Web development, SEO blogging, keyword packages, backlinks, and ad monetization — built to rank and earn.",
+      "Web development, SEO ranking, keyword packages, backlinks, and ad monetization — built to rank and earn.",
   },
   twitter: {
     card: "summary_large_image",
