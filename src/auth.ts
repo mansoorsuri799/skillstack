@@ -88,10 +88,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           dbUser = await User.create({
             name: user.name?.trim() || "SkillStack user",
             email,
-            password: null,
+            password: undefined,
             emailVerified: new Date(),
             googleId: account.providerAccountId,
-            image: user.image ?? null,
+            image: user.image ?? undefined,
           });
         } else {
           dbUser.googleId = account.providerAccountId;
@@ -107,7 +107,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const message = err instanceof Error ? err.message : String(err);
         console.error("[auth] Google sign-in failed:", message, err);
         if (
-          /MONGODB_URI|buffering timed out|ECONNREFUSED|ENOTFOUND|authentication failed|bad auth|MongoServerError|MongoNetworkError/i.test(
+          /MONGODB_URI|buffering timed out|ECONNREFUSED|ENOTFOUND|authentication failed|bad auth|MongoServerError|MongoNetworkError|E11000|duplicate key/i.test(
             message,
           )
         ) {

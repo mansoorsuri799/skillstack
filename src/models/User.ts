@@ -18,10 +18,9 @@ const UserSchema = new Schema(
     googleId: { type: String, default: null, index: true },
     image: { type: String, default: null },
 
-    /** Public profile */
+    /** Public profile — omit until the user chooses a handle (sparse unique). */
     username: {
       type: String,
-      default: null,
       unique: true,
       sparse: true,
       lowercase: true,
