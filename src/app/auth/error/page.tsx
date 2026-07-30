@@ -6,9 +6,13 @@ import { Suspense } from "react";
 
 const MESSAGES: Record<string, string> = {
   AccessDenied:
-    "Sign-in was blocked after Google. On production this usually means the database could not save your account (check MONGODB_URI and Atlas Network Access), or Google returned no email.",
+    "Sign-in was blocked after Google. Check Vercel logs for [auth] Google sign-in failed, and confirm MONGODB_URI plus Google OAuth redirect URIs.",
+  Database:
+    "Google sign-in worked, but the database could not save your account. On Vercel, set MONGODB_URI (Atlas connection string) for Production and Redeploy. Atlas Network Access should allow 0.0.0.0/0.",
+  NoEmail:
+    "Google did not share an email address for this account. Use a Google account that has an email, or allow the email permission and try again.",
   Configuration:
-    "Auth is misconfigured. Confirm AUTH_SECRET, AUTH_URL, AUTH_GOOGLE_ID, and AUTH_GOOGLE_SECRET are set on Vercel and redeploy.",
+    "Auth is misconfigured. Confirm AUTH_SECRET, AUTH_URL=https://skillstack.com.pk, AUTH_GOOGLE_ID, and AUTH_GOOGLE_SECRET are set on Vercel (Production) and redeploy.",
   Verification:
     "The sign-in link is invalid or expired. Try again.",
   OAuthAccountNotLinked:

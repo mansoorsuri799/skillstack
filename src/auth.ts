@@ -72,7 +72,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             : "";
         if (!email) {
           console.error("[auth] Google sign-in missing email");
-          return "/auth/error?error=AccessDenied";
+          return "/auth/error?error=NoEmail";
+        }
+
+        if (!process.env.MONGODB_URI) {
+          console.error("[auth] MONGODB_URI is not set in this environment");
+          return "/auth/error?error=Database";
         }
 
         await connectDB();
@@ -99,8 +104,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         user.id = dbUser._id.toString();
         return true;
       } catch (err) {
-        console.error("[auth] Google sign-in failed:", err);
-        // Surface as AccessDenied so the custom error page can explain prod DB issues
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[auth] Google sign-in failed:", message, err);
+        if (
+          /MONGODB_URI|buffering timed out|ECONNREFUSED|ENOTFOUND|authentication failed|bad auth|MongoServerError|MongoNetworkError/i.test(
+            message,
+          )
+        ) {
+          return "/auth/error?error=Database";
+        }
         return "/auth/error?error=AccessDenied";
       }
     },
