@@ -66,9 +66,21 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/brand/skill-stack.webp", type: "image/webp", sizes: "512x512" },
+      {
+        url: "/brand/skill-stack-icon-512.png",
+        type: "image/png",
+        sizes: "512x512",
+      },
     ],
     shortcut: "/favicon.ico",
-    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      {
+        url: "/brand/skill-stack-icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
   },
   robots: {
     index: true,
