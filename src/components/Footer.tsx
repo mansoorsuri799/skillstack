@@ -5,7 +5,7 @@ import { LINKEDIN_URL, SITE_EMAIL, SITE_EMAIL_HREF, SITE_URL, X_URL } from "@/li
 const legal = [
   { href: "/privacy", label: "Privacy policy" },
   { href: "/terms", label: "Terms of service" },
-  { href: "/sitemap.xml", label: "Sitemap" },
+  { href: "/sitemap-index.xml", label: "Sitemap" },
 ];
 
 export default function Footer() {
