@@ -2,15 +2,63 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, KeyboardEvent, useEffect, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { PublicProfile } from "@/models/User";
 
 const inputClass =
   "mt-2 w-full rounded-md border border-white/10 bg-[#010409] px-3 py-2.5 text-snow outline-none transition-colors focus:border-accent";
 
+/** Resize / compress a file to a JPEG data URL for storage. */
+function fileToAvatarDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not read file."));
+    reader.onload = () => {
+      const img = new window.Image();
+      img.onerror = () => reject(new Error("Could not load image."));
+      img.onload = () => {
+        const max = 512;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Could not process image."));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        let quality = 0.88;
+        let dataUrl = canvas.toDataURL("image/jpeg", quality);
+        while (dataUrl.length > 400_000 && quality > 0.45) {
+          quality -= 0.08;
+          dataUrl = canvas.toDataURL("image/jpeg", quality);
+        }
+        if (dataUrl.length > 450_000) {
+          reject(new Error("Image is still too large. Try a smaller photo."));
+          return;
+        }
+        resolve(dataUrl);
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ProfileEditor() {
+  const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [email, setEmail] = useState("");
@@ -89,6 +137,65 @@ export default function ProfileEditor() {
     }
   }
 
+  async function uploadAvatar(file: File) {
+    setError("");
+    setOk("");
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file (JPEG, PNG, or WebP).");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("Image must be under 8MB.");
+      return;
+    }
+    setPhotoBusy(true);
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: dataUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not update photo.");
+        setPhotoBusy(false);
+        return;
+      }
+      const p = data.profile as PublicProfile;
+      setForm((f) => ({ ...f, image: p.image }));
+      setOk("Profile photo updated.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update photo.");
+    }
+    setPhotoBusy(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  async function removeAvatar() {
+    setError("");
+    setOk("");
+    setPhotoBusy(true);
+    try {
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: null }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not remove photo.");
+        setPhotoBusy(false);
+        return;
+      }
+      setForm((f) => ({ ...f, image: null }));
+      setOk("Profile photo removed.");
+    } catch {
+      setError("Could not remove photo.");
+    }
+    setPhotoBusy(false);
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -152,21 +259,53 @@ export default function ProfileEditor() {
   return (
     <form onSubmit={onSubmit} className="space-y-8">
       <div className="flex flex-wrap items-center gap-4 border-b border-white/10 pb-8">
-        <div className="relative h-16 w-16 overflow-hidden rounded-full border border-white/15 bg-[#161b22]">
-          {form.image ? (
-            <Image
-              src={form.image}
-              alt=""
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-              unoptimized
+        <div className="flex items-center gap-4">
+          <div className="relative h-16 w-16 overflow-hidden rounded-full border border-white/15 bg-[#161b22]">
+            {form.image ? (
+              <Image
+                src={form.image}
+                alt=""
+                width={64}
+                height={64}
+                className="h-full w-full object-cover"
+                unoptimized
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center font-display text-xl text-accent">
+                {(form.name || "?").slice(0, 1).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void uploadAvatar(file);
+              }}
             />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center font-display text-xl text-accent">
-              {(form.name || "?").slice(0, 1).toUpperCase()}
-            </span>
-          )}
+            <button
+              type="button"
+              disabled={photoBusy}
+              onClick={() => fileRef.current?.click()}
+              className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-snow hover:bg-white/5 disabled:opacity-60"
+            >
+              {photoBusy ? "Updating…" : "Change photo"}
+            </button>
+            {form.image ? (
+              <button
+                type="button"
+                disabled={photoBusy}
+                onClick={() => void removeAvatar()}
+                className="text-left text-xs text-ink-muted hover:text-red-300 disabled:opacity-60"
+              >
+                Remove photo
+              </button>
+            ) : null}
+          </div>
         </div>
         <div className="min-w-0">
           <p className="font-display text-lg font-semibold text-snow">
@@ -207,7 +346,9 @@ export default function ProfileEditor() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+                  username: e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9_-]/g, ""),
                 })
               }
               placeholder="yourname"

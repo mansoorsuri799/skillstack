@@ -66,10 +66,11 @@ export async function PATCH(request: Request) {
       user.name = name.slice(0, 80);
     }
 
+    let clearUsername = false;
     if (typeof body.username === "string") {
       const username = body.username.trim().toLowerCase();
       if (!username) {
-        user.username = null;
+        clearUsername = true;
       } else {
         if (!USERNAME_RE.test(username)) {
           return NextResponse.json(
@@ -123,10 +124,14 @@ export async function PATCH(request: Request) {
     }
 
     await user.save();
+    if (clearUsername) {
+      await User.updateOne({ _id: user._id }, { $unset: { username: "" } });
+    }
 
+    const fresh = await User.findById(user._id);
     return NextResponse.json({
-      profile: toPublicProfile(user),
-      email: user.email,
+      profile: toPublicProfile(fresh!),
+      email: fresh!.email,
     });
   } catch (error) {
     console.error("[profile PATCH]", error);

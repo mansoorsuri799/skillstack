@@ -16,7 +16,7 @@ const UserSchema = new Schema(
     verificationToken: { type: String, default: null },
     verificationTokenExpires: { type: Date, default: null },
     googleId: { type: String, default: null, index: true },
-    image: { type: String, default: null },
+    image: { type: String, required: false },
 
     /** Public profile — omit until the user chooses a handle (sparse unique). */
     username: {
