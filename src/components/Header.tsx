@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
-import InstallAppButton from "@/components/InstallAppButton";
 import { HEADER_HEIGHT_CLASS } from "@/lib/layout";
 
 const links = [
@@ -60,8 +59,6 @@ export default function Header() {
         </nav>
 
         <div className="relative z-10 flex shrink-0 items-center gap-2">
-          <InstallAppButton className="inline-flex items-center justify-center rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/20 sm:px-4 sm:py-2 sm:text-sm" />
-
           {showAuth ? (
             <>
               <Link
