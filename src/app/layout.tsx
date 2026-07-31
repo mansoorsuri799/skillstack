@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Syne, Public_Sans } from "next/font/google";
 import Providers from "@/components/Providers";
 import JsonLd from "@/components/JsonLd";
@@ -50,6 +50,14 @@ export const metadata: Metadata = {
   publisher: "SkillStack Private Limited",
   applicationName: "SkillStack",
   category: "Business",
+  appleWebApp: {
+    capable: true,
+    title: "SkillStack",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     type: "website",
     locale: "en_PK",
@@ -105,7 +113,13 @@ export const metadata: Metadata = {
   other: {
     "geo.region": "PK-GB",
     "geo.placename": "Gilgit-Baltistan",
+    "mobile-web-app-capable": "yes",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#010409",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
