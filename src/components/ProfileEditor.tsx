@@ -382,7 +382,7 @@ export default function ProfileEditor() {
           <input
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
-            placeholder="Gilgit, Pakistan"
+            placeholder="Gilgit-Baltistan, Pakistan"
             className={inputClass}
           />
         </label>

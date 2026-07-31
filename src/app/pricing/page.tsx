@@ -8,13 +8,13 @@ import { plans } from "@/lib/pricing";
 import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Pricing | SEO Packages Gilgit-Baltistan, Pakistan & Worldwide",
   description:
-    "SkillStack packages — Starter, Growth, and Dominate. One-time payments via Stripe.",
+    "SkillStack packages for keyword research, websites, SEO ranking, content, and backlinks — based in Gilgit-Baltistan, serving Pakistan and international clients. One-time payments via Stripe.",
   alternates: { canonical: absoluteUrl("/pricing") },
   openGraph: {
     url: absoluteUrl("/pricing"),
-    title: "SkillStack Pricing",
+    title: "SkillStack Pricing — Worldwide",
     description:
       "Clear one-time packages for keyword research, website builds, and full ranking stacks.",
   },

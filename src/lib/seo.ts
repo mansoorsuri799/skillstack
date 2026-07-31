@@ -1,3 +1,5 @@
+import { services } from "@/lib/services";
+
 export const SITE_URL = "https://skillstack.com.pk";
 export const SITE_NAME = "SkillStack";
 export const LEGAL_NAME = "SkillStack Private Limited";
@@ -12,10 +14,13 @@ export const X_URL = "https://x.com/skillstack_co";
 export const OFFICE = {
   lat: 35.901162,
   lng: 74.361646,
+  city: "Gilgit",
   region: "Gilgit-Baltistan",
   country: "PK",
+  countryName: "Pakistan",
   mapsUrl: "https://maps.app.goo.gl/EWJHVAP4QonegUM5A",
-  label: "Gilgit-Baltistan, Pakistan",
+  label: "Gilgit, Gilgit-Baltistan, Pakistan",
+  shortLabel: "Gilgit-Baltistan, Pakistan",
 } as const;
 
 export type Crumb = {
@@ -28,22 +33,32 @@ export const siteFaqs = [
   {
     question: "What is SkillStack?",
     answer:
-      "SkillStack Private Limited is a web development and SEO company that helps clients research keywords, build ranking-ready websites, publish SEO content, earn from traffic with ads, and grow authority with careful backlinking. It is led by CEO Mansoor Khan and serves clients in Pakistan and internationally.",
+      "SkillStack (also written Skill Stack) is SkillStack Private Limited — a web development and SEO company based in Gilgit-Baltistan, Pakistan. We help clients with keyword research, Google ranking, SEO content and blogging, backlinks, websites, and ad monetization across Pakistan and internationally.",
+  },
+  {
+    question: "Is Skill Stack the same as SkillStack?",
+    answer:
+      "Yes. SkillStack, Skill Stack, and SkillStack.com.pk all refer to the same company — SkillStack Private Limited, led by CEO Mansoor Khan.",
+  },
+  {
+    question: "Is SkillStack a tech company in Gilgit-Baltistan?",
+    answer:
+      "Yes. SkillStack is a Gilgit-Baltistan-based tech company focused on SEO, Google ranking, keyword research, content writing, blogging, backlink services, and web development. We serve local businesses, clients across Pakistan, and international projects.",
   },
   {
     question: "What services does SkillStack offer?",
     answer:
-      "SkillStack offers keyword research, SEO ranking content, websites built from scratch (WordPress or Next.js), high-authority backlinking, AdSense and Adsterra monetization, and keyword packages.",
+      "SkillStack offers keyword research, SEO ranking and content writing, websites from scratch (WordPress or Next.js), high-authority backlinking, AdSense monetization, and keyword packages.",
   },
   {
     question: "Who runs SkillStack?",
     answer:
-      "Mansoor Khan is the CEO of SkillStack Private Limited. The company grows from focused freelance craft into a structured practice that ranks sites honestly and transfers knowledge so teams become independent.",
+      "Mansoor Khan is the CEO of SkillStack Private Limited. The company grew from focused freelance craft into a structured practice that ranks sites honestly and transfers knowledge so teams become independent.",
   },
   {
-    question: "Does SkillStack work with international clients?",
+    question: "Do you provide SEO and backlink services across Pakistan?",
     answer:
-      "Yes. SkillStack is based in Pakistan and delivers for national and international clients — from first domain to ranking strategy and monetization.",
+      "Yes. While our office is in Gilgit-Baltistan, we deliver keyword research, Google ranking, blogging, content writing, and backlink services for clients nationwide in Pakistan and for international projects.",
   },
   {
     question: "How does a SkillStack project work?",
@@ -98,6 +113,28 @@ export function faqJsonLd(
 export function siteGraphJsonLd() {
   const logo = absoluteUrl("/brand/skill-stack.webp");
 
+  const offerCatalog = {
+    "@type": "OfferCatalog",
+    name: "SkillStack services",
+    itemListElement: services.map((service, i) => ({
+      "@type": "Offer",
+      position: i + 1,
+      itemOffered: {
+        "@type": "Service",
+        name: service.title,
+        description: service.summary,
+        url: absoluteUrl(`/services/${service.slug}`),
+        provider: { "@id": `${SITE_URL}/#organization` },
+        areaServed: [
+          { "@type": "City", name: "Gilgit" },
+          { "@type": "AdministrativeArea", name: "Gilgit-Baltistan" },
+          { "@type": "Country", name: "Pakistan" },
+          { "@type": "Place", name: "Worldwide" },
+        ],
+      },
+    })),
+  };
+
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -105,7 +142,13 @@ export function siteGraphJsonLd() {
         "@type": "Organization",
         "@id": `${SITE_URL}/#organization`,
         name: LEGAL_NAME,
-        alternateName: [SITE_NAME, "Skill Stack", "SkillStack.com.pk"],
+        alternateName: [
+          SITE_NAME,
+          "Skill Stack",
+          "Skillstack",
+          "SkillStack.com.pk",
+          "skillstack",
+        ],
         url: SITE_URL,
         email: SITE_EMAIL,
         logo: {
@@ -116,7 +159,8 @@ export function siteGraphJsonLd() {
         },
         image: logo,
         description:
-          "Web development and SEO company specializing in keyword ranking, content, backlinks, and ad monetization — serving national and international clients.",
+          "SkillStack is a tech and SEO company in Gilgit-Baltistan, Pakistan — keyword research, Google ranking, content writing, blogging, backlinks, and websites for local, national, and international clients.",
+        slogan: "From keyword to Google's first page — websites built to rank and earn.",
         sameAs: [LINKEDIN_URL, X_URL],
         founder: { "@id": `${SITE_URL}/#mansoor-khan` },
         foundingLocation: {
@@ -130,10 +174,20 @@ export function siteGraphJsonLd() {
         },
         address: {
           "@type": "PostalAddress",
+          addressLocality: OFFICE.city,
           addressRegion: OFFICE.region,
           addressCountry: OFFICE.country,
         },
         areaServed: [
+          {
+            "@type": "City",
+            name: "Gilgit",
+            containedInPlace: {
+              "@type": "AdministrativeArea",
+              name: "Gilgit-Baltistan",
+            },
+          },
+          { "@type": "AdministrativeArea", name: "Gilgit-Baltistan" },
           { "@type": "Country", name: "Pakistan" },
           { "@type": "Place", name: "Worldwide" },
         ],
@@ -143,24 +197,30 @@ export function siteGraphJsonLd() {
             contactType: "sales",
             email: SITE_EMAIL,
             availableLanguage: ["English", "Urdu"],
-            areaServed: ["PK", "Worldwide"],
+            areaServed: ["Gilgit", "Gilgit-Baltistan", "PK", "Worldwide"],
           },
         ],
         knowsAbout: [
-          "Web development",
-          "Search engine optimization",
+          "SkillStack",
+          "Skill Stack",
+          "SEO company in Gilgit-Baltistan",
+          "Best tech company in Gilgit-Baltistan",
+          "SEO services Pakistan",
+          "Google ranking",
           "Keyword research",
-          "SEO content",
-          "Backlinking",
-          "AdSense monetization",
-          "Answer engine optimization",
-          "Generative engine optimization",
+          "Content writing",
+          "SEO blogging",
+          "Backlink services",
+          "Web development",
+          "International SEO",
         ],
+        hasOfferCatalog: offerCatalog,
       },
       {
-        "@type": "ProfessionalService",
+        "@type": ["ProfessionalService", "LocalBusiness"],
         "@id": `${SITE_URL}/#business`,
         name: SITE_NAME,
+        alternateName: ["Skill Stack", "SkillStack Private Limited"],
         legalName: LEGAL_NAME,
         url: SITE_URL,
         image: logo,
@@ -170,6 +230,7 @@ export function siteGraphJsonLd() {
         parentOrganization: { "@id": `${SITE_URL}/#organization` },
         address: {
           "@type": "PostalAddress",
+          addressLocality: OFFICE.city,
           addressRegion: OFFICE.region,
           addressCountry: OFFICE.country,
         },
@@ -179,25 +240,37 @@ export function siteGraphJsonLd() {
           longitude: OFFICE.lng,
         },
         hasMap: OFFICE.mapsUrl,
-        areaServed: ["PK", "Worldwide"],
-        serviceType: [
-          "Web Development",
-          "SEO Ranking",
-          "Keyword Research",
-          "Link Building",
-          "Ad Monetization",
-          "Keyword Packages",
+        areaServed: [
+          { "@type": "City", name: "Gilgit" },
+          { "@type": "AdministrativeArea", name: "Gilgit-Baltistan" },
+          { "@type": "Country", name: "Pakistan" },
+          { "@type": "Place", name: "Worldwide" },
         ],
+        serviceType: [
+          "SEO Services",
+          "Keyword Research",
+          "Content Writing",
+          "SEO Blogging",
+          "Backlink Services",
+          "Google Ranking",
+          "Web Development",
+        ],
+        hasOfferCatalog: offerCatalog,
       },
       {
         "@type": "WebSite",
         "@id": `${SITE_URL}/#website`,
         url: SITE_URL,
         name: SITE_NAME,
-        alternateName: ["Skill Stack", "SkillStack Private Limited"],
+        alternateName: [
+          "Skill Stack",
+          "SkillStack Private Limited",
+          "SkillStack.com.pk",
+        ],
         description:
-          "From keyword to Google's first page — websites built to rank and earn.",
+          "Official website of SkillStack — SEO, keyword research, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
         publisher: { "@id": `${SITE_URL}/#organization` },
+        about: { "@id": `${SITE_URL}/#organization` },
         inLanguage: "en-PK",
       },
       {
@@ -210,13 +283,18 @@ export function siteGraphJsonLd() {
         image: logo,
         address: {
           "@type": "PostalAddress",
+          addressLocality: OFFICE.city,
+          addressRegion: OFFICE.region,
           addressCountry: OFFICE.country,
         },
         knowsAbout: [
           "SEO",
-          "Web development",
+          "Google ranking",
           "Keyword research",
-          "Digital growth",
+          "Content writing",
+          "Backlinks",
+          "Web development",
+          "Digital growth in Pakistan",
         ],
       },
     ],

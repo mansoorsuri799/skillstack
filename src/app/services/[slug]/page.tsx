@@ -24,17 +24,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const service = getServiceBySlug(slug);
   if (!service) return {};
 
-  const title = service.title;
-  const description = service.summary;
+  const title = `${service.title} in Gilgit-Baltistan, Pakistan & Worldwide`;
+  const description = `${service.summary} Available from SkillStack in Gilgit-Baltistan for clients across Pakistan and internationally.`;
   const url = absoluteUrl(`/services/${service.slug}`);
 
   return {
     title,
     description,
+    keywords: [
+      `${service.title} Gilgit-Baltistan`,
+      `${service.title} Pakistan`,
+      `${service.title} international`,
+      "SkillStack",
+      "SEO Gilgit-Baltistan",
+      "international SEO",
+    ],
     alternates: { canonical: url },
     openGraph: {
       url,
-      title: `${service.title} · SkillStack`,
+      title: `${service.title} · SkillStack Worldwide`,
       description,
     },
   };
@@ -53,17 +61,22 @@ export default async function ServiceDetailPage({ params }: Props) {
         data={[
           webPageJsonLd({
             path,
-            title: `${service.title} · SkillStack`,
-            description: service.summary,
+            title: `${service.title} in Gilgit-Baltistan, Pakistan & Worldwide · SkillStack`,
+            description: `${service.summary} From SkillStack in Gilgit-Baltistan for clients across Pakistan and worldwide.`,
           }),
           {
             "@context": "https://schema.org",
             "@type": "Service",
-            name: service.title,
+            name: `${service.title} — Gilgit-Baltistan, Pakistan & Worldwide`,
             description: service.summary,
             url: absoluteUrl(path),
             provider: { "@id": `${SITE_URL}/#organization` },
-            areaServed: ["PK", "Worldwide"],
+            areaServed: [
+              { "@type": "City", name: "Gilgit" },
+              { "@type": "AdministrativeArea", name: "Gilgit-Baltistan" },
+              { "@type": "Country", name: "Pakistan" },
+              { "@type": "Place", name: "Worldwide" },
+            ],
             isRelatedTo: services
               .filter((s) => s.slug !== service.slug)
               .slice(0, 3)
@@ -78,7 +91,7 @@ export default async function ServiceDetailPage({ params }: Props) {
       <PageHero
         eyebrow={`Service ${service.n}`}
         title={service.title}
-        lead={service.summary}
+        lead={`${service.summary} Delivered from Gilgit-Baltistan for clients across Pakistan and worldwide.`}
         breadcrumbs={[
           { label: "Services", href: "/services" },
           { label: service.shortTitle },

@@ -12,16 +12,30 @@ import {
 
 export const metadata: Metadata = {
   title: {
-    absolute: "SkillStack — Web Development & SEO for Pakistan & Beyond",
+    absolute: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
   },
   description:
-    "SkillStack builds websites, ranks keywords on Google, and monetizes traffic. Led by Mansoor Khan — Pakistan and international clients.",
+    "SkillStack (Skill Stack) — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites. Based in Gilgit-Baltistan, serving Pakistan and worldwide.",
+  keywords: [
+    "SkillStack",
+    "Skill Stack",
+    "SkillStack.com.pk",
+    "best tech company Gilgit-Baltistan",
+    "SEO company Gilgit-Baltistan",
+    "SEO services Pakistan",
+    "keyword research",
+    "backlink services",
+    "content writing",
+    "Google ranking",
+    "SEO blogging",
+    "web development Pakistan",
+  ],
   alternates: { canonical: SITE_URL },
   openGraph: {
     url: SITE_URL,
-    title: "SkillStack — From keyword to Google's first page",
+    title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
-      "Web development, SEO, keyword packages, backlinks, and ad monetization.",
+      "Official SkillStack site — SEO, ranking, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
   },
 };
 
@@ -33,9 +47,9 @@ export default function Home() {
           {
             ...webPageJsonLd({
               path: "/",
-              title: "SkillStack — Web Development & SEO for Pakistan & Beyond",
+              title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
               description:
-                "SkillStack builds websites, ranks keywords on Google, and monetizes traffic with AdSense and Adsterra.",
+                "Official website of SkillStack — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites across Pakistan and worldwide.",
             }),
             speakable: {
               "@type": "SpeakableSpecification",

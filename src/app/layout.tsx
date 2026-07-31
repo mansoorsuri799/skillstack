@@ -24,23 +24,26 @@ const publicSans = Public_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "SkillStack — Web Development & SEO for Pakistan & Beyond",
+    default: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     template: "%s · SkillStack",
   },
   description:
-    "SkillStack builds websites, ranks keywords on Google, and monetizes traffic with AdSense and Adsterra. Led by Mansoor Khan — serving clients nationwide and internationally.",
+    "SkillStack (Skill Stack) — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide. Led by Mansoor Khan.",
   keywords: [
     "SkillStack",
-    "SkillStack.com.pk",
     "Skill Stack",
-    "web development Pakistan",
+    "Skillstack",
+    "SkillStack.com.pk",
+    "SEO company Gilgit-Baltistan",
+    "best tech company Gilgit-Baltistan",
     "SEO services Pakistan",
-    "keyword ranking",
-    "AdSense website",
-    "backlinking",
+    "keyword research Pakistan",
+    "backlink services",
+    "content writing",
+    "Google ranking",
+    "SEO blogging",
+    "web development Pakistan",
     "Mansoor Khan",
-    "AEO",
-    "GEO SEO",
   ],
   authors: [{ name: "Mansoor Khan", url: `${SITE_URL}/about` }],
   creator: "SkillStack",
@@ -52,15 +55,15 @@ export const metadata: Metadata = {
     locale: "en_PK",
     url: SITE_URL,
     siteName: "SkillStack",
-    title: "SkillStack — From keyword to Google's first page",
+    title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
-      "Web development, SEO ranking, keyword packages, backlinks, and ad monetization — built to rank and earn.",
+      "Official SkillStack site — keyword research, Google ranking, content writing, blogging, and backlink services from Gilgit-Baltistan.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SkillStack — Web Development & SEO",
+    title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
-      "Websites and SEO built to rank on Google and earn through ads. Serving Pakistan and international clients.",
+      "Keyword research, ranking, content, backlinks, and websites. Based in Gilgit-Baltistan, serving Pakistan and the world.",
   },
   icons: {
     icon: [

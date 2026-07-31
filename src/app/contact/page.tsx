@@ -15,13 +15,19 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contact us",
+  title: "Contact | SEO Company Gilgit-Baltistan — Pakistan & Worldwide",
   description:
-    "Contact SkillStack Private Limited for websites, SEO, keywords, and backlinking projects. Office in Gilgit-Baltistan, Pakistan.",
+    "Contact SkillStack in Gilgit-Baltistan for SEO, keyword research, content writing, blogging, backlinks, and websites — serving Gilgit-Baltistan, Pakistan, and international clients.",
+  keywords: [
+    "contact SEO company Gilgit-Baltistan",
+    "SkillStack Gilgit-Baltistan",
+    "international SEO contact",
+    "SEO services Pakistan contact",
+  ],
   alternates: { canonical: absoluteUrl("/contact") },
   openGraph: {
     url: absoluteUrl("/contact"),
-    title: "Contact SkillStack",
+    title: "Contact SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
     description:
       "Tell us your niche and goals — hello@skillstack.com.pk · Gilgit-Baltistan, Pakistan.",
   },

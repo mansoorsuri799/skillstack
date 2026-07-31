@@ -8,21 +8,22 @@ import { aboutHighlights } from "@/lib/content";
 import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "About us",
+  title: "About us | SEO Company in Gilgit-Baltistan — Pakistan & Worldwide",
   description:
-    "Meet SkillStack Private Limited and CEO Mansoor Khan — web development and SEO for Pakistan and the world.",
+    "Meet SkillStack Private Limited and CEO Mansoor Khan — a Gilgit-Baltistan-based tech company for SEO, ranking, content, and backlinks across Pakistan and internationally.",
   alternates: { canonical: absoluteUrl("/about") },
   openGraph: {
     url: absoluteUrl("/about"),
-    title: "About SkillStack",
+    title: "About SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
     description:
-      "Built in Pakistan. Aimed beyond borders. Led by CEO Mansoor Khan.",
+      "Built in Gilgit-Baltistan. Serving Pakistan and international clients. Led by CEO Mansoor Khan.",
   },
 };
 
 const facts = [
   { label: "Legal name", value: "SkillStack Private Limited" },
-  { label: "Focus", value: "Web, SEO & digital growth" },
+  { label: "Base", value: "Gilgit-Baltistan, Pakistan" },
+  { label: "Focus", value: "SEO, ranking, content & web" },
   { label: "Reach", value: "Pakistan & international" },
 ];
 
@@ -48,8 +49,8 @@ export default function AboutPage() {
       />
       <PageHero
         eyebrow="About us"
-        title="Built in Pakistan. Aimed beyond borders."
-        lead="SkillStack Private Limited helps clients turn domains into ranking, readable, and monetizable sites — with transparent craft and a team that keeps learning."
+        title="Built in Gilgit-Baltistan. Aimed across Pakistan and beyond."
+        lead="SkillStack Private Limited helps clients turn domains into ranking, readable sites — with transparent craft from our base in Gilgit-Baltistan."
         breadcrumbs={[{ label: "About" }]}
       />
 
@@ -125,7 +126,7 @@ export default function AboutPage() {
             ))}
           </div>
 
-          <FadeIn className="mt-14 grid gap-6 border-t border-white/10 pt-10 sm:grid-cols-3">
+          <FadeIn className="mt-14 grid gap-6 border-t border-white/10 pt-10 sm:grid-cols-2 lg:grid-cols-4">
             {facts.map((row) => (
               <div key={row.label}>
                 <p className="text-xs uppercase tracking-[0.16em] text-ink-muted">

@@ -9,15 +9,23 @@ import { services } from "@/lib/content";
 import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Services",
+  title: "Services | SEO, Keywords, Content & Backlinks Worldwide",
   description:
-    "Keyword research, SEO ranking, WordPress & Next.js websites, backlinking, ad monetization, and keyword packages from SkillStack.",
+    "Keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites from SkillStack — Gilgit-Baltistan-based, serving Pakistan and international clients.",
+  keywords: [
+    "SEO services Gilgit-Baltistan",
+    "keyword research Pakistan",
+    "international SEO services",
+    "backlink services",
+    "content writing SEO",
+    "Google ranking services",
+  ],
   alternates: { canonical: absoluteUrl("/services") },
   openGraph: {
     url: absoluteUrl("/services"),
-    title: "SkillStack Services",
+    title: "SkillStack Services — SEO & Ranking Worldwide",
     description:
-      "Research, SEO ranking content, build, authority, and ads — one team from keyword to revenue.",
+      "Research, ranking content, build, authority, and ads — for Gilgit-Baltistan, Pakistan, and worldwide.",
   },
 };
 
@@ -28,9 +36,9 @@ export default function ServicesPage() {
         data={[
           webPageJsonLd({
             path: "/services",
-            title: "SkillStack Services",
+            title: "SkillStack Services — SEO in Gilgit-Baltistan, Pakistan & Worldwide",
             description:
-              "Keyword research, SEO ranking, websites, backlinking, monetization, and keyword packages.",
+              "Keyword research, Google ranking, content writing, blogging, backlinks, and websites from Gilgit-Baltistan for Pakistan and international clients.",
             type: "CollectionPage",
           }),
           {
@@ -49,7 +57,11 @@ export default function ServicesPage() {
                 description: service.summary,
                 url: `${SITE_URL}/services/${service.slug}`,
                 provider: { "@id": `${SITE_URL}/#organization` },
-                areaServed: ["PK", "Worldwide"],
+                areaServed: [
+                  { "@type": "City", name: "Gilgit" },
+                  { "@type": "Country", name: "Pakistan" },
+                  { "@type": "Place", name: "Worldwide" },
+                ],
               },
             })),
           },
@@ -57,8 +69,8 @@ export default function ServicesPage() {
       />
       <PageHero
         eyebrow="Services"
-        title="Services that take you from research to revenue."
-        lead="One team for research, build, content, authority, and ads — so strategy never gets lost between freelancers. Pick a service or combine them into a full stack engagement."
+        title="SEO, content, and ranking services from SkillStack."
+        lead="One team for keyword research, Google ranking, content writing, blogging, backlinks, and websites — based in Gilgit-Baltistan, serving Pakistan and worldwide."
         breadcrumbs={[{ label: "Services" }]}
       >
         <div className="flex flex-wrap gap-3">

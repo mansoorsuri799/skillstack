@@ -7,9 +7,11 @@ import { siteFaqs } from "@/lib/seo";
 export default function FaqSection({
   title = "Questions people ask about SkillStack",
   eyebrow = "FAQ",
+  faqs = siteFaqs,
 }: {
   title?: string;
   eyebrow?: string;
+  faqs?: readonly { question: string; answer: string }[];
 }) {
   const [open, setOpen] = useState(0);
 
@@ -30,7 +32,7 @@ export default function FaqSection({
         </FadeIn>
 
         <div className="mt-8 divide-y divide-white/10 border-y border-white/10 md:mt-10">
-          {siteFaqs.map((faq, i) => {
+          {faqs.map((faq, i) => {
             const isOpen = open === i;
             return (
               <FadeIn key={faq.question} delay={Math.min(i, 4) * 0.04}>

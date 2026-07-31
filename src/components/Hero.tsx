@@ -63,8 +63,8 @@ export default function Hero() {
             variants={item}
             className="mt-2.5 max-w-md text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-lg"
           >
-            Web development, SEO content, and monetization — built for clients
-            across Pakistan and worldwide.
+            Web development, SEO, keyword research, content, and backlinks —
+            from Gilgit-Baltistan to clients across Pakistan and worldwide.
           </motion.p>
           <motion.div
             variants={item}

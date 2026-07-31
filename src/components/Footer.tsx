@@ -1,6 +1,20 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { LINKEDIN_URL, SITE_EMAIL, SITE_EMAIL_HREF, SITE_URL, X_URL } from "@/lib/seo";
+import {
+  LINKEDIN_URL,
+  OFFICE,
+  SITE_EMAIL,
+  SITE_EMAIL_HREF,
+  SITE_URL,
+  X_URL,
+} from "@/lib/seo";
+
+const explore = [
+  { href: "/services", label: "Services" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
 
 const legal = [
   { href: "/privacy", label: "Privacy policy" },
@@ -28,7 +42,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm leading-relaxed text-white/45">
-              Web development &amp; SEO — built to rank and earn.
+              SkillStack — web development &amp; SEO from {OFFICE.region},
+              serving Pakistan and worldwide.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:justify-start">
               <a
@@ -61,26 +76,48 @@ export default function Footer() {
             </div>
           </div>
 
-          <nav
-            aria-label="Legal"
-            className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 md:justify-end"
-          >
-            {legal.map((link, i) => (
-              <span key={link.href} className="flex items-center">
-                {i > 0 ? (
-                  <span className="mx-3 text-white/15" aria-hidden>
-                    ·
-                  </span>
-                ) : null}
-                <Link
-                  href={link.href}
-                  className="text-sm text-white/45 transition-colors hover:text-snow"
-                >
-                  {link.label}
-                </Link>
-              </span>
-            ))}
-          </nav>
+          <div className="flex flex-col items-center gap-4 md:items-end">
+            <nav
+              aria-label="Explore"
+              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 md:justify-end"
+            >
+              {explore.map((link, i) => (
+                <span key={link.href} className="flex items-center">
+                  {i > 0 ? (
+                    <span className="mx-3 text-white/15" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/55 transition-colors hover:text-accent"
+                  >
+                    {link.label}
+                  </Link>
+                </span>
+              ))}
+            </nav>
+            <nav
+              aria-label="Legal"
+              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 md:justify-end"
+            >
+              {legal.map((link, i) => (
+                <span key={link.href} className="flex items-center">
+                  {i > 0 ? (
+                    <span className="mx-3 text-white/15" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/45 transition-colors hover:text-snow"
+                  >
+                    {link.label}
+                  </Link>
+                </span>
+              ))}
+            </nav>
+          </div>
         </div>
       </div>
 

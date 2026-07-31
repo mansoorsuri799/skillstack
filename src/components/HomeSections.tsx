@@ -40,19 +40,19 @@ export default function HomeSections() {
               About
             </p>
             <h2 className="font-display mt-3 text-2xl font-bold tracking-tight text-snow sm:text-4xl md:text-5xl">
-              Built in Pakistan. Aimed beyond borders.
+              Built in Gilgit-Baltistan. Aimed across Pakistan and beyond.
             </h2>
             <p className="mt-6 text-base leading-relaxed text-ink-muted">
-              SkillStack is led by{" "}
+              SkillStack is a Gilgit-Baltistan-based tech company led by{" "}
               <span className="font-semibold text-snow">Mansoor Khan</span>, CEO —
-              growing from focused freelance craft into a company that serves
-              clients nationwide and worldwide.
+              delivering SEO, keyword research, content writing, blogging, and
+              backlinks for Gilgit-Baltistan, Pakistan, and clients worldwide.
             </p>
             <Link
               href="/about"
               className="mt-6 inline-block text-sm font-medium text-accent hover:underline"
             >
-              More about us →
+              More about SkillStack →
             </Link>
           </FadeIn>
           <FadeIn delay={0.12}>
