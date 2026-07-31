@@ -34,10 +34,16 @@ const layers = [
     border: "border-white/12",
     text: "text-white/75",
   },
+  {
+    label: "Ad Monetization",
+    tone: "from-[#2a2418] to-[#1a160e]",
+    border: "border-amber-500/25",
+    text: "text-amber-100/85",
+  },
 ];
 
-const DESKTOP = { gap: 44, offset: 28, tilt: 12, height: 360 };
-const MOBILE = { gap: 34, offset: 12, tilt: 8, height: 268 };
+const DESKTOP = { gap: 40, offset: 24, tilt: 12, height: 400 };
+const MOBILE = { gap: 30, offset: 10, tilt: 8, height: 300 };
 
 function useCompactStack(breakpoint = 640) {
   const [compact, setCompact] = useState(true);

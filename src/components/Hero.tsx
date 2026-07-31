@@ -33,7 +33,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_70%_20%,rgba(45,212,191,0.1),transparent_55%),radial-gradient(ellipse_60%_40%_at_10%_80%,rgba(56,100,140,0.12),transparent_50%)]"
       />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pb-10 pt-28 sm:gap-8 sm:px-6 sm:pb-16 sm:pt-32 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8 md:pb-20 md:pt-36">
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pb-12 pt-28 sm:gap-8 sm:px-6 sm:pb-16 sm:pt-32 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8 md:pb-20 md:pt-36">
         <motion.div
           variants={container}
           initial="hidden"
@@ -45,7 +45,7 @@ export default function Hero() {
             className="relative inline-block overflow-visible pr-2 sm:pr-4"
           >
             <span
-              className="font-display text-[2.35rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
+              className="font-display text-[2.75rem] font-bold leading-none tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
               data-speakable
             >
               SkillStack
@@ -85,7 +85,7 @@ export default function Hero() {
           </motion.div>
         </motion.div>
 
-        <div className="min-h-0 w-full overflow-visible md:min-h-[360px]">
+        <div className="mt-6 min-h-0 w-full overflow-visible sm:mt-8 md:mt-0 md:min-h-[400px]">
           <SkillAmalgamation />
         </div>
       </div>
