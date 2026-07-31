@@ -2,11 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AuthShell from "@/components/AuthShell";
 import RegisterForm from "@/components/RegisterForm";
+import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Sign up",
-  description: "Create a SkillStack account.",
-  robots: { index: false, follow: false },
+  title: "Register | Create a SkillStack Account",
+  description:
+    "Create a SkillStack account to access SEO, keyword research, content, and web services. Official SkillStack registration for clients in Pakistan and worldwide.",
+  keywords: [
+    "SkillStack register",
+    "Skill Stack sign up",
+    "create SkillStack account",
+    "register skillstack.com.pk",
+  ],
+  robots: { index: true, follow: true },
+  alternates: { canonical: absoluteUrl("/register") },
+  openGraph: {
+    url: absoluteUrl("/register"),
+    title: "Register · SkillStack",
+    description: "Create your SkillStack account.",
+  },
 };
 
 export default function RegisterPage() {

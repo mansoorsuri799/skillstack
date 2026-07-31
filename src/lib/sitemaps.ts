@@ -27,6 +27,8 @@ export const pageSitemapEntries: PageSitemapEntry[] = [
   { path: "/process", priority: 0.8, changeFrequency: "monthly" },
   { path: "/about", priority: 0.8, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/login", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/register", priority: 0.7, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
   { path: "/terms", priority: 0.3, changeFrequency: "yearly" },
 ];
@@ -110,6 +112,24 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
       {
         loc: `${SITE_URL}/brand/skill-stack.webp`,
         title: "SkillStack contact",
+      },
+    ],
+  },
+  {
+    pagePath: "/login",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "SkillStack login",
+      },
+    ],
+  },
+  {
+    pagePath: "/register",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "SkillStack register",
       },
     ],
   },
