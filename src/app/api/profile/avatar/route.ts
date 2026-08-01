@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
 import { User, toPublicProfile } from "@/models/User";
 
@@ -7,15 +7,14 @@ const MAX_DATA_URL_CHARS = 450_000; // ~330KB binary after base64
 const ALLOWED = /^data:image\/(jpeg|jpg|png|webp);base64,/i;
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const result = await requireUser();
+  if ("response" in result) return result.response;
+  const { user: sessionUser } = result;
 
   try {
     const body = await request.json();
     await connectDB();
-    const user = await User.findById(session.user.id);
+    const user = await User.findById(sessionUser.id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

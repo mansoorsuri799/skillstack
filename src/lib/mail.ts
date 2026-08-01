@@ -110,8 +110,8 @@ function buildVerificationHtml(name: string, verifyUrl: string) {
             <td style="background:#0d1117;border:1px solid #21262d;border-top:none;border-radius:0 0 12px 12px;padding:40px 36px 32px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td>
-                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                       <tr>
                         <td style="width:36px;height:36px;vertical-align:middle;background:#ffffff;border-radius:8px;padding:4px;">
                           ${logoImgTag()}
@@ -268,8 +268,8 @@ function buildContactInquiryHtml(options: {
             <td style="background:#0d1117;border:1px solid #21262d;border-top:none;border-radius:0 0 12px 12px;padding:40px 36px 32px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td>
-                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                       <tr>
                         <td style="width:36px;height:36px;vertical-align:middle;background:#ffffff;border-radius:8px;padding:4px;">
                           ${logoImgTag()}

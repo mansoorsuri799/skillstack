@@ -24,7 +24,7 @@ const publicSans = Public_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+    default: "SkillStack — Web Development & SEO for Pakistan & Beyond",
     template: "%s · SkillStack",
   },
   description:

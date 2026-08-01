@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
 import { User, toPublicProfile } from "@/models/User";
 
@@ -24,13 +24,12 @@ function cleanUrl(value: unknown, max = 200): string {
 }
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const result = await requireUser();
+  if ("response" in result) return result.response;
+  const { user: sessionUser } = result;
 
   await connectDB();
-  const user = await User.findById(session.user.id);
+  const user = await User.findById(sessionUser.id);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -42,15 +41,14 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const result = await requireUser();
+  if ("response" in result) return result.response;
+  const { user: sessionUser } = result;
 
   try {
     const body = await request.json();
     await connectDB();
-    const user = await User.findById(session.user.id);
+    const user = await User.findById(sessionUser.id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
