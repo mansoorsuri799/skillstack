@@ -41,6 +41,24 @@ function siteBaseUrl() {
   );
 }
 
+/**
+ * Inbox “From” name. Prefer EMAIL_FROM; otherwise wrap SMTP_USER as SkillStack.
+ * Example: SkillStack <hello@skillstack.com.pk>
+ */
+function mailFromAddress() {
+  const configured = process.env.EMAIL_FROM?.trim();
+  if (configured) {
+    // Already has a display name: Name <email>
+    if (/^[^<]+<[^>]+>$/.test(configured)) return configured;
+    // Bare address — add SkillStack name
+    return `SkillStack <${configured}>`;
+  }
+  const smtpUser = process.env.SMTP_USER?.trim();
+  if (!smtpUser) throw new Error("EMAIL_FROM or SMTP_USER must be set");
+  if (/^[^<]+<[^>]+>$/.test(smtpUser)) return smtpUser;
+  return `SkillStack <${smtpUser}>`;
+}
+
 function logoHostedUrl() {
   // Prefer production CDN URL so logos resolve even when AUTH_URL is localhost
   const base = (
@@ -174,14 +192,13 @@ export async function sendVerificationEmail(options: {
   token: string;
 }) {
   const baseUrl = siteBaseUrl();
-  const from = process.env.EMAIL_FROM || process.env.SMTP_USER!;
   const verifyUrl = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(options.token)}`;
 
   const transporter = getTransporter();
   const logo = logoAttachment();
 
   await transporter.sendMail({
-    from,
+    from: mailFromAddress(),
     to: options.to,
     subject: "Confirm your email · SkillStack",
     text: `Hi ${options.name},
@@ -339,13 +356,12 @@ export async function sendContactInquiry(options: {
   message: string;
   userId?: string;
 }) {
-  const from = process.env.EMAIL_FROM || process.env.SMTP_USER!;
   const to = process.env.CONTACT_TO || "hello@skillstack.com.pk";
   const transporter = getTransporter();
   const logo = logoAttachment();
 
   await transporter.sendMail({
-    from,
+    from: mailFromAddress(),
     to,
     replyTo: options.email,
     subject: `SkillStack inquiry — ${options.topic}`,
