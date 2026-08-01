@@ -9,7 +9,7 @@ export const SITE_EMAIL = "hello@skillstack.com.pk";
 export const SITE_EMAIL_HREF = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(SITE_EMAIL)}`;
 /** Public business phone (PayFast / contact requirement). */
 export const SITE_PHONE =
-  process.env.NEXT_PUBLIC_SITE_PHONE?.trim() || "+92 355 4692675";
+  process.env.NEXT_PUBLIC_SITE_PHONE?.trim() || "+92 343 9443799";
 export const SITE_PHONE_HREF = `tel:${SITE_PHONE.replace(/[^\d+]/g, "")}`;
 export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
