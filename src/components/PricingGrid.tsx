@@ -60,6 +60,9 @@ export default function PricingGrid() {
                   </span>
                   <span className="text-sm text-ink-muted">USD · one-time</span>
                 </p>
+                <p className="mt-1 text-xs text-ink-muted">
+                  Or pay in PKR via PayFast at checkout
+                </p>
 
                 <ul className="mt-8 flex-1 space-y-3.5">
                   {plan.features.map((feature) => (
@@ -86,14 +89,16 @@ export default function PricingGrid() {
         </div>
 
         <FadeIn className="mt-12 border border-white/10 bg-[#161b22]/80 px-6 py-5 text-sm leading-relaxed text-ink-muted md:px-8">
-          Payments are processed securely by{" "}
-          <span className="text-snow">Stripe</span>. You’ll be redirected to Stripe
-          Checkout, then returned here after payment. For Pakistan-local bank or
-          custom enterprise deals, use the{" "}
+          International cards go through{" "}
+          <span className="text-snow">Lemon Squeezy</span>; Pakistan payments
+          (JazzCash, Easypaisa, local cards) use{" "}
+          <span className="text-snow">PayFast</span>. You’ll return here after
+          checkout. Website-only, backlinks-only, or custom mixes aren’t fixed
+          packages — use the{" "}
           <Link href="/contact" className="text-accent hover:underline">
             contact form
-          </Link>
-          .
+          </Link>{" "}
+          for a quote.
         </FadeIn>
       </div>
     </div>

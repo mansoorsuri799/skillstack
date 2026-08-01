@@ -74,7 +74,7 @@ export default function Hero() {
               href="/contact"
               className="inline-flex items-center justify-center rounded-md bg-accent px-3 py-2.5 text-center text-sm font-semibold text-[#010409] transition-colors hover:bg-accent-deep sm:px-6 sm:py-3"
             >
-              Talk to Mansoor
+              Let&apos;s talk
             </a>
             <a
               href="/services"

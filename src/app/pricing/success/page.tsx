@@ -23,9 +23,9 @@ export default async function PricingSuccessPage({
         title="Payment received."
         lead={
           <>
-            Thanks for choosing SkillStack. We’ve recorded your Stripe checkout
-            {params.session_id ? " session" : ""}. Our team will follow up by
-            email within 1–2 business days to kick off your package.
+            Thanks for choosing SkillStack. We’ve received your payment
+            {params.session_id ? " confirmation" : ""}. Our team will follow up
+            by email within 1–2 business days to kick off your package.
           </>
         }
       >
