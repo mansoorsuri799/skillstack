@@ -3,10 +3,9 @@ import path from "path";
 import nodemailer from "nodemailer";
 
 const LOGO_CID = "skillstack-logo@skillstack.com.pk";
-const LOGO_PATH = path.join(
-  process.cwd(),
-  "public/brand/skill-stack-email.webp",
-);
+/** PNG — WebP is poorly supported in Gmail and many other clients. */
+const LOGO_FILENAME = "skill-stack-email.png";
+const LOGO_PATH = path.join(process.cwd(), "public/brand", LOGO_FILENAME);
 
 function getTransporter() {
   const host = process.env.SMTP_HOST;
@@ -42,22 +41,31 @@ function siteBaseUrl() {
   );
 }
 
+function logoHostedUrl() {
+  // Prefer production CDN URL so logos resolve even when AUTH_URL is localhost
+  const base = (
+    process.env.AUTH_URL?.includes("localhost")
+      ? "https://skillstack.com.pk"
+      : siteBaseUrl()
+  ).replace(/\/$/, "");
+  return `${base}/brand/${LOGO_FILENAME}`;
+}
+
 function logoAttachment() {
   if (!fs.existsSync(LOGO_PATH)) return undefined;
   return {
-    filename: "skill-stack-email.webp",
+    filename: LOGO_FILENAME,
     path: LOGO_PATH,
     cid: LOGO_CID,
     contentDisposition: "inline" as const,
-    contentType: "image/webp",
+    contentType: "image/png",
   };
 }
 
+/** Hosted PNG first (Gmail-friendly); CID is a secondary src for some desktop clients. */
 function logoImgTag() {
-  const hosted = `${siteBaseUrl().replace(/\/$/, "")}/brand/skill-stack-email.webp`;
-  // CID works in most clients; hosted PNG is the fallback URL in the markup attribute chain
-  return `<img src="cid:${LOGO_CID}" width="28" height="28" alt="SkillStack" style="display:block;border:0;width:28px;height:28px;" />
-<!--[if !mso]><!--><div style="display:none;max-height:0;overflow:hidden;">${hosted}</div><!--<![endif]-->`;
+  const hosted = logoHostedUrl();
+  return `<img src="${hosted}" width="28" height="28" alt="SkillStack" style="display:block;border:0;outline:none;text-decoration:none;width:28px;height:28px;border-radius:4px;" />`;
 }
 
 function buildVerificationHtml(name: string, verifyUrl: string) {
