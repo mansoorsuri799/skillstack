@@ -5,19 +5,24 @@ import PageCTA from "@/components/PageCTA";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import { aboutHighlights } from "@/lib/content";
-import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
+import {
+  SITE_URL,
+  absoluteUrl,
+  webPageJsonLd,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "About us | SEO Company in Gilgit-Baltistan — Pakistan & Worldwide",
   description:
     "Meet SkillStack Private Limited and CEO Mansoor Khan — a Gilgit-Baltistan-based tech company for SEO, ranking, content, and backlinks across Pakistan and internationally.",
   alternates: { canonical: absoluteUrl("/about") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/about"),
     title: "About SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
     description:
       "Built in Gilgit-Baltistan. Serving Pakistan and international clients. Led by CEO Mansoor Khan.",
-  },
+  }),
 };
 
 const facts = [

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { services } from "@/lib/services";
 
 export const SITE_URL = "https://skillstack.com.pk";
@@ -9,6 +10,31 @@ export const SITE_EMAIL_HREF = `https://mail.google.com/mail/?view=cm&fs=1&to=${
 export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
 export const X_URL = "https://x.com/skillstack_co";
+
+/** Shared social / Google preview image — never omit on page openGraph. */
+export const DEFAULT_OG_IMAGE = {
+  url: `${SITE_URL}/opengraph-image`,
+  width: 1200,
+  height: 630,
+  alt: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+} as const;
+
+export function pageOpenGraph({
+  url,
+  title,
+  description,
+}: {
+  url: string;
+  title: string;
+  description: string;
+}): NonNullable<Metadata["openGraph"]> {
+  return {
+    url,
+    title,
+    description,
+    images: [DEFAULT_OG_IMAGE],
+  };
+}
 
 /** Office pin from Google Maps */
 export const OFFICE = {

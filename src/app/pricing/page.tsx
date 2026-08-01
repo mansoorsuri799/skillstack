@@ -5,19 +5,24 @@ import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import PricingGrid from "@/components/PricingGrid";
 import { plans } from "@/lib/pricing";
-import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
+import {
+  SITE_URL,
+  absoluteUrl,
+  webPageJsonLd,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Pricing | SEO Packages Gilgit-Baltistan, Pakistan & Worldwide",
   description:
     "SkillStack packages for keyword research, websites, SEO ranking, content, and backlinks — based in Gilgit-Baltistan, serving Pakistan and international clients. One-time payments via Stripe.",
   alternates: { canonical: absoluteUrl("/pricing") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/pricing"),
     title: "SkillStack Pricing — Worldwide",
     description:
       "Clear one-time packages for keyword research, website builds, and full ranking stacks.",
-  },
+  }),
 };
 
 export default function PricingPage() {

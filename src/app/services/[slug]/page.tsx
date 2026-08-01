@@ -11,7 +11,12 @@ import {
   getServiceSlugs,
   services,
 } from "@/lib/services";
-import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
+import {
+  SITE_URL,
+  absoluteUrl,
+  webPageJsonLd,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -40,11 +45,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "international SEO",
     ],
     alternates: { canonical: url },
-    openGraph: {
+    openGraph: pageOpenGraph({
       url,
       title: `${service.title} · SkillStack Worldwide`,
       description,
-    },
+    }),
   };
 }
 

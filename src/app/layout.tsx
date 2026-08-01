@@ -66,31 +66,39 @@ export const metadata: Metadata = {
     title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
       "Official SkillStack site — keyword research, Google ranking, content writing, blogging, and backlink services from Gilgit-Baltistan.",
+    images: [
+      {
+        url: `${SITE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
       "Keyword research, ranking, content, backlinks, and websites. Based in Gilgit-Baltistan, serving Pakistan and the world.",
+    images: [`${SITE_URL}/opengraph-image`],
   },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/brand/skill-stack.webp", type: "image/webp", sizes: "512x512" },
       {
-        url: "/brand/skill-stack-icon-512.png",
-        type: "image/png",
+        url: "/brand/skill-stack-icon-192.webp",
+        type: "image/webp",
+        sizes: "192x192",
+      },
+      {
+        url: "/brand/skill-stack-icon-512.webp",
+        type: "image/webp",
         sizes: "512x512",
       },
     ],
     shortcut: "/favicon.ico",
     apple: [
       { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-      {
-        url: "/brand/skill-stack-icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-      },
     ],
   },
   robots: {

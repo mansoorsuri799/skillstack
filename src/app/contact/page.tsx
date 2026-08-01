@@ -12,6 +12,7 @@ import {
   X_URL,
   absoluteUrl,
   webPageJsonLd,
+  pageOpenGraph,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -25,12 +26,12 @@ export const metadata: Metadata = {
     "SEO services Pakistan contact",
   ],
   alternates: { canonical: absoluteUrl("/contact") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/contact"),
     title: "Contact SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
     description:
       "Tell us your niche and goals — hello@skillstack.com.pk · Gilgit-Baltistan, Pakistan.",
-  },
+  }),
 };
 
 const OFFICE_EMBED_SRC = `https://www.google.com/maps?q=${OFFICE.lat},${OFFICE.lng}&z=15&output=embed`;

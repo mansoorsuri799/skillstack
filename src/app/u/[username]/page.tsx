@@ -5,7 +5,10 @@ import { notFound } from "next/navigation";
 import FadeIn from "@/components/FadeIn";
 import PageShell from "@/components/PageShell";
 import { connectDB } from "@/lib/db";
-import { absoluteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  pageOpenGraph,
+} from "@/lib/seo";
 import { User, toPublicProfile } from "@/models/User";
 
 type Props = { params: Promise<{ username: string }> };
@@ -28,11 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: isSubstantive
       ? { index: true, follow: true }
       : { index: false, follow: true },
-    openGraph: {
+    openGraph: pageOpenGraph({
       title: p.name,
       description: p.headline || p.bio?.slice(0, 140) || "SkillStack profile",
       url: absoluteUrl(`/u/${p.username}`),
-    },
+    }),
   };
 }
 

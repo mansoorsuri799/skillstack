@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AuthShell from "@/components/AuthShell";
 import RegisterForm from "@/components/RegisterForm";
-import { absoluteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Register | Create a SkillStack Account",
@@ -16,11 +19,11 @@ export const metadata: Metadata = {
   ],
   robots: { index: true, follow: true },
   alternates: { canonical: absoluteUrl("/register") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/register"),
     title: "Register · SkillStack",
     description: "Create your SkillStack account.",
-  },
+  }),
 };
 
 export default function RegisterPage() {

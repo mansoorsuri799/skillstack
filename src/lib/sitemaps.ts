@@ -48,7 +48,7 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
         title: "SkillStack logo",
       },
       {
-        loc: `${SITE_URL}/brand/skill-stack-icon-512.png`,
+        loc: `${SITE_URL}/brand/skill-stack-icon-512.webp`,
         title: "SkillStack app icon",
       },
       {

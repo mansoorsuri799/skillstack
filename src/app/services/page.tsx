@@ -6,7 +6,12 @@ import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import ServicesCatalog from "@/components/ServicesCatalog";
 import { services } from "@/lib/content";
-import { SITE_URL, absoluteUrl, webPageJsonLd } from "@/lib/seo";
+import {
+  SITE_URL,
+  absoluteUrl,
+  webPageJsonLd,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Services | SEO, Keywords, Content & Backlinks Worldwide",
@@ -21,12 +26,12 @@ export const metadata: Metadata = {
     "Google ranking services",
   ],
   alternates: { canonical: absoluteUrl("/services") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/services"),
     title: "SkillStack Services — SEO & Ranking Worldwide",
     description:
       "Research, ranking content, build, authority, and ads — for Gilgit-Baltistan, Pakistan, and worldwide.",
-  },
+  }),
 };
 
 export default function ServicesPage() {

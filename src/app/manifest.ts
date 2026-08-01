@@ -17,21 +17,21 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en-PK",
     icons: [
       {
-        src: "/brand/skill-stack-icon-192.png",
+        src: "/brand/skill-stack-icon-192.webp",
         sizes: "192x192",
-        type: "image/png",
+        type: "image/webp",
         purpose: "any",
       },
       {
-        src: "/brand/skill-stack-icon-512.png",
+        src: "/brand/skill-stack-icon-512.webp",
         sizes: "512x512",
-        type: "image/png",
+        type: "image/webp",
         purpose: "any",
       },
       {
-        src: "/brand/skill-stack-icon-512.png",
+        src: "/brand/skill-stack-icon-512.webp",
         sizes: "512x512",
-        type: "image/png",
+        type: "image/webp",
         purpose: "maskable",
       },
     ],

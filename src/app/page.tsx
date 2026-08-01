@@ -8,6 +8,7 @@ import {
   SITE_URL,
   faqJsonLd,
   webPageJsonLd,
+  pageOpenGraph,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -31,12 +32,12 @@ export const metadata: Metadata = {
     "web development Pakistan",
   ],
   alternates: { canonical: SITE_URL },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: SITE_URL,
     title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
       "Official SkillStack site — SEO, ranking, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
-  },
+  }),
 };
 
 export default function Home() {

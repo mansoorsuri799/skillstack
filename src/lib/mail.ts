@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 const LOGO_CID = "skillstack-logo@skillstack.com.pk";
 const LOGO_PATH = path.join(
   process.cwd(),
-  "public/brand/skill-stack-email.png",
+  "public/brand/skill-stack-email.webp",
 );
 
 function getTransporter() {
@@ -45,16 +45,16 @@ function siteBaseUrl() {
 function logoAttachment() {
   if (!fs.existsSync(LOGO_PATH)) return undefined;
   return {
-    filename: "skill-stack-email.png",
+    filename: "skill-stack-email.webp",
     path: LOGO_PATH,
     cid: LOGO_CID,
     contentDisposition: "inline" as const,
-    contentType: "image/png",
+    contentType: "image/webp",
   };
 }
 
 function logoImgTag() {
-  const hosted = `${siteBaseUrl().replace(/\/$/, "")}/brand/skill-stack-email.png`;
+  const hosted = `${siteBaseUrl().replace(/\/$/, "")}/brand/skill-stack-email.webp`;
   // CID works in most clients; hosted PNG is the fallback URL in the markup attribute chain
   return `<img src="cid:${LOGO_CID}" width="28" height="28" alt="SkillStack" style="display:block;border:0;width:28px;height:28px;" />
 <!--[if !mso]><!--><div style="display:none;max-height:0;overflow:hidden;">${hosted}</div><!--<![endif]-->`;

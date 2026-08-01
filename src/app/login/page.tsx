@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AuthShell from "@/components/AuthShell";
 import LoginForm from "@/components/LoginForm";
-import { absoluteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Login | Sign in to SkillStack",
@@ -16,11 +19,11 @@ export const metadata: Metadata = {
   ],
   robots: { index: true, follow: true },
   alternates: { canonical: absoluteUrl("/login") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/login"),
     title: "Login · SkillStack",
     description: "Sign in to your SkillStack account.",
-  },
+  }),
 };
 
 export default function LoginPage() {

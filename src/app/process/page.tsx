@@ -5,19 +5,24 @@ import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import ProcessDetail from "@/components/ProcessDetail";
 import { processSteps } from "@/lib/content";
-import { absoluteUrl, howToJsonLd, webPageJsonLd } from "@/lib/seo";
+import {
+  absoluteUrl,
+  howToJsonLd,
+  webPageJsonLd,
+  pageOpenGraph,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Process",
   description:
     "How SkillStack takes projects from keyword research to build, ranking, and monetization.",
   alternates: { canonical: absoluteUrl("/process") },
-  openGraph: {
+  openGraph: pageOpenGraph({
     url: absoluteUrl("/process"),
     title: "SkillStack Process",
     description:
       "Four stages from research to revenue — clear approvals, no black-box SEO.",
-  },
+  }),
 };
 
 export default function ProcessPage() {
