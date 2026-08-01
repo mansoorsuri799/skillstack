@@ -364,6 +364,98 @@ export const services: Service[] = [
         "A keyword package is the lowest-friction way to start: clear targets, scored opportunities, and a path into the full SkillStack workflow when you are ready.",
     },
   },
+  {
+    n: "07",
+    slug: "content-writing",
+    title: "Content writing & SEO blogging",
+    shortTitle: "Content writing",
+    summary:
+      "On-intent articles and blog posts written for readers and search — semantic coverage, clear structure, and publish-ready drafts.",
+    details: [
+      "Brief-to-draft content aligned to approved keywords and search intent.",
+      "SEO blogging with headings, internals, and entity coverage built in.",
+      "Editorial tone matched to your brand — not generic AI filler.",
+      "Revision rounds so drafts ship when you are satisfied.",
+    ],
+    guide: {
+      intro:
+        "Content writing and SEO blogging turn keyword research into pages that can rank and convert. SkillStack writers work from briefs tied to real search demand — not vague “blog about our industry” requests.",
+      sections: [
+        {
+          title: "What we write",
+          body: "Guides, comparisons, local pages, thought pieces, and supporting cluster posts — each with a primary keyword job.",
+          bullets: [
+            "Pillar and supporting articles mapped to your topical cluster.",
+            "Meta titles and descriptions drafted with the page.",
+            "Internal-link suggestions to reinforce the site architecture.",
+            "Image alt and formatting notes for developers or your CMS.",
+          ],
+        },
+        {
+          title: "Quality bar",
+          body: "We aim for useful, original pages that satisfy intent and respect Google’s helpful-content expectations.",
+          bullets: [
+            "Competitor SERP skim before drafting so structure is competitive.",
+            "Readable length — long enough to cover the topic, not padded.",
+            "Fact-checkable claims; no invented stats.",
+            "Optional Urdu/English nuance when your market needs it.",
+          ],
+        },
+        {
+          title: "How it fits SkillStack",
+          body: "Pair content with keyword research, technical SEO, websites, and backlinks so publishing is part of a ranking system — not a content graveyard.",
+        },
+      ],
+      closing:
+        "You approve briefs and drafts. Published content stays yours; we keep process notes so your team can continue the calendar later.",
+    },
+  },
+  {
+    n: "08",
+    slug: "technical-seo",
+    title: "Technical SEO & site audits",
+    shortTitle: "Technical SEO",
+    summary:
+      "Crawlability, indexation, Core Web Vitals, schema, and fix lists so Google can find — and trust — your important pages.",
+    details: [
+      "Full technical audit with prioritized fix list.",
+      "Index coverage, canonicals, redirects, and sitemap hygiene.",
+      "Core Web Vitals and PageSpeed-minded recommendations.",
+      "Schema and structured-data checks for rich-result eligibility.",
+    ],
+    guide: {
+      intro:
+        "Technical SEO makes sure great content is not trapped behind crawl errors, slow templates, or messy indexation. We audit, explain, and help implement fixes on WordPress or Next.js.",
+      sections: [
+        {
+          title: "Audit coverage",
+          body: "We inspect how search engines see your site today and what blocks growth.",
+          bullets: [
+            "Robots, sitemaps, canonicals, and noindex mistakes.",
+            "Redirect chains, soft 404s, and orphan pages.",
+            "Mobile usability and Core Web Vitals hotspots.",
+            "Duplicate content and parameter URL issues.",
+          ],
+        },
+        {
+          title: "Implementation support",
+          body: "Audits without action waste money. We prioritize by impact and can implement fixes with your developers or ours.",
+          bullets: [
+            "P0 / P1 / P2 fix ordering so the team knows what to do first.",
+            "Staging checks before production changes.",
+            "Search Console verification and coverage follow-up.",
+            "Re-audit after major releases when you want a second pass.",
+          ],
+        },
+        {
+          title: "When to buy this",
+          body: "Ideal before a redesign, after a traffic drop, or when rankings stall despite good content — and as part of Growth or Full Stack packages.",
+        },
+      ],
+      closing:
+        "Technical health is the foundation under keywords, content, and links. Fix the pipes, then pour in the traffic strategy.",
+    },
+  },
 ];
 
 export const teamCollaborationNote =

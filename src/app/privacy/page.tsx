@@ -91,7 +91,15 @@ export default function PrivacyPage() {
           </a>
           {" · "}
           <Link href="/terms" className="text-accent hover:underline">
-            Terms of service
+            Terms
+          </Link>
+          {" · "}
+          <Link href="/refund" className="text-accent hover:underline">
+            Refunds
+          </Link>
+          {" · "}
+          <Link href="/service-policy" className="text-accent hover:underline">
+            Service delivery
           </Link>
         </p>
       </div>

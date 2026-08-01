@@ -31,6 +31,8 @@ export const pageSitemapEntries: PageSitemapEntry[] = [
   { path: "/register", priority: 0.7, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
   { path: "/terms", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/refund", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/service-policy", priority: 0.3, changeFrequency: "yearly" },
 ];
 
 /** Page URL → images that belong on / represent that page (Google image sitemap). */

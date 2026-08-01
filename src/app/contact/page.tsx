@@ -9,6 +9,8 @@ import {
   OFFICE,
   SITE_EMAIL,
   SITE_EMAIL_HREF,
+  SITE_PHONE,
+  SITE_PHONE_HREF,
   X_URL,
   absoluteUrl,
   webPageJsonLd,
@@ -41,28 +43,50 @@ const details: {
   value: string;
   href?: string;
   hint?: string;
+  external?: boolean;
 }[] = [
   {
     label: "Company",
     value: "SkillStack Private Limited",
   },
   {
+    label: "Email",
+    value: SITE_EMAIL,
+    href: SITE_EMAIL_HREF,
+    hint: "Open in Gmail",
+    external: true,
+  },
+  ...(SITE_PHONE
+    ? [
+        {
+          label: "Phone",
+          value: SITE_PHONE,
+          href: SITE_PHONE_HREF,
+          hint: "Call or WhatsApp",
+          external: false,
+        },
+      ]
+    : []),
+  {
+    label: "Office address",
+    value: OFFICE.fullLabel,
+    href: OFFICE.mapsUrl,
+    hint: "Open in Google Maps",
+    external: true,
+  },
+  {
     label: "LinkedIn",
     value: "Skill Stack on LinkedIn",
     href: LINKEDIN_URL,
     hint: "Follow the company page",
+    external: true,
   },
   {
     label: "X",
     value: "@SkillStack_co",
     href: X_URL,
     hint: "Follow on X",
-  },
-  {
-    label: "Office",
-    value: OFFICE.label,
-    href: OFFICE.mapsUrl,
-    hint: "Open in Google Maps",
+    external: true,
   },
   {
     label: "Reach",
@@ -128,8 +152,12 @@ export default function ContactPage() {
                       {row.href ? (
                         <a
                           href={row.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          {...(row.external
+                            ? {
+                                target: "_blank" as const,
+                                rel: "noopener noreferrer",
+                              }
+                            : {})}
                           className="group inline-flex flex-col transition-colors hover:text-accent"
                         >
                           <span>{row.value}</span>

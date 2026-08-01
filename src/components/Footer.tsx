@@ -5,6 +5,8 @@ import {
   OFFICE,
   SITE_EMAIL,
   SITE_EMAIL_HREF,
+  SITE_PHONE,
+  SITE_PHONE_HREF,
   SITE_URL,
   X_URL,
 } from "@/lib/seo";
@@ -17,8 +19,10 @@ const explore = [
 ];
 
 const legal = [
-  { href: "/privacy", label: "Privacy policy" },
-  { href: "/terms", label: "Terms of service" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/refund", label: "Refunds" },
+  { href: "/service-policy", label: "Service delivery" },
   { href: "/sitemap-index.xml", label: "Sitemap" },
 ];
 
@@ -45,6 +49,16 @@ export default function Footer() {
               SkillStack — web development &amp; SEO from {OFFICE.region},
               serving Pakistan and worldwide.
             </p>
+            <p className="text-sm leading-relaxed text-white/45">
+              <a
+                href={OFFICE.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-accent"
+              >
+                {OFFICE.fullLabel}
+              </a>
+            </p>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:justify-start">
               <a
                 href={SITE_EMAIL_HREF}
@@ -54,6 +68,19 @@ export default function Footer() {
               >
                 {SITE_EMAIL}
               </a>
+              {SITE_PHONE ? (
+                <>
+                  <span className="hidden text-white/20 sm:inline" aria-hidden>
+                    |
+                  </span>
+                  <a
+                    href={SITE_PHONE_HREF}
+                    className="text-white/55 transition-colors hover:text-accent"
+                  >
+                    {SITE_PHONE}
+                  </a>
+                </>
+              ) : null}
               <span className="hidden text-white/20 sm:inline" aria-hidden>
                 |
               </span>

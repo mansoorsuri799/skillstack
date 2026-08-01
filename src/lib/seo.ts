@@ -7,6 +7,10 @@ export const LEGAL_NAME = "SkillStack Private Limited";
 export const SITE_EMAIL = "hello@skillstack.com.pk";
 /** Opens Gmail compose addressed to SITE_EMAIL */
 export const SITE_EMAIL_HREF = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(SITE_EMAIL)}`;
+/** Public business phone (PayFast / contact requirement). */
+export const SITE_PHONE =
+  process.env.NEXT_PUBLIC_SITE_PHONE?.trim() || "+92 355 4692675";
+export const SITE_PHONE_HREF = `tel:${SITE_PHONE.replace(/[^\d+]/g, "")}`;
 export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
 export const X_URL = "https://x.com/skillstack_co";
@@ -40,12 +44,15 @@ export function pageOpenGraph({
 export const OFFICE = {
   lat: 35.901162,
   lng: 74.361646,
+  streetAddress: "Gilgit City",
   city: "Gilgit",
   region: "Gilgit-Baltistan",
+  postalCode: "15100",
   country: "PK",
   countryName: "Pakistan",
   mapsUrl: "https://maps.app.goo.gl/EWJHVAP4QonegUM5A",
-  label: "Gilgit, Gilgit-Baltistan, Pakistan",
+  label: "Gilgit City, Gilgit-Baltistan 15100, Pakistan",
+  fullLabel: "Gilgit City, Gilgit-Baltistan 15100, Pakistan",
   shortLabel: "Gilgit-Baltistan, Pakistan",
 } as const;
 
@@ -200,8 +207,10 @@ export function siteGraphJsonLd() {
         },
         address: {
           "@type": "PostalAddress",
+          streetAddress: OFFICE.streetAddress,
           addressLocality: OFFICE.city,
           addressRegion: OFFICE.region,
+          postalCode: OFFICE.postalCode,
           addressCountry: OFFICE.country,
         },
         areaServed: [
@@ -222,6 +231,7 @@ export function siteGraphJsonLd() {
             "@type": "ContactPoint",
             contactType: "sales",
             email: SITE_EMAIL,
+            ...(SITE_PHONE ? { telephone: SITE_PHONE } : {}),
             availableLanguage: ["English", "Urdu"],
             areaServed: ["Gilgit", "Gilgit-Baltistan", "PK", "Worldwide"],
           },
@@ -251,13 +261,16 @@ export function siteGraphJsonLd() {
         url: SITE_URL,
         image: logo,
         email: SITE_EMAIL,
+        ...(SITE_PHONE ? { telephone: SITE_PHONE } : {}),
         priceRange: "$$",
         sameAs: [LINKEDIN_URL, X_URL],
         parentOrganization: { "@id": `${SITE_URL}/#organization` },
         address: {
           "@type": "PostalAddress",
+          streetAddress: OFFICE.streetAddress,
           addressLocality: OFFICE.city,
           addressRegion: OFFICE.region,
+          postalCode: OFFICE.postalCode,
           addressCountry: OFFICE.country,
         },
         geo: {
