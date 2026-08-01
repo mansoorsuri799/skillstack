@@ -27,7 +27,7 @@ const sections = [
   },
   {
     title: "Payments",
-    body: "Paid plans are processed by Lemon Squeezy (international cards) and/or PayFast (Pakistan wallets and cards). Prices are shown at checkout. Refunds follow our Return & Refund Policy and any written agreement for that project. Chargebacks may result in account suspension pending review.",
+    body: "Paid plans are processed by PayFast (Pakistan wallets and cards). Prices are shown at checkout. Refunds follow our Return & Refund Policy and any written agreement for that project. Chargebacks may result in account suspension pending review.",
   },
   {
     title: "Client content & deliverables",

@@ -13,7 +13,7 @@ export type Plan = {
   features: string[];
 };
 
-/** One-time packages — USD for Lemon Squeezy / Stripe; PKR for PayFast */
+/** One-time packages — USD list prices; PKR charged via PayFast */
 export const plans: Plan[] = [
   {
     id: "keywords",

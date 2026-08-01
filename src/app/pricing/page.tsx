@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     url: absoluteUrl("/pricing"),
     title: "SkillStack Pricing — Three Clear Packages",
     description:
-      "Keyword research, website + SEO growth, or full stack — pay by card (intl) or PayFast (Pakistan).",
+      "Keyword research, website + SEO growth, or full stack — pay via PayFast (JazzCash, Easypaisa, cards).",
   }),
 };
 
@@ -60,9 +60,9 @@ export default function PricingPage() {
         lead={
           <>
             Start with keywords, grow with a ranking-ready site and SEO, or go
-            full stack through backlinks and monetization. Pay with an
-            international card or in Pakistan (JazzCash / Easypaisa). Need
-            website-only, backlinks-only, or a custom mix?{" "}
+            full stack through backlinks and monetization. Pay in Pakistan via
+            PayFast (JazzCash / Easypaisa / local cards). Need website-only,
+            backlinks-only, or a custom mix?{" "}
             <Link href="/contact" className="text-accent hover:underline">
               Contact us
             </Link>

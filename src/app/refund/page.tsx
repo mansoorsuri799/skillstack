@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: "Scope",
-    body: "This Return & Refund Policy applies to one-time packages and project fees paid through skillstack.com.pk (including Lemon Squeezy and PayFast checkouts) and to custom work confirmed by written proposal or email. SkillStack sells digital professional services — not physical goods — so “returns” mean cancellation or refund of service fees as described below.",
+    body: "This Return & Refund Policy applies to one-time packages and project fees paid through skillstack.com.pk (including PayFast checkouts) and to custom work confirmed by written proposal or email. SkillStack sells digital professional services — not physical goods — so “returns” mean cancellation or refund of service fees as described below.",
   },
   {
     title: "No physical returns",
@@ -48,7 +48,7 @@ const sections = [
   },
   {
     title: "How to request a refund",
-    body: `Email ${SITE_EMAIL} with your name, order or invoice reference, payment method (Lemon Squeezy / PayFast), and reason. We aim to respond within 2 business days and to complete approved refunds within 7–14 business days, depending on the payment provider.`,
+    body: `Email ${SITE_EMAIL} with your name, order or invoice reference, PayFast payment details, and reason. We aim to respond within 2 business days and to complete approved refunds within 7–14 business days, depending on the payment provider.`,
   },
   {
     title: "Contact",

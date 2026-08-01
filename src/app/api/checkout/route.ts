@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPlan } from "@/lib/pricing";
-import { createLemonSqueezyCheckout, lemonSqueezyConfigured } from "@/lib/payments/lemonsqueezy";
-import { createPayfastHostedCheckout, payfastConfigured } from "@/lib/payments/payfast";
+import {
+  createPayfastHostedCheckout,
+  payfastConfigured,
+} from "@/lib/payments/payfast";
 import { getStripe } from "@/lib/stripe";
 
-type Provider = "lemonsqueezy" | "payfast" | "stripe";
+type Provider = "payfast" | "stripe";
 
 function siteBaseUrl() {
   return (
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
     const planId = typeof body.planId === "string" ? body.planId : "";
     const provider = (typeof body.provider === "string"
       ? body.provider
-      : "lemonsqueezy") as Provider;
+      : "payfast") as Provider;
     const mobile = typeof body.mobile === "string" ? body.mobile.trim() : "";
 
     const plan = getPlan(planId);
@@ -39,42 +41,24 @@ export async function POST(request: Request) {
 
     const baseUrl = siteBaseUrl();
     const email = session.user.email;
-    const name = session.user.name;
     const userId = session.user.id || "";
-
-    if (provider === "lemonsqueezy") {
-      if (!lemonSqueezyConfigured()) {
-        return NextResponse.json(
-          {
-            error:
-              "International card checkout is not configured yet. Add Lemon Squeezy keys, or contact us.",
-          },
-          { status: 503 },
-        );
-      }
-      const checkout = await createLemonSqueezyCheckout({
-        planId: plan.id,
-        email,
-        name,
-        userId,
-        baseUrl,
-      });
-      return NextResponse.json({ provider, url: checkout.url });
-    }
 
     if (provider === "payfast") {
       if (!payfastConfigured()) {
         return NextResponse.json(
           {
             error:
-              "Pakistan checkout is not configured yet. Add PayFast keys, or contact us.",
+              "Checkout is not configured yet. Add PayFast keys, or contact us.",
           },
           { status: 503 },
         );
       }
       if (!mobile || mobile.replace(/\D/g, "").length < 10) {
         return NextResponse.json(
-          { error: "Enter a valid Pakistan mobile number for JazzCash / Easypaisa." },
+          {
+            error:
+              "Enter a valid Pakistan mobile number for JazzCash / Easypaisa.",
+          },
           { status: 400 },
         );
       }
@@ -94,6 +78,7 @@ export async function POST(request: Request) {
       });
     }
 
+    // Reserved for a future US entity Stripe account
     if (provider === "stripe") {
       if (!process.env.STRIPE_SECRET_KEY) {
         return NextResponse.json(
@@ -136,7 +121,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ provider, url: checkout.url });
     }
 
-    return NextResponse.json({ error: "Unknown payment provider." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Unknown payment provider." },
+      { status: 400 },
+    );
   } catch (error) {
     console.error("Checkout error:", error);
     const message =

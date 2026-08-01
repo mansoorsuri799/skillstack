@@ -122,8 +122,12 @@ export default function ContactPage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_45%_40%_at_90%_20%,rgba(45,212,191,0.07),transparent_55%)]"
         />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[0.9fr_1.1fr] md:gap-14 md:px-8 md:py-20">
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.1fr_0.9fr] md:gap-14 md:px-8 md:py-20">
           <FadeIn>
+            <ContactForm />
+          </FadeIn>
+
+          <FadeIn delay={0.08}>
             <div className="h-full border border-white/10 bg-[#0d1117] p-6 sm:p-8">
               <div className="h-px w-10 bg-accent" aria-hidden />
               <p className="mt-5 text-xs font-medium uppercase tracking-[0.18em] text-accent">
@@ -175,10 +179,6 @@ export default function ContactPage() {
                 ))}
               </dl>
             </div>
-          </FadeIn>
-
-          <FadeIn delay={0.08}>
-            <ContactForm />
           </FadeIn>
         </div>
 

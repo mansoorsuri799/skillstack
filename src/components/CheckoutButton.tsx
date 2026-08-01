@@ -6,8 +6,6 @@ import { useState } from "react";
 import type { PlanId } from "@/lib/pricing";
 import { planPricePkr, getPlan } from "@/lib/pricing";
 
-type Provider = "lemonsqueezy" | "payfast";
-
 export default function CheckoutButton({
   planId,
   featured,
@@ -17,47 +15,40 @@ export default function CheckoutButton({
   label?: string;
 }) {
   const { data: session, status } = useSession();
-  const [loading, setLoading] = useState<Provider | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mobile, setMobile] = useState("");
-  const [showPk, setShowPk] = useState(false);
 
   const plan = getPlan(planId);
   const pkr = plan ? planPricePkr(plan) : 0;
 
-  async function startCheckout(provider: Provider) {
+  async function startCheckout() {
     setError("");
     if (!session?.user) {
       window.location.href = `/login?callbackUrl=${encodeURIComponent("/pricing")}`;
       return;
     }
 
-    if (provider === "payfast" && mobile.replace(/\D/g, "").length < 10) {
-      setShowPk(true);
+    if (mobile.replace(/\D/g, "").length < 10) {
       setError("Enter your JazzCash / Easypaisa mobile number.");
       return;
     }
 
-    setLoading(provider);
+    setLoading(true);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId,
-          provider,
-          mobile: provider === "payfast" ? mobile : undefined,
+          provider: "payfast",
+          mobile,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Checkout failed.");
-        setLoading(null);
-        return;
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
+        setLoading(false);
         return;
       }
 
@@ -81,10 +72,10 @@ export default function CheckoutButton({
       }
 
       setError("Unexpected checkout response.");
-      setLoading(null);
+      setLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
-      setLoading(null);
+      setLoading(false);
     }
   }
 
@@ -93,8 +84,6 @@ export default function CheckoutButton({
   const primary = featured
     ? "bg-accent text-[#010409] hover:bg-accent-deep"
     : "border border-white/20 bg-white/5 text-snow hover:border-white/40 hover:bg-white/10";
-  const secondary =
-    "border border-white/15 bg-transparent text-snow/90 hover:border-accent/40 hover:text-accent";
 
   if (status === "loading") {
     return (
@@ -122,58 +111,31 @@ export default function CheckoutButton({
 
   return (
     <div className="space-y-2.5">
+      <label className="block text-xs text-ink-muted">
+        JazzCash / Easypaisa mobile
+        <input
+          type="tel"
+          inputMode="numeric"
+          placeholder="03XXXXXXXXX"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+          className="mt-1.5 w-full rounded-md border border-white/10 bg-[#010409]/50 px-3 py-2 text-sm text-snow outline-none focus:border-accent/50"
+        />
+      </label>
       <button
         type="button"
-        onClick={() => void startCheckout("lemonsqueezy")}
-        disabled={loading !== null}
+        onClick={() => void startCheckout()}
+        disabled={loading}
         className={`${btnBase} ${primary}`}
       >
-        {loading === "lemonsqueezy"
-          ? "Opening card checkout…"
-          : `Pay with card · $${plan?.priceUsd ?? ""} USD`}
+        {loading
+          ? "Redirecting to PayFast…"
+          : `Pay · ₨${pkr.toLocaleString("en-PK")}`}
       </button>
-
-      {!showPk ? (
-        <button
-          type="button"
-          onClick={() => {
-            setShowPk(true);
-            setError("");
-          }}
-          disabled={loading !== null}
-          className={`${btnBase} ${secondary}`}
-        >
-          Pay in Pakistan · ~₨{pkr.toLocaleString("en-PK")}
-        </button>
-      ) : (
-        <div className="space-y-2 rounded-md border border-white/10 bg-[#010409]/50 p-3">
-          <label className="block text-xs text-ink-muted">
-            JazzCash / Easypaisa mobile
-            <input
-              type="tel"
-              inputMode="numeric"
-              placeholder="03XXXXXXXXX"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              className="mt-1.5 w-full rounded-md border border-white/10 bg-[#0d1117] px-3 py-2 text-sm text-snow outline-none focus:border-accent/50"
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => void startCheckout("payfast")}
-            disabled={loading !== null}
-            className={`${btnBase} ${secondary}`}
-          >
-            {loading === "payfast"
-              ? "Redirecting to PayFast…"
-              : "Continue · JazzCash / Easypaisa / Card"}
-          </button>
-          <p className="text-[11px] leading-relaxed text-ink-muted">
-            Opens PayFast hosted checkout (local cards & wallets).
-          </p>
-        </div>
-      )}
-
+      <p className="text-center text-[11px] leading-relaxed text-ink-muted">
+        PayFast · JazzCash, Easypaisa &amp; local cards
+        {plan ? ` · listed as $${plan.priceUsd} USD` : ""}
+      </p>
       {error ? (
         <p className="text-center text-xs text-red-300">{error}</p>
       ) : null}
