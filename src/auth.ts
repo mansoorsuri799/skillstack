@@ -4,15 +4,15 @@ import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import authConfig from "@/auth.config";
 
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "EMAIL_NOT_VERIFIED";
 }
 
-/** 30 days — matches session + JWT lifetime */
-const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
+
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -59,21 +59,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-
-  session: {
-    strategy: "jwt",
-    maxAge: SESSION_MAX_AGE,
-    updateAge: 24 * 60 * 60, // re-issue cookie daily if active
-  },
-
-  jwt: {
-    maxAge: SESSION_MAX_AGE,
-  },
-
-  pages: {
-    signIn: "/login",
-    error: "/auth/error",
-  },
 
   callbacks: {
     async signIn({ user, account }) {
@@ -131,35 +116,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     },
 
-    /**
-     * Called when a JWT is created (sign-in) or verified (subsequent requests).
-     * On sign-in (user is present) we write all stable claims into the token so
-     * the session callback doesn't need a DB round-trip.
-     */
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.name = user.name ?? token.name;
-        token.email = user.email ?? token.email;
-        token.picture = user.image ?? token.picture;
-      }
-      return token;
-    },
-
-    /**
-     * Shapes the session object exposed to client and server code.
-     * All data comes from the JWT — no DB call here.
-     */
-    async session({ session, token }) {
-      if (session.user) {
-        if (token.id) session.user.id = token.id as string;
-        if (token.name) session.user.name = token.name;
-        if (token.email) session.user.email = token.email;
-        if (token.picture) session.user.image = token.picture as string;
-      }
-      return session;
-    },
+    // jwt and session callbacks are inherited from authConfig
   },
-
-  trustHost: true,
 });
