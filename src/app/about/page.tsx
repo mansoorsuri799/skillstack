@@ -13,9 +13,9 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "About us | SEO Company in Gilgit-Baltistan — Pakistan & Worldwide",
+  title: "About | Best SEO Company & Freelancer in Gilgit-Baltistan, Pakistan",
   description:
-    "Meet SkillStack Private Limited and CEO Mansoor Khan — a Gilgit-Baltistan-based tech company for SEO, ranking, content, and backlinks across Pakistan and internationally.",
+    "Meet SkillStack Private Limited and CEO Mansoor Khan — the best SEO company and SEO freelancer in Gilgit-Baltistan. Delivering keyword research, Google ranking, content writing, backlinks, and web development across Pakistan and internationally.",
   alternates: { canonical: absoluteUrl("/about") },
   openGraph: pageOpenGraph({
     url: absoluteUrl("/about"),

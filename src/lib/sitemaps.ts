@@ -26,6 +26,11 @@ export const pageSitemapEntries: PageSitemapEntry[] = [
   { path: "/pricing", priority: 0.9, changeFrequency: "monthly" },
   { path: "/process", priority: 0.8, changeFrequency: "monthly" },
   { path: "/about", priority: 0.8, changeFrequency: "monthly" },
+  {
+    path: "/seo-company-gilgit-baltistan",
+    priority: 0.95,
+    changeFrequency: "monthly",
+  },
   { path: "/contact", priority: 0.8, changeFrequency: "monthly" },
   { path: "/login", priority: 0.7, changeFrequency: "monthly" },
   { path: "/register", priority: 0.7, changeFrequency: "monthly" },
@@ -105,6 +110,15 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
       {
         loc: `${SITE_URL}/brand/skill-stack.webp`,
         title: "SkillStack process",
+      },
+    ],
+  },
+  {
+    pagePath: "/seo-company-gilgit-baltistan",
+    images: [
+      {
+        loc: `${SITE_URL}/brand/skill-stack.webp`,
+        title: "Best SEO Company in Gilgit-Baltistan — SkillStack",
       },
     ],
   },

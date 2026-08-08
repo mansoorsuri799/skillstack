@@ -16,6 +16,10 @@ const explore = [
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  {
+    href: "/seo-company-gilgit-baltistan",
+    label: "SEO · Gilgit-Baltistan",
+  },
 ];
 
 const legal = [

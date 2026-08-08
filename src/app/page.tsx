@@ -13,30 +13,35 @@ import {
 
 export const metadata: Metadata = {
   title: {
-    absolute: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+    absolute:
+      "Best SEO Company in Gilgit-Baltistan & Pakistan | SkillStack",
   },
   description:
-    "SkillStack (Skill Stack) — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites. Based in Gilgit-Baltistan, serving Pakistan and worldwide.",
+    "SkillStack — the best SEO company and web development agency in Gilgit-Baltistan, Pakistan. Keyword research, Google ranking, content writing, backlinks, and websites for businesses across Pakistan and worldwide.",
   keywords: [
+    "best SEO company Gilgit-Baltistan",
+    "best SEO company Pakistan",
+    "best SEO freelancer Pakistan",
+    "best SEO freelancer Gilgit-Baltistan",
+    "SEO company Gilgit-Baltistan",
+    "SEO services Pakistan",
+    "web development company Pakistan",
     "SkillStack",
     "Skill Stack",
     "SkillStack.com.pk",
-    "best tech company Gilgit-Baltistan",
-    "SEO company Gilgit-Baltistan",
-    "SEO services Pakistan",
-    "keyword research",
+    "keyword research Pakistan",
     "backlink services",
-    "content writing",
-    "Google ranking",
+    "content writing Pakistan",
+    "Google ranking Pakistan",
     "SEO blogging",
-    "web development Pakistan",
   ],
   alternates: { canonical: SITE_URL },
   openGraph: pageOpenGraph({
     url: SITE_URL,
-    title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+    title:
+      "Best SEO Company in Gilgit-Baltistan & Pakistan | SkillStack",
     description:
-      "Official SkillStack site — SEO, ranking, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
+      "SkillStack — best SEO company in Gilgit-Baltistan. Keyword research, Google ranking, content writing, backlinks & websites for Pakistan and worldwide.",
   }),
 };
 
@@ -48,9 +53,10 @@ export default function Home() {
           {
             ...webPageJsonLd({
               path: "/",
-              title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+              title:
+                "Best SEO Company in Gilgit-Baltistan & Pakistan | SkillStack",
               description:
-                "Official website of SkillStack — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites across Pakistan and worldwide.",
+                "SkillStack — best SEO company in Gilgit-Baltistan and Pakistan. Keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites for clients across Pakistan and worldwide.",
             }),
             speakable: {
               "@type": "SpeakableSpecification",
