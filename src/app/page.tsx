@@ -13,11 +13,10 @@ import {
 
 export const metadata: Metadata = {
   title: {
-    absolute:
-      "Best SEO Company in Gilgit-Baltistan & Pakistan | SkillStack",
+    absolute: "SkillStack — Web Development & SEO for Pakistan & Beyond",
   },
   description:
-    "SkillStack — the best SEO company and web development agency in Gilgit-Baltistan, Pakistan. Keyword research, Google ranking, content writing, backlinks, and websites for businesses across Pakistan and worldwide.",
+    "SkillStack (Skill Stack) — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites. Based in Gilgit-Baltistan, serving Pakistan and worldwide.",
   keywords: [
     "best SEO company Gilgit-Baltistan",
     "best SEO company Pakistan",
@@ -38,10 +37,9 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
   openGraph: pageOpenGraph({
     url: SITE_URL,
-    title:
-      "Best SEO Company in Gilgit-Baltistan & Pakistan | SkillStack",
+    title: "SkillStack — Web Development & SEO for Pakistan & Beyond",
     description:
-      "SkillStack — best SEO company in Gilgit-Baltistan. Keyword research, Google ranking, content writing, backlinks & websites for Pakistan and worldwide.",
+      "Official SkillStack site — SEO, ranking, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
   }),
 };
 
@@ -53,10 +51,9 @@ export default function Home() {
           {
             ...webPageJsonLd({
               path: "/",
-              title:
-                "Best SEO Company in Gilgit-Baltistan & Pakistan | SkillStack",
+              title: "SkillStack — Web Development & SEO for Pakistan & Beyond",
               description:
-                "SkillStack — best SEO company in Gilgit-Baltistan and Pakistan. Keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites for clients across Pakistan and worldwide.",
+                "Official website of SkillStack — keyword research, Google ranking, SEO blogging, content writing, backlinks, and websites across Pakistan and worldwide.",
             }),
             speakable: {
               "@type": "SpeakableSpecification",
