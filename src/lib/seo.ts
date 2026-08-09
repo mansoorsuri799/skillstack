@@ -66,7 +66,7 @@ export const siteFaqs = [
   {
     question: "What is SkillStack?",
     answer:
-      "SkillStack, also written Skill Stack or SkillStack.com.pk, is SkillStack Private Limited — a registered web development and SEO company based in Gilgit City, Gilgit-Baltistan, Pakistan, founded and led by CEO Mansoor Khan. It is not related to the general concept of skill stacking. SkillStack offers keyword research, Google ranking, SEO content and blogging, backlinks, websites, and ad monetization for clients across Pakistan and internationally.",
+      "SkillStack Private Limited is a registered web development and SEO company based in Gilgit City, Gilgit-Baltistan, Pakistan, founded and led by CEO Mansoor Khan. We offer keyword research, Google ranking, SEO content and blogging, backlinks, websites, and ad monetization for clients across Pakistan and internationally.",
   },
   {
     question: "Is SkillStack a tech company in Gilgit-Baltistan?",
