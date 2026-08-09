@@ -97,8 +97,11 @@ export default function AboutPage() {
                 alt="Mansoor Khan — CEO, SkillStack Private Limited"
                 fill
                 sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover object-top"
-                style={{ filter: "contrast(1.1) brightness(0.9) saturate(1.08)" }}
+                className="object-cover"
+                style={{
+                  objectPosition: "center 15%",
+                  filter: "contrast(1.1) brightness(0.9) saturate(1.08)",
+                }}
                 priority
               />
 
