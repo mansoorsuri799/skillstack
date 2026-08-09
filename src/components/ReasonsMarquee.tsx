@@ -106,8 +106,8 @@ function MobileReasonsList() {
         </FadeIn>
         <ul className="mt-6 space-y-0">
           {reasons.map((reason, i) => (
-            <FadeIn key={reason.n} delay={i * 0.05}>
-              <li className="border-t border-white/10 py-5">
+            <li key={reason.n} className="border-t border-white/10 py-5">
+              <FadeIn delay={i * 0.05}>
                 <span className="font-display text-xs tabular-nums text-accent">
                   {reason.n}
                 </span>
@@ -117,8 +117,8 @@ function MobileReasonsList() {
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
                   {reason.body}
                 </p>
-              </li>
-            </FadeIn>
+              </FadeIn>
+            </li>
           ))}
         </ul>
       </div>

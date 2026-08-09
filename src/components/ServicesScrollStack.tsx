@@ -53,8 +53,8 @@ function MobileServicesList() {
       </FadeIn>
       <ul className="mt-8 space-y-0">
         {services.map((s, i) => (
-          <FadeIn key={s.n} delay={i * 0.05}>
-            <li className="border-t border-white/10 py-5">
+          <li key={s.n} className="border-t border-white/10 py-5">
+            <FadeIn delay={i * 0.05}>
               <span className="font-display text-xs tabular-nums text-accent">
                 {s.n}
               </span>
@@ -75,8 +75,8 @@ function MobileServicesList() {
               >
                 Learn more →
               </Link>
-            </li>
-          </FadeIn>
+            </FadeIn>
+          </li>
         ))}
       </ul>
     </div>

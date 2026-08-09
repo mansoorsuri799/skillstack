@@ -45,15 +45,15 @@ export default function Footer() {
           <div className="flex max-w-sm flex-col items-center gap-4 md:items-start">
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 md:justify-start">
               <Logo size="sm" />
-              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/35">
+              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/60">
                 smc-private limited
               </span>
             </div>
-            <p className="text-sm leading-relaxed text-white/45">
+            <p className="text-sm leading-relaxed text-white/65">
               SkillStack — web development &amp; SEO from {OFFICE.region},
               serving Pakistan and worldwide.
             </p>
-            <p className="text-sm leading-relaxed text-white/45">
+            <p className="text-sm leading-relaxed text-white/65">
               <a
                 href={OFFICE.mapsUrl}
                 target="_blank"
@@ -141,7 +141,7 @@ export default function Footer() {
                   ) : null}
                   <Link
                     href={link.href}
-                    className="text-sm text-white/45 transition-colors hover:text-snow"
+                    className="text-sm text-white/65 transition-colors hover:text-snow"
                   >
                     {link.label}
                   </Link>
@@ -153,26 +153,15 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/[0.06]">
-        <div className="mx-auto max-w-6xl px-6 py-5 md:px-8 space-y-2">
-          <p className="text-center text-xs leading-relaxed text-white/30">
-            SkillStack (also written Skill Stack) is{" "}
-            <strong className="font-semibold text-white/40">
-              SkillStack Private Limited
-            </strong>{" "}
-            — a web development and SEO company based in Gilgit-Baltistan,
-            Pakistan, founded by Mansoor Khan. Not to be confused with the
-            general concept of skill stacking.
-          </p>
-          <p className="text-center text-xs tracking-wide text-white/35">
-            © {year}{" "}
-            <Link
-              href={SITE_URL}
-              className="text-white/55 transition-colors hover:text-accent"
-            >
-              SkillStack.com.pk
-            </Link>
-          </p>
-        </div>
+        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/55 md:px-8">
+          © {year}{" "}
+          <Link
+            href={SITE_URL}
+            className="text-white/55 transition-colors hover:text-accent"
+          >
+            SkillStack.com.pk
+          </Link>
+        </p>
       </div>
     </footer>
   );
