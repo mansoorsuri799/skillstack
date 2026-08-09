@@ -56,7 +56,7 @@ export default function Hero() {
             variants={item}
             className="mt-3 max-w-xl text-base font-medium leading-snug tracking-tight text-white/90 sm:mt-5 sm:text-3xl"
           >
-            Gilgit-Baltistan&apos;s best SEO company — websites built to rank
+            From keyword to Google&apos;s first page — websites built to rank
             and earn.
           </motion.p>
           <motion.p
@@ -64,8 +64,7 @@ export default function Hero() {
             className="mt-2.5 max-w-md text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-lg"
           >
             Web development, SEO, keyword research, content, and backlinks —
-            the best SEO team in Pakistan, based in Gilgit-Baltistan, serving
-            clients nationwide and worldwide.
+            from Gilgit-Baltistan to clients across Pakistan and worldwide.
           </motion.p>
           <motion.div
             variants={item}
