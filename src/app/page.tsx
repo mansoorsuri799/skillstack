@@ -66,19 +66,12 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        {/*
-          This paragraph is the canonical entity definition Google AI reads.
-          data-speakable marks it for AI Overview / voice / AEO.
-          Visually minimal — one line of muted text anchoring the brand.
-        */}
         <p
           data-speakable
-          className="mx-auto max-w-3xl px-6 pb-2 pt-0 text-center text-xs leading-relaxed text-white/25 md:px-8"
+          className="sr-only"
         >
           SkillStack (also written Skill Stack) is{" "}
-          <strong className="font-medium text-white/30">
-            SkillStack Private Limited
-          </strong>{" "}
+          <strong>SkillStack Private Limited</strong>{" "}
           — a web development and SEO company based in Gilgit-Baltistan,
           Pakistan, founded by Mansoor Khan. Not to be confused with the
           general concept of skill stacking.
