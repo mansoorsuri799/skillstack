@@ -93,7 +93,7 @@ export default function AboutPage() {
             <div className="relative h-full min-h-[420px] overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-black/60 md:min-h-[520px]">
               {/* Photo */}
               <Image
-                src="/masnoor-khan.webp"
+                src="/mansoor-khan.webp"
                 alt="Mansoor Khan — CEO, SkillStack Private Limited"
                 fill
                 sizes="(max-width: 768px) 100vw, 40vw"
