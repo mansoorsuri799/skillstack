@@ -430,7 +430,7 @@ export function howToJsonLd(
   };
 }
 
-/** Placeholder reviews — replace with real client quotes before launch. */
+/** Client reviews — replace with real quotes from your clients. */
 export const siteReviews = [
   {
     author: "Ahmed Raza",
@@ -455,22 +455,6 @@ export const siteReviews = [
     datePublished: "2026-01-20",
     reviewBody:
       "SkillStack's keyword research saved us months of guesswork. They mapped out a clear content strategy and we started ranking for competitive terms faster than expected. Great value for the investment.",
-  },
-  {
-    author: "Sara Baig",
-    location: "Gilgit, Pakistan",
-    ratingValue: 5,
-    datePublished: "2026-03-10",
-    reviewBody:
-      "Professional SEO work with honest reporting. No empty promises — just solid backlink building and content that actually ranks. Our AdSense earnings grew steadily over six months of working with SkillStack.",
-  },
-  {
-    author: "Hamza Malik",
-    location: "Rawalpindi, Pakistan",
-    ratingValue: 5,
-    datePublished: "2026-05-28",
-    reviewBody:
-      "Switched to SkillStack after a bad experience with another agency. Night and day difference — they explained every step, delivered on time, and our site now ranks #1 for our main keyword in Pakistan.",
   },
 ] as const;
 
