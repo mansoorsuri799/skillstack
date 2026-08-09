@@ -41,7 +41,7 @@ export default function Footer() {
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 md:py-14">
-        <div className="flex flex-col items-center gap-10 text-center md:flex-row md:items-end md:justify-between md:text-left">
+        <div className="flex flex-col items-center gap-10 text-center md:flex-row md:items-start md:justify-between md:text-left">
           <div className="flex max-w-sm flex-col items-center gap-4 md:items-start">
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 md:justify-start">
               <Logo size="sm" />
