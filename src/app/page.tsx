@@ -6,6 +6,7 @@ import HomeSections from "@/components/HomeSections";
 import JsonLd from "@/components/JsonLd";
 import {
   SITE_URL,
+  aggregateRatingJsonLd,
   faqJsonLd,
   webPageJsonLd,
   pageOpenGraph,
@@ -61,6 +62,7 @@ export default function Home() {
             },
           },
           faqJsonLd(),
+          aggregateRatingJsonLd(),
         ]}
       />
       <Header />

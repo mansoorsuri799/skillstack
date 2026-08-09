@@ -4,6 +4,7 @@ import FaqSection from "./FaqSection";
 import ProcessPath from "./ProcessPath";
 import ReasonsMarquee from "./ReasonsMarquee";
 import ServicesScrollStack from "./ServicesScrollStack";
+import Testimonials from "./Testimonials";
 
 export default function HomeSections() {
   return (
@@ -68,6 +69,8 @@ export default function HomeSections() {
           </FadeIn>
         </div>
       </section>
+
+      <Testimonials />
 
       <FaqSection />
 
