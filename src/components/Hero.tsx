@@ -56,8 +56,8 @@ export default function Hero() {
             variants={item}
             className="mt-3 max-w-xl text-base font-medium leading-snug tracking-tight text-white/90 sm:mt-5 sm:text-3xl"
           >
-            From keyword to Google&apos;s first page — websites built to rank
-            and earn.
+            From keyword to Google&apos;s first page — websites built to{" "}
+            <em>rank and earn.</em>
           </motion.p>
           <motion.p
             variants={item}
