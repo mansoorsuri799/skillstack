@@ -13,7 +13,7 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "About | Best SEO Company & Freelancer in Gilgit-Baltistan, Pakistan",
+  title: "About | SkillStack Pakistan, Best SEO Company",
   description:
     "Meet SkillStack Private Limited and CEO Mansoor Khan — the best SEO company and SEO freelancer in Gilgit-Baltistan. Delivering keyword research, Google ranking, content writing, backlinks, and web development across Pakistan and internationally.",
   alternates: { canonical: absoluteUrl("/about") },

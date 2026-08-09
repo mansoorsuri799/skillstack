@@ -13,7 +13,7 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Pricing | SEO Packages Gilgit-Baltistan, Pakistan & Worldwide",
+  title: "Pricing | SEO Packages for Customers",
   description:
     "SkillStack packages: Keyword Package, Growth (website + SEO), and Full Stack — based in Gilgit-Baltistan for Pakistan and worldwide.",
   alternates: { canonical: absoluteUrl("/pricing") },

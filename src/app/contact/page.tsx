@@ -18,7 +18,7 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contact | SEO Company Gilgit-Baltistan — Pakistan & Worldwide",
+  title: "Contact | SkillStack Pakistan",
   description:
     "Contact SkillStack in Gilgit-Baltistan for SEO, keyword research, content writing, blogging, backlinks, and websites — serving Gilgit-Baltistan, Pakistan, and international clients.",
   keywords: [
