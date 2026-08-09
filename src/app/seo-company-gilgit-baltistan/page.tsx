@@ -11,6 +11,7 @@ import {
   SITE_PHONE,
   FOUNDER_NAME,
   absoluteUrl,
+  aggregateRatingJsonLd,
   webPageJsonLd,
   pageOpenGraph,
   faqJsonLd,
@@ -173,6 +174,7 @@ export default function SeoCompanyGilgitBaltistanPage() {
             sameAs: [SITE_URL, LINKEDIN_URL],
           },
           faqJsonLd(localFaqs),
+          aggregateRatingJsonLd(),
         ]}
       />
 

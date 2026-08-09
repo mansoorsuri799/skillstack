@@ -56,6 +56,7 @@ export default function PricingPage() {
       />
       <PageHero
         eyebrow="Pricing"
+        breadcrumbs={[{ label: "Pricing" }]}
         title="Three packages. Built around how clients hire us."
         lead={
           <>
