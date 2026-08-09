@@ -11,59 +11,82 @@ import {
   X_URL,
 } from "@/lib/seo";
 
-const explore = [
-  { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+const columns = [
   {
-    href: "/seo-company-gilgit-baltistan",
-    label: "SEO · Gilgit-Baltistan",
+    heading: "Company",
+    links: [
+      { href: "/about", label: "About" },
+      { href: "/process", label: "Process" },
+      { href: "/contact", label: "Contact us" },
+      { href: "/seo-company-gilgit-baltistan", label: "SEO · Gilgit-Baltistan" },
+    ],
   },
-];
-
-const legal = [
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
-  { href: "/refund", label: "Refunds" },
-  { href: "/service-policy", label: "Service delivery" },
-  { href: "/sitemap-index.xml", label: "Sitemap" },
+  {
+    heading: "Services",
+    links: [
+      { href: "/services/keyword-research", label: "Keyword research" },
+      { href: "/services/seo-ranking", label: "SEO ranking" },
+      { href: "/services/websites-from-scratch", label: "Websites" },
+      { href: "/services/backlinking", label: "Backlinking" },
+      { href: "/services/content-writing", label: "Content writing" },
+      { href: "/services/ad-monetization", label: "Ad monetization" },
+    ],
+  },
+  {
+    heading: "Pricing",
+    links: [
+      { href: "/pricing", label: "All packages" },
+      { href: "/pricing#keyword", label: "Keyword package" },
+      { href: "/pricing#growth", label: "Growth package" },
+      { href: "/pricing#fullstack", label: "Full stack package" },
+    ],
+  },
+  {
+    heading: "Legal",
+    links: [
+      { href: "/privacy", label: "Privacy policy" },
+      { href: "/terms", label: "Terms of service" },
+      { href: "/refund", label: "Refund policy" },
+      { href: "/service-policy", label: "Service delivery" },
+      { href: "/sitemap-index.xml", label: "Sitemap" },
+    ],
+  },
 ];
 
 export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative z-10 border-t border-white/10 bg-[#010409]">
+    <footer className="relative z-10 border-t border-white/10 bg-[#0d1117]">
       <div
         aria-hidden
         className="h-px w-full bg-gradient-to-r from-transparent via-accent/40 to-transparent"
       />
 
-      <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 md:py-14">
-        <div className="flex flex-col items-center gap-10 text-center md:flex-row md:items-start md:justify-between md:text-left">
-          <div className="flex max-w-sm flex-col items-center gap-4 md:items-start">
-            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 md:justify-start">
+      <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:gap-8">
+
+          {/* Brand column */}
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-3">
               <Logo size="sm" />
-              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/60">
-                smc-private limited
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
+                Private Limited
               </span>
             </div>
-            <p className="text-sm leading-relaxed text-white/65">
-              SkillStack — web development &amp; SEO from {OFFICE.region},
-              serving Pakistan and worldwide.
+            <p className="text-sm leading-relaxed text-white/60">
+              Web development &amp; SEO from Gilgit-Baltistan — serving
+              Pakistan and clients worldwide.
             </p>
-            <p className="text-sm leading-relaxed text-white/65">
-              <a
-                href={OFFICE.mapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-accent"
-              >
-                {OFFICE.fullLabel}
-              </a>
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:justify-start">
+            <a
+              href={OFFICE.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-white/50 transition-colors hover:text-accent"
+            >
+              {OFFICE.fullLabel}
+            </a>
+            <div className="flex flex-col gap-2 text-sm">
               <a
                 href={SITE_EMAIL_HREF}
                 target="_blank"
@@ -72,27 +95,21 @@ export default function Footer() {
               >
                 {SITE_EMAIL}
               </a>
-              {SITE_PHONE ? (
-                <>
-                  <span className="hidden text-white/20 sm:inline" aria-hidden>
-                    |
-                  </span>
-                  <a
-                    href={SITE_PHONE_HREF}
-                    className="text-white/55 transition-colors hover:text-accent"
-                  >
-                    {SITE_PHONE}
-                  </a>
-                </>
-              ) : null}
-              <span className="hidden text-white/20 sm:inline" aria-hidden>
-                |
-              </span>
+              {SITE_PHONE && (
+                <a
+                  href={SITE_PHONE_HREF}
+                  className="text-white/55 transition-colors hover:text-accent"
+                >
+                  {SITE_PHONE}
+                </a>
+              )}
+            </div>
+            <div className="flex gap-4 text-sm">
               <a
                 href={LINKEDIN_URL}
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="text-white/55 transition-colors hover:text-accent"
+                className="text-white/50 transition-colors hover:text-accent"
               >
                 LinkedIn
               </a>
@@ -100,67 +117,48 @@ export default function Footer() {
                 href={X_URL}
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="text-white/55 transition-colors hover:text-accent"
+                className="text-white/50 transition-colors hover:text-accent"
               >
                 X
               </a>
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-4 md:items-end">
-            <nav
-              aria-label="Explore"
-              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 md:justify-end"
-            >
-              {explore.map((link, i) => (
-                <span key={link.href} className="flex items-center">
-                  {i > 0 ? (
-                    <span className="mx-3 text-white/15" aria-hidden>
-                      ·
-                    </span>
-                  ) : null}
-                  <Link
-                    href={link.href}
-                    className="text-sm text-white/55 transition-colors hover:text-accent"
-                  >
-                    {link.label}
-                  </Link>
-                </span>
-              ))}
-            </nav>
-            <nav
-              aria-label="Legal"
-              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 md:justify-end"
-            >
-              {legal.map((link, i) => (
-                <span key={link.href} className="flex items-center">
-                  {i > 0 ? (
-                    <span className="mx-3 text-white/15" aria-hidden>
-                      ·
-                    </span>
-                  ) : null}
-                  <Link
-                    href={link.href}
-                    className="text-sm text-white/65 transition-colors hover:text-snow"
-                  >
-                    {link.label}
-                  </Link>
-                </span>
-              ))}
-            </nav>
-          </div>
+          {/* Nav columns */}
+          {columns.map((col) => (
+            <div key={col.heading}>
+              <h3 className="mb-4 text-sm font-semibold tracking-wide text-snow">
+                {col.heading}
+              </h3>
+              <nav aria-label={col.heading}>
+                <ul className="flex flex-col gap-3">
+                  {col.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-white/55 transition-colors hover:text-accent"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+          ))}
         </div>
       </div>
 
       <div className="border-t border-white/[0.06]">
-        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/55 md:px-8">
+        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/40 md:px-8">
           © {year}{" "}
           <Link
             href={SITE_URL}
-            className="text-white/55 transition-colors hover:text-accent"
+            className="text-white/50 transition-colors hover:text-accent"
           >
             SkillStack.com.pk
           </Link>
+          {" "}· SkillStack Private Limited · Gilgit-Baltistan, Pakistan
         </p>
       </div>
     </footer>
