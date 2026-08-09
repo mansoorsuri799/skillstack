@@ -153,15 +153,26 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/[0.06]">
-        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/35 md:px-8">
-          © {year}{" "}
-          <Link
-            href={SITE_URL}
-            className="text-white/55 transition-colors hover:text-accent"
-          >
-            SkillStack.com.pk
-          </Link>
-        </p>
+        <div className="mx-auto max-w-6xl px-6 py-5 md:px-8 space-y-2">
+          <p className="text-center text-xs leading-relaxed text-white/30">
+            SkillStack (also written Skill Stack) is{" "}
+            <strong className="font-semibold text-white/40">
+              SkillStack Private Limited
+            </strong>{" "}
+            — a web development and SEO company based in Gilgit-Baltistan,
+            Pakistan, founded by Mansoor Khan. Not to be confused with the
+            general concept of skill stacking.
+          </p>
+          <p className="text-center text-xs tracking-wide text-white/35">
+            © {year}{" "}
+            <Link
+              href={SITE_URL}
+              className="text-white/55 transition-colors hover:text-accent"
+            >
+              SkillStack.com.pk
+            </Link>
+          </p>
+        </div>
       </div>
     </footer>
   );
