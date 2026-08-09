@@ -7,8 +7,8 @@ export default function ProcessPath() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <ol className="relative mt-12 md:mt-16">
-      {/* Desktop connector rail */}
+    <div className="relative mt-12 md:mt-16">
+      {/* Desktop connector rail — outside ol so DOM is valid */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-[12.5%] right-[12.5%] top-[22px] hidden h-px md:block"
@@ -22,7 +22,7 @@ export default function ProcessPath() {
         />
       </div>
 
-      <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4 md:gap-6">
+      <ol className="grid gap-10 sm:grid-cols-2 md:grid-cols-4 md:gap-6">
         {processSteps.map((step, i) => (
           <motion.li
             key={step.n}
@@ -71,7 +71,7 @@ export default function ProcessPath() {
             </p>
           </motion.li>
         ))}
-      </div>
-    </ol>
+      </ol>
+    </div>
   );
 }

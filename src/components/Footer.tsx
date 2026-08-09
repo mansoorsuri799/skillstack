@@ -150,11 +150,11 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/[0.06]">
-        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/40 md:px-8">
+        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/55 md:px-8">
           © {year}{" "}
           <Link
             href={SITE_URL}
-            className="text-white/50 transition-colors hover:text-accent"
+            className="text-accent underline-offset-2 transition-colors hover:underline"
           >
             SkillStack.com.pk
           </Link>
