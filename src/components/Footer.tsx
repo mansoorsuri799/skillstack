@@ -154,7 +154,7 @@ export default function Footer() {
           © {year}{" "}
           <Link
             href={SITE_URL}
-            className="text-accent underline-offset-2 transition-colors hover:underline"
+            className="text-accent underline underline-offset-2 transition-colors hover:opacity-80"
           >
             SkillStack.com.pk
           </Link>
