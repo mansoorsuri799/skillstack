@@ -70,7 +70,6 @@ export default function PricingPage() {
             .
           </>
         }
-        breadcrumbs={[{ label: "Pricing" }]}
       />
       <PricingGrid />
     </PageShell>
