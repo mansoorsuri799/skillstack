@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import FadeIn from "@/components/FadeIn";
 import JsonLd from "@/components/JsonLd";
 import PageCTA from "@/components/PageCTA";
@@ -88,19 +89,54 @@ export default function AboutPage() {
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <aside className="relative flex h-full flex-col justify-between overflow-hidden rounded-lg border border-accent/25 bg-[#0d1117] p-7 md:p-8">
+            {/* Studio-style founder portrait */}
+            <div className="relative h-full min-h-[420px] overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-black/60 md:min-h-[520px]">
+              {/* Photo */}
+              <Image
+                src="/masnoor-khan.webp"
+                alt="Mansoor Khan — CEO, SkillStack Private Limited"
+                fill
+                sizes="(max-width: 768px) 100vw, 40vw"
+                className="object-cover object-top"
+                style={{ filter: "contrast(1.1) brightness(0.9) saturate(1.08)" }}
+                priority
+              />
+
+              {/* Vignette — gives studio depth */}
               <div
                 aria-hidden
-                className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent via-accent/40 to-transparent"
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(0,0,0,0.55) 100%)",
+                }}
               />
-              <blockquote className="font-display text-xl font-medium leading-snug tracking-tight text-snow sm:text-2xl md:text-3xl">
-                “Rank honestly. Share what you learn. Build people who can stand on
-                their own.”
-              </blockquote>
-              <p className="mt-8 text-sm text-ink-muted">
-                — Mansoor Khan, CEO · SkillStack Private Limited
-              </p>
-            </aside>
+
+              {/* Top teal accent line */}
+              <div
+                aria-hidden
+                className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-accent via-accent/60 to-transparent"
+              />
+
+              {/* Bottom gradient + quote */}
+              <div
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-2/5"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(1,4,9,0.97) 0%, rgba(1,4,9,0.7) 60%, transparent 100%)",
+                }}
+              />
+              <div className="absolute inset-x-0 bottom-0 p-6 md:p-7">
+                <blockquote className="font-display text-base font-medium leading-snug tracking-tight text-snow sm:text-lg">
+                  &ldquo;Rank honestly. Share what you learn. Build people who
+                  can stand on their own.&rdquo;
+                </blockquote>
+                <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-accent">
+                  Mansoor Khan &mdash; CEO, SkillStack Private Limited
+                </p>
+              </div>
+            </div>
           </FadeIn>
         </div>
       </div>
