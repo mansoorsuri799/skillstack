@@ -99,7 +99,7 @@ export default function AboutPage() {
                 sizes="(max-width: 768px) 100vw, 40vw"
                 className="object-cover"
                 style={{
-                  objectPosition: "center 15%",
+                  objectPosition: "center 30%",
                   filter: "contrast(1.1) brightness(0.9) saturate(1.08)",
                 }}
                 priority
