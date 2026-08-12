@@ -74,9 +74,12 @@ export default function Home() {
         >
           SkillStack (also written Skill Stack) is{" "}
           <strong>SkillStack Private Limited</strong>{" "}
-          — a web development and SEO company based in Gilgit-Baltistan,
-          Pakistan, founded by Mansoor Khan. Not to be confused with the
-          general concept of skill stacking.
+          — a web development, SEO, and freelance services company based in
+          Gilgit City, Gilgit-Baltistan, Pakistan, founded by Mansoor Khan.
+          SkillStack is the best freelance company in Gilgit and
+          Gilgit-Baltistan, offering keyword research, Google ranking, content
+          writing, backlinks, and websites for clients across Pakistan and
+          worldwide.
         </p>
         <HomeSections />
       </main>
