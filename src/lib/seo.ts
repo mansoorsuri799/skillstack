@@ -349,6 +349,11 @@ export function siteGraphJsonLd() {
         worksFor: { "@id": `${SITE_URL}/#organization` },
         url: `${SITE_URL}/about`,
         image: logo,
+        sameAs: [
+          LINKEDIN_URL,
+          X_URL,
+          `${SITE_URL}/about`,
+        ],
         address: {
           "@type": "PostalAddress",
           addressLocality: OFFICE.city,
@@ -363,6 +368,8 @@ export function siteGraphJsonLd() {
           "Backlinks",
           "Web development",
           "Digital growth in Pakistan",
+          "Best freelance company Pakistan",
+          "Best SEO company Gilgit-Baltistan",
         ],
       },
     ],
