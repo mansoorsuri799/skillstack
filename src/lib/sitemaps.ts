@@ -31,6 +31,7 @@ export const pageSitemapEntries: PageSitemapEntry[] = [
     priority: 0.95,
     changeFrequency: "monthly",
   },
+  { path: "/seo-2026", priority: 0.9, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.8, changeFrequency: "monthly" },
   { path: "/login", priority: 0.7, changeFrequency: "monthly" },
   { path: "/register", priority: 0.7, changeFrequency: "monthly" },
