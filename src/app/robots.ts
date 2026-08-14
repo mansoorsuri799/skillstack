@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
           "/pricing/success",
           "/pricing/cancel",
           "/profile",
-          "/dashboard",
         ],
       },
     ],

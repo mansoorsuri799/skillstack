@@ -62,12 +62,6 @@ export default function Header() {
           {showAuth ? (
             <>
               <Link
-                href="/dashboard"
-                className="hidden rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-[#010409] hover:bg-accent-deep sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
-              >
-                Dashboard
-              </Link>
-              <Link
                 href="/profile"
                 className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
               >
@@ -149,13 +143,6 @@ export default function Header() {
           <div className="mt-5 flex flex-col gap-2">
             {showAuth ? (
               <>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full rounded-md bg-accent px-4 py-3 text-center text-sm font-semibold text-[#010409]"
-                >
-                  Dashboard
-                </Link>
                 <Link
                   href="/profile"
                   onClick={() => setMenuOpen(false)}
