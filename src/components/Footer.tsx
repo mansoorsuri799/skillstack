@@ -150,16 +150,20 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/[0.06]">
-        <p className="mx-auto max-w-6xl px-6 py-5 text-center text-xs tracking-wide text-white/55 md:px-8">
-          © {year}{" "}
-          <Link
-            href={SITE_URL}
-            className="text-accent underline underline-offset-2 transition-colors hover:opacity-80"
-          >
-            SkillStack.com.pk
-          </Link>
-          {" "}· SkillStack Private Limited · Gilgit-Baltistan, Pakistan
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-1.5 px-6 py-6 text-center text-xs tracking-wide text-white/55 md:px-8">
+          <p>
+            © {year}{" "}
+            <Link
+              href={SITE_URL}
+              className="text-accent underline underline-offset-2 transition-colors hover:opacity-80"
+            >
+              SkillStack.com.pk
+            </Link>
+            {" "}
+            · SkillStack Private Limited
+          </p>
+          <p>{OFFICE.shortLabel}</p>
+        </div>
       </div>
     </footer>
   );
