@@ -46,9 +46,9 @@ function CardStack({
   }, [cards.length, paused, reduceMotion]);
 
   const isNew = variant === "new";
-  const gap = 40;
-  const baseY = 108;
-  const stackHeight = baseY + cards.length * gap + 24;
+  const peek = 26;
+  const pileTop = 96;
+  const stackHeight = pileTop + (cards.length - 1) * peek + 72;
 
   return (
     <div
@@ -61,14 +61,17 @@ function CardStack({
         className="absolute inset-0"
         style={{
           transformStyle: "preserve-3d",
-          transform: "rotateX(14deg) rotateZ(-3deg)",
+          transform: "rotateX(16deg) rotateZ(-4deg)",
         }}
       >
         {cards.map((card, i) => {
-          const fromBottom = cards.length - 1 - i;
-          const restY = fromBottom * gap + baseY;
-          const restX = fromBottom * 3;
-          const restRot = fromBottom * 0.8 - 3;
+          const others = cards.map((_, idx) => idx).filter((idx) => idx !== featured);
+          const packed = others.indexOf(i);
+          const fromBottom =
+            packed === -1 ? 0 : others.length - 1 - packed;
+          const restY = fromBottom * peek + pileTop;
+          const restX = fromBottom * 2;
+          const restRot = fromBottom * 1.1 - 4;
           const isOut = !reduceMotion && featured === i;
 
           const cardBg = card.accent
@@ -103,7 +106,7 @@ function CardStack({
               key={card.label}
               aria-label={card.label}
               onClick={() => setFeatured(i)}
-              className={`absolute left-1/2 w-[92%] -translate-x-1/2 cursor-pointer rounded-xl border bg-gradient-to-br px-4 py-3 text-left shadow-[0_18px_40px_rgba(0,0,0,0.55)] ${cardBg} ${cardBorder}`}
+              className={`absolute left-1/2 w-[92%] -translate-x-1/2 cursor-pointer rounded-xl border bg-gradient-to-br px-4 py-2.5 text-left shadow-[0_18px_40px_rgba(0,0,0,0.55)] ${cardBg} ${cardBorder}`}
               style={{
                 transformStyle: "preserve-3d",
                 transformOrigin: "center bottom",
@@ -112,11 +115,11 @@ function CardStack({
               animate={
                 isOut
                   ? {
-                      y: 16,
-                      x: restX,
+                      y: 14,
+                      x: 0,
                       rotateZ: 0,
-                      rotateX: -14,
-                      scale: 1.08,
+                      rotateX: -16,
+                      scale: 1.07,
                       zIndex: 50,
                       opacity: 1,
                     }
@@ -125,8 +128,8 @@ function CardStack({
                       x: restX,
                       rotateZ: restRot,
                       rotateX: 0,
-                      scale: 1 - fromBottom * 0.012,
-                      zIndex: i + 1,
+                      scale: 1 - fromBottom * 0.01,
+                      zIndex: packed + 1,
                       opacity: 1,
                     }
               }
