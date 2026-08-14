@@ -193,26 +193,26 @@ export default function Seo2026Page() {
       />
 
       <article className="bg-[#010409] py-16 sm:py-24 md:py-32">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 md:px-8">
 
-          {/* Intro */}
+          {/* Intro — left-aligned */}
           <FadeIn>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
               Overview
             </p>
-            <h2 className="font-display mt-3 text-xl font-bold tracking-tight text-snow sm:text-3xl">
+            <h2 className="font-display mt-3 max-w-2xl text-2xl font-bold tracking-tight text-snow sm:text-4xl">
               Why the old linear path is no longer enough
             </h2>
-            <div className="prose prose-invert prose-sm sm:prose-base mt-5 max-w-none leading-relaxed text-ink-muted [&_strong]:text-snow">
+            <div className="mt-5 max-w-2xl space-y-4 text-sm leading-relaxed text-ink-muted sm:text-base [&_em]:italic [&_strong]:font-semibold [&_strong]:text-snow">
               <p>
                 For years, the SEO playbook was simple: research keywords, publish content,
                 build backlinks, watch rankings climb, collect clicks. That linear path still
-                forms the <strong>bedrock</strong> of search — but it's no longer the ceiling.
+                forms the <strong>bedrock</strong> of search — but it&apos;s no longer the ceiling.
               </p>
               <p>
-                In 2026, Google's AI Overviews appear on the majority of queries. ChatGPT
+                In 2026, Google&apos;s AI Overviews appear on the majority of queries. ChatGPT
                 fields over 100 million daily queries. Perplexity is growing 10x year over year.
-                Users don't just search — they <em>ask</em>. And the answers they receive come
+                Users don&apos;t just search — they <em>ask</em>. And the answers they receive come
                 from a handful of cited, structured, AI-trusted sources.
               </p>
               <p>
@@ -226,13 +226,13 @@ export default function Seo2026Page() {
 
           <div className="my-12 h-px w-full bg-white/10" />
 
-          {/* 8 Steps */}
-          <div className="space-y-14">
-            {steps.map((step, idx) => {
+          {/* 8 Steps — each triggers individually on scroll */}
+          <div className="space-y-6">
+            {steps.map((step) => {
               const colors = accentMap[step.accent] ?? "border-white/15 text-white/60";
               const [borderCls, textCls] = colors.split(" ");
               return (
-                <FadeIn key={step.n} delay={idx * 0.04}>
+                <FadeIn key={step.n}>
                   <div className={`rounded-xl border bg-white/[0.025] p-6 sm:p-8 ${borderCls} ${step.final ? "ring-1 ring-accent/25" : ""}`}>
                     <div className="flex items-center gap-3">
                       <span
@@ -265,14 +265,14 @@ export default function Seo2026Page() {
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
               Frequently Asked
             </p>
-            <h2 className="font-display mt-3 text-xl font-bold tracking-tight text-snow sm:text-3xl">
+            <h2 className="font-display mt-3 max-w-xl text-xl font-bold tracking-tight text-snow sm:text-3xl">
               Common questions about SEO in 2026
             </h2>
           </FadeIn>
 
-          <div className="mt-8 space-y-6">
+          <div className="mt-8 space-y-4">
             {faqJsonLd.mainEntity.map((item, i) => (
-              <FadeIn key={i} delay={i * 0.06}>
+              <FadeIn key={i}>
                 <div className="rounded-xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
                   <h3 className="font-display text-sm font-semibold text-snow sm:text-base">
                     {item.name}
@@ -293,10 +293,10 @@ export default function Seo2026Page() {
               <p className="text-xs font-medium uppercase tracking-widest text-accent">
                 SkillStack covers all 8 steps
               </p>
-              <h2 className="font-display mt-2 text-lg font-bold tracking-tight text-snow sm:text-2xl">
+              <h2 className="font-display mt-2 max-w-lg text-lg font-bold tracking-tight text-snow sm:text-2xl">
                 Ready to rank on Google and get cited by AI?
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
                 SkillStack is a Gilgit-Baltistan-based SEO company. Every package we offer
                 is designed around the 2026 path — from technical foundations through to
                 earning the AI citations that modern search requires.
