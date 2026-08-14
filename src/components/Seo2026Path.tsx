@@ -207,7 +207,7 @@ export default function Seo2026Path() {
           >
             <div className="mb-8 text-center">
               <span className="inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/40">
-                How people think SEO works
+                How Traditional SEO Works
               </span>
             </div>
             <CardStack cards={oldStack} variant="old" />
