@@ -64,10 +64,10 @@ export default function Footer() {
       />
 
       <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-5 md:items-start md:gap-6 lg:gap-8">
+        <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
 
           {/* Brand column */}
-          <div className="flex flex-col gap-5">
+          <div className="flex max-w-sm flex-col gap-5">
             <div className="flex items-center gap-3">
               <Logo size="sm" />
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
@@ -124,28 +124,30 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Nav columns */}
-          {columns.map((col) => (
-            <div key={col.heading}>
-              <h3 className="mb-4 text-sm font-semibold tracking-wide text-snow">
-                {col.heading}
-              </h3>
-              <nav aria-label={col.heading}>
-                <ul className="flex flex-col gap-3">
-                  {col.links.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="text-sm text-white/55 transition-colors hover:text-accent"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </div>
-          ))}
+          {/* Nav columns — Company, Services, Pricing, Legal */}
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 sm:gap-x-6 lg:max-w-3xl lg:gap-x-10">
+            {columns.map((col) => (
+              <div key={col.heading}>
+                <h3 className="mb-4 text-sm font-semibold tracking-wide text-snow">
+                  {col.heading}
+                </h3>
+                <nav aria-label={col.heading}>
+                  <ul className="flex flex-col gap-3">
+                    {col.links.map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="text-sm text-white/55 transition-colors hover:text-accent"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
