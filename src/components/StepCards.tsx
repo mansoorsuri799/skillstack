@@ -21,47 +21,28 @@ const accentMap: Record<string, string> = {
   accent: "border-accent/50 text-accent",
 };
 
-const container = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.18,
-    },
-  },
-};
-
-function cardVariant(dir: "left" | "right") {
-  return {
-    hidden: { opacity: 0, x: dir === "left" ? -70 : 70 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.55, ease: "easeOut" as const },
-    },
-  };
-}
-
 export default function StepCards({ steps }: { steps: Step[] }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.div
-      className="space-y-6"
-      variants={reduceMotion ? undefined : container}
-      initial={reduceMotion ? false : "hidden"}
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.08 }}
-    >
+    <div className="space-y-6">
       {steps.map((step, idx) => {
         const colors = accentMap[step.accent] ?? "border-white/15 text-white/60";
         const [borderCls, textCls] = colors.split(" ");
-        const dir = idx < 4 ? "left" : "right";
-        const variants = reduceMotion ? undefined : cardVariant(dir);
+
+        /* 01-04 enter from the left, 05-08 from the right */
+        const xStart = idx < 4 ? -60 : 60;
 
         return (
           <motion.div
             key={step.n}
-            variants={variants}
+            initial={reduceMotion ? false : { opacity: 0, x: xStart, y: 20 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{
+              duration: 0.55,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             className={`rounded-xl border bg-white/[0.025] p-6 sm:p-8 ${borderCls} ${step.final ? "ring-1 ring-accent/25" : ""}`}
           >
             <div className="flex items-center gap-3">
@@ -93,6 +74,6 @@ export default function StepCards({ steps }: { steps: Step[] }) {
           </motion.div>
         );
       })}
-    </motion.div>
+    </div>
   );
 }
