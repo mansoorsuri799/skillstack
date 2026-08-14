@@ -3,6 +3,7 @@ import FadeIn from "./FadeIn";
 import FaqSection from "./FaqSection";
 import ProcessPath from "./ProcessPath";
 import ReasonsMarquee from "./ReasonsMarquee";
+import Seo2026Path from "./Seo2026Path";
 import ServicesScrollStack from "./ServicesScrollStack";
 import Testimonials from "./Testimonials";
 
@@ -71,6 +72,8 @@ export default function HomeSections() {
       </section>
 
       <Testimonials />
+
+      <Seo2026Path />
 
       <FaqSection />
 
