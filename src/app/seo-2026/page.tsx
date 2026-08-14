@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/FadeIn";
 import JsonLd from "@/components/JsonLd";
-import SlideIn from "@/components/SlideIn";
+import StepCards from "@/components/StepCards";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import {
@@ -166,17 +166,6 @@ const steps = [
   },
 ];
 
-const accentMap: Record<string, string> = {
-  emerald: "border-emerald-500/30 text-emerald-400",
-  sky: "border-sky-500/30 text-sky-400",
-  slate: "border-white/15 text-white/60",
-  teal: "border-teal-500/30 text-teal-400",
-  violet: "border-violet-500/30 text-violet-400",
-  amber: "border-amber-500/30 text-amber-400",
-  rose: "border-rose-500/30 text-rose-400",
-  accent: "border-accent/50 text-accent",
-};
-
 export default function Seo2026Page() {
   return (
     <PageShell>
@@ -227,38 +216,8 @@ export default function Seo2026Page() {
 
           <div className="my-12 h-px w-full bg-white/10" />
 
-          {/* 8 Steps — 01-04 slide from left, 05-08 slide from right */}
-          <div className="space-y-6">
-            {steps.map((step, idx) => {
-              const colors = accentMap[step.accent] ?? "border-white/15 text-white/60";
-              const [borderCls, textCls] = colors.split(" ");
-              const direction = idx < 4 ? "left" : "right";
-              return (
-                <SlideIn key={step.n} direction={direction}>
-                  <div className={`rounded-xl border bg-white/[0.025] p-6 sm:p-8 ${borderCls} ${step.final ? "ring-1 ring-accent/25" : ""}`}>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold tabular-nums ${
-                          step.final
-                            ? "border-accent/50 bg-accent/15 text-accent"
-                            : `${borderCls} bg-white/5 ${textCls}`
-                        }`}
-                      >
-                        {step.n}
-                      </span>
-                      <h3 className={`font-display text-base font-bold tracking-tight sm:text-xl ${step.final ? "text-accent" : "text-snow"}`}>
-                        {step.title}
-                      </h3>
-                    </div>
-                    <div className={`mt-3 h-px w-full bg-gradient-to-r ${step.final ? "from-accent/40" : "from-white/10"} to-transparent`} />
-                    <p className="mt-4 text-sm leading-relaxed text-ink-muted sm:text-base">
-                      {step.body}
-                    </p>
-                  </div>
-                </SlideIn>
-              );
-            })}
-          </div>
+          {/* 8 Steps — 01-04 slide from left, 05-08 slide from right, one after another */}
+          <StepCards steps={steps} />
 
           <div className="my-12 h-px w-full bg-white/10" />
 
