@@ -15,6 +15,8 @@ export default function HomeSections() {
         <ReasonsMarquee />
       </section>
 
+      <Seo2026Path />
+
       <section className="border-t border-white/10 bg-[#161b22] py-16 sm:py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
           <FadeIn>
@@ -72,8 +74,6 @@ export default function HomeSections() {
       </section>
 
       <Testimonials />
-
-      <Seo2026Path />
 
       <FaqSection />
 
