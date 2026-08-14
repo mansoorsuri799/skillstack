@@ -25,16 +25,16 @@ export const services: Service[] = [
     title: "Keyword research",
     shortTitle: "Keyword research",
     summary:
-      "Low-competition, high-volume keywords from any country — researched with Ahrefs, Semrush, Moz, Google Keyword Planner, and more.",
+      "Low-competition, high-volume keywords from any country — plus AI-query and People Also Ask mining so you rank on Google and get cited by ChatGPT, Perplexity, and Google AI Overviews.",
     details: [
       "Multi-tool research across Ahrefs, Semrush, Moz, and Google Keyword Planner.",
-      "Country- and language-specific opportunities worldwide — not just global averages.",
-      "Parent keywords grouped with supporting terms planned as separate articles.",
-      "Intent, difficulty, and monetization fit scored before you spend on content or build.",
+      "AI-query research — the questions ChatGPT, Perplexity, and Gemini actually answer.",
+      "People Also Ask and voice-search intent mapped alongside traditional keywords.",
+      "Parent keywords grouped with supporting terms and AEO-ready question clusters.",
     ],
     guide: {
       intro:
-        "Keyword research is where every SkillStack engagement starts. We do not chase vanity phrases. We find terms people actually search, that you can realistically rank for, and that fit how you plan to earn — ads, leads, or product. Our researchers cross-check multiple professional tools so one platform’s blind spot does not decide your roadmap.",
+        "Keyword research in 2026 has two layers. The first is traditional: find terms people type into Google that you can realistically rank for. The second is new: find the questions AI assistants like ChatGPT, Perplexity, and Google Gemini answer every day — because the sources those tools cite get traffic even without a top-10 Google rank. SkillStack maps both layers so your content wins on every search surface.",
       sections: [
         {
           title: "The tools we use — and why each matters",
@@ -43,13 +43,23 @@ export const services: Service[] = [
             "Ahrefs — keyword difficulty, traffic potential, click metrics, content gap analysis, and backlink context around ranking pages.",
             "Semrush — broad keyword databases, topic research, position tracking, and competitive keyword overlap across markets.",
             "Moz — Domain Authority signals, keyword suggestions, and a second difficulty lens when Ahrefs and Semrush disagree.",
-            "Google Keyword Planner — Google’s own volume ranges and bid data, especially useful for commercial intent and ad-supported niches.",
-            "Supporting checks — Google Trends, Search Console (on live sites), autocomplete, and People Also Ask to catch real language people type.",
+            "Google Keyword Planner — Google's own volume ranges and bid data, especially useful for commercial intent and ad-supported niches.",
+            "People Also Ask + autocomplete — real question phrasing that maps directly to AI Overview and AEO content targets.",
+          ],
+        },
+        {
+          title: "AI-query and answer-engine keyword research",
+          body: "In 2026, a significant share of queries never reach a traditional SERP — they are answered directly by ChatGPT, Perplexity, and Google AI Overviews. We research which questions your audience asks these tools, then build a keyword and content plan that targets those queries explicitly.",
+          bullets: [
+            "Question-format keyword clusters (Who, What, How, Why) mapped for AEO content.",
+            "People Also Ask lists mined per topic cluster for FAQ and HowTo schema targets.",
+            "Voice-search phrasing captured so your content matches conversational queries.",
+            "AI citation opportunity scoring — which queries AI tools already answer and what sources they cite.",
           ],
         },
         {
           title: "Low competition, high search volume — worldwide",
-          body: "We filter for keywords where demand is real and competition is manageable. That includes targeting a specific country or language (Pakistan, UAE, US, UK, and beyond), not only “worldwide” averages that hide local opportunities. Volume without a path to rank is noise; easy rankings without traffic waste months.",
+          body: "We filter for keywords where demand is real and competition is manageable — for Pakistan, UAE, US, UK, and beyond.",
           bullets: [
             "Geo-targeted lists for the countries you care about.",
             "Difficulty thresholds matched to your domain age and authority.",
@@ -58,28 +68,18 @@ export const services: Service[] = [
           ],
         },
         {
-          title: "Keyword grouping and parent–child coverage",
-          body: "A strong parent keyword rarely stands alone. High-volume related terms around that parent should each earn a properly written article — not a thin paragraph stuffed into one URL. We map clusters so the pillar page and supporting posts reinforce each other instead of cannibalizing rankings.",
+          title: "Keyword grouping and parent-child coverage",
+          body: "A strong parent keyword rarely stands alone. We map clusters so the pillar page and supporting posts reinforce each other instead of cannibalizing rankings.",
           bullets: [
             "Parent (pillar) keyword with a clear primary landing page.",
             "Supporting keywords grouped by intent — each planned as its own article.",
-            "Internal-link map so cluster pages pass relevance to the pillar.",
+            "AI-question clusters appended to each topic so writers cover AEO targets.",
             "Cannibalization checks so two URLs never fight for the same primary term.",
-          ],
-        },
-        {
-          title: "What else we cover before you build",
-          body: "Research is only useful if it becomes a plan your writers and developers can execute.",
-          bullets: [
-            "Competitor SERP review — who ranks, what format wins, and where gaps exist.",
-            "Suggested page types (guide, comparison, local, tool, product) per keyword.",
-            "Priority order so you publish high-ROI terms first.",
-            "Handoff briefs your content and development teams can follow without guessing.",
           ],
         },
       ],
       closing:
-        "You approve the keyword set before major content or build spend begins. That way every article and every page has a target worth ranking for.",
+        "You approve the keyword set before major content or build spend begins. Every article and every page has a Google-ranking target and an AI-citation target — both covered from day one.",
     },
   },
   {
@@ -88,60 +88,60 @@ export const services: Service[] = [
     title: "SEO ranking",
     shortTitle: "SEO ranking",
     summary:
-      "Fully optimized articles — semantic SEO, competitor analysis, and techniques built to outrank the pages already sitting above you.",
+      "Fully optimized articles built for Google rankings and AI citations — semantic SEO, AEO structure, entity coverage, and competitor analysis baked into every draft.",
     details: [
-      "SEO experts write point-perfect articles aimed at outranking competitors.",
-      "Semantic SEO, entity coverage, and on-page structure baked into every draft.",
-      "Competitor analysis before writing so we know what it takes to win the SERP.",
-      "Refresh and expansion cycles so rankings hold after you hit page one.",
+      "SEO experts write on-intent articles aimed at outranking competitors on Google.",
+      "AEO-structured content — FAQ, HowTo, and speakable markup for AI citation eligibility.",
+      "Semantic SEO, entity coverage, and AI Overview-ready formatting in every draft.",
+      "Refresh and expansion cycles so rankings hold and AI citations stay current.",
     ],
     guide: {
       intro:
-        "Once keywords are approved, our SEO ranking team turns them into content that can win. We do not publish generic blogs. We write fully optimized, on-intent articles using semantic SEO and the techniques required to outrank the competitors already ranking for your terms.",
+        "SEO ranking in 2026 means winning two channels simultaneously: the traditional Google SERP and the AI answer layer — Google AI Overviews, ChatGPT, Perplexity, and Gemini. SkillStack writes fully optimized, on-intent articles using semantic SEO, AEO structure, and the competitor analysis required to outrank whatever is sitting above you — and get cited by the AI tools your audience is switching to.",
       sections: [
         {
           title: "Competitor analysis before the first draft",
-          body: "We study the pages that already occupy the top results — depth, structure, media, E-E-A-T signals, and gaps they leave open. Your article is planned to match search intent better and cover what they miss.",
+          body: "We study the pages that already occupy the top results — depth, structure, media, E-E-A-T signals, and gaps they leave open. Your article is planned to match search intent better and cover what competitors miss.",
           bullets: [
             "Top-ranking URL teardown for structure, word count ranges, and topics covered.",
             "Gap list — questions, subtopics, and formats competitors ignore.",
-            "SERP feature notes (featured snippets, FAQs, video) so we can compete for them.",
-            "Differentiation angle so your page is not a copy of whatever ranks today.",
+            "SERP feature notes (featured snippets, FAQs, AI Overviews, video) so we can compete for them.",
+            "Differentiation angle so your page earns its own place — not a copy of what ranks today.",
           ],
         },
         {
-          title: "Fully optimized SEO articles",
-          body: "Our SEO experts focus on writing that is clear for readers and precise for search engines — titles, headings, intros, and conclusions that map to the primary and supporting terms without stuffing.",
+          title: "AEO-structured content for AI citation eligibility",
+          body: "Answer Engine Optimisation (AEO) is the practice of writing content so AI systems can lift it directly into an answer. We build AEO structure into every article from the first draft — not as an afterthought.",
           bullets: [
-            "Primary keyword placement that reads naturally in title, H1, and opening.",
-            "Heading hierarchy that mirrors how people scan and how Google parses topics.",
-            "Internal links to related cluster pages and your money pages.",
-            "Meta titles and descriptions written for clicks, not just keywords.",
+            "Question-and-answer formatting aligned to People Also Ask and AI query patterns.",
+            "FAQPage and HowTo schema-ready sections so developers can add markup cleanly.",
+            "Speakable-ready summaries at the top of key articles for voice and AI responses.",
+            "Clear entity definitions so Google and AI tools understand exactly who, what, and where you are.",
           ],
         },
         {
-          title: "Semantic SEO and related techniques",
-          body: "Modern ranking rewards topical completeness. We implement semantic SEO so entities, related questions, and supporting vocabulary are covered properly — helping Google understand that your page is the thorough answer.",
+          title: "Semantic SEO and full entity coverage",
+          body: "Modern ranking rewards topical completeness. We implement semantic SEO so entities, related questions, and supporting vocabulary are covered — helping Google and AI systems understand that your page is the authoritative answer.",
           bullets: [
             "Entity and topic coverage aligned with the keyword cluster.",
-            "People Also Ask and related queries answered in clear sections.",
+            "People Also Ask and related queries answered in clear, citable sections.",
             "Natural language that satisfies intent without awkward keyword stuffing.",
-            "Schema-ready structure (FAQ, HowTo, Article) when the page type calls for it.",
+            "Google AI Overview-friendly structure: direct answers, short paragraphs, clear headers.",
           ],
         },
         {
-          title: "Built to outrank — then keep the position",
-          body: "Publishing is step one. We write for the SERP you want to own, then support updates when competitors publish new pages or Search Console shows opportunity.",
+          title: "Built to rank and stay ranked",
+          body: "Publishing is step one. We write for the SERP you want to own, then support updates when competitors improve or Search Console shows opportunity.",
           bullets: [
             "Drafts reviewed against the competitor brief before go-live.",
             "On-page checklist passed before the page is marked done.",
             "Refresh plans for aging posts that start to slip.",
-            "Clear briefs so your team (or ours) can expand the cluster consistently.",
+            "Clear briefs so your team or ours can expand the cluster consistently.",
           ],
         },
       ],
       closing:
-        "When articles are ready, they hand off cleanly to development and publishing — so the site you build already has content engineered to rank.",
+        "Every article hands off cleanly to development and publishing — already engineered to rank on Google and be cited by AI tools from the moment it goes live.",
     },
   },
   {
@@ -159,7 +159,7 @@ export const services: Service[] = [
     ],
     guide: {
       intro:
-        "After keywords and SEO articles are ready, we build the site that carries them. SkillStack has expert WordPress developers and React / Next.js developers who design for mobile, craft UI/UX that feels premium, and implement the technical search foundations your content needs to perform.",
+        "After keywords and SEO articles are ready, we build the site that carries them. SkillStack has expert WordPress developers and React / Next.js developers who design for mobile, craft UI/UX that feels premium, and implement the technical search foundations your content needs to perform — including full 2026 SEO and AEO infrastructure.",
       sections: [
         {
           title: "WordPress experts — design, mobile, and UX",
@@ -183,17 +183,17 @@ export const services: Service[] = [
         },
         {
           title: "SEO, AEO, AIO, GEO — and schema that goes deep",
-          body: "Our developers implement search and answer-engine foundations in the codebase, not as an afterthought. SEO, AEO (answer engines), AIO, and GEO-oriented structure are part of the build. Schema is flexible: AggregateRating, FAQ, HowTo, Organization, Article, LocalBusiness — and more. Tell us what you need; we meet the requirement so you leave satisfied.",
+          body: "Our developers implement full 2026 search foundations in the codebase — traditional SEO plus AEO (answer engines), AIO (AI Overviews), and GEO (generative engine optimisation). Schema is flexible: AggregateRating, FAQPage, HowTo, Organization, Article, LocalBusiness, BreadcrumbList — and more.",
           bullets: [
             "Technical SEO: indexability, sitemaps, canonicals, robots, and clean HTML.",
-            "Structured data for rich results and clearer entity signals.",
-            "Answer- and AI-oriented page structure when your niche benefits from it.",
-            "Custom requests welcome — if it is possible on the stack, we implement it.",
+            "Structured data for rich results, featured snippets, and AI citation eligibility.",
+            "AEO markup — FAQPage, HowTo, speakable — built into templates from the start.",
+            "Entity disambiguation in JSON-LD so Google and AI tools understand your brand clearly.",
           ],
         },
         {
           title: "Core Web Vitals and PageSpeed Insights",
-          body: "Speed is ranking and revenue. We tune pages so Core Web Vitals pass and PageSpeed Insights scores are pushed as high as the design allows — including aiming for 100 on key templates when assets and third parties cooperate.",
+          body: "Speed is ranking and revenue. We tune pages so Core Web Vitals pass and PageSpeed Insights scores are pushed as high as the design allows — including 100 on key templates when assets and third parties cooperate.",
           bullets: [
             "LCP, INP, and CLS budgets during design and development.",
             "Compressed media, critical CSS discipline, and lean third-party scripts.",
@@ -203,7 +203,7 @@ export const services: Service[] = [
         },
       ],
       closing:
-        "You get a site built around approved keywords and SEO articles — ready for Search Console, ranking work, and growth.",
+        "You get a site built around approved keywords and SEO articles — ready for Search Console, 2026 AI citation, ranking work, and growth.",
     },
   },
   {
@@ -212,16 +212,16 @@ export const services: Service[] = [
     title: "Backlinking",
     shortTitle: "Backlinking",
     summary:
-      "After Search Console insights land, our link experts build high-authority backlinks that lift rankings, DA, and DR — without spam.",
+      "After Search Console insights land, our link experts build high-authority backlinks and brand citations that lift rankings, DA, and DR — and signal trust to AI systems.",
     details: [
       "Timed after early Search Console analysis — not random blasts on day one.",
-      "Foundational → Web 2.0 → forums → podcasts → NANDLA → cloud stacks.",
+      "Foundational links through to editorial citations and brand mentions.",
       "Spam-score and Ahrefs health checked before links are counted as done.",
-      "Authority work aimed at rankings plus measurable DA / DR growth.",
+      "Authority work aimed at Google rankings plus AI citation signals.",
     ],
     guide: {
       intro:
-        "After a few weeks of signals from Google Search Console — impressions, queries, and index behavior — our backlinking service steps in. Link building too early wastes budget; link building with junk domains risks the site. Our backlinking experts create high-authority links that help pages climb and strengthen Domain Authority (DA) and Domain Rating (DR).",
+        "In 2026, backlinks serve two masters: Google's PageRank algorithm and the AI trust signals that determine which sources ChatGPT, Perplexity, and Google AI Overviews cite. SkillStack's backlinking service builds high-authority links and brand citations that satisfy both — timed correctly and screened for quality.",
       sections: [
         {
           title: "Why we wait on Search Console first",
@@ -240,8 +240,18 @@ export const services: Service[] = [
             "Web 2.0 properties — controlled profiles and content hubs that support the domain.",
             "Relevant forums — contextual mentions where your niche already talks.",
             "Podcasts — authority mentions and show-note links when the fit is real.",
+            "Editorial citations — high-authority publications that AI tools trust and cite.",
             "NANDLA backlinks — our premium tier; treated as the strongest placements in the mix.",
-            "Cloud stacks — layered supporting structures used carefully and professionally.",
+          ],
+        },
+        {
+          title: "Brand mentions and AI citation signals",
+          body: "In 2026, unlinked brand mentions — a reference to your company name on a relevant, authoritative site — contribute to both Google's NLP entity graph and AI citation pools. We build mention campaigns alongside traditional link building.",
+          bullets: [
+            "Digital PR outreach to publications your niche respects.",
+            "Unlinked brand mention tracking so we see what AI tools are picking up.",
+            "Co-citation building — getting mentioned alongside trusted brands in your space.",
+            "Monitoring for new citations across Google, ChatGPT, and Perplexity responses.",
           ],
         },
         {
@@ -254,18 +264,9 @@ export const services: Service[] = [
             "Tracking sheet with sources you can audit anytime.",
           ],
         },
-        {
-          title: "What you should expect",
-          body: "Done right, backlinks support rankings and lift DA / DR over time. Done wrong, they invite penalties. We stay on the careful side of that line.",
-          bullets: [
-            "Reporting on placements, anchors, and target URLs.",
-            "Pace matched to how young or established your domain is.",
-            "Coordination with content so links point at pages worth ranking.",
-          ],
-        },
       ],
       closing:
-        "When traffic starts to arrive, monetization can begin on a site that already has content, technical strength, and growing authority.",
+        "When traffic starts to arrive, monetization can begin on a site that already has content, technical strength, growing authority, and AI citation signals working in its favor.",
     },
   },
   {
@@ -301,7 +302,7 @@ export const services: Service[] = [
           bullets: [
             "Clean snippet installation on WordPress or Next.js templates.",
             "Above-the-fold and in-content placements tested for UX and RPM.",
-            "Policy-aware density — aggressive layouts that get accounts banned are not “wins.”",
+            "Policy-aware density — aggressive layouts that get accounts banned are not wins.",
             "Iteration after real traffic patterns appear in analytics.",
           ],
         },
@@ -316,7 +317,7 @@ export const services: Service[] = [
         },
       ],
       closing:
-        "Monetization closes the SkillStack loop: research → ranking content → site → authority → revenue — with specialists collaborating at every stage.",
+        "Monetization closes the SkillStack loop: research, ranking content, site, authority, and revenue — with specialists collaborating at every stage.",
     },
   },
   {
@@ -370,20 +371,30 @@ export const services: Service[] = [
     title: "Content writing & SEO blogging",
     shortTitle: "Content writing",
     summary:
-      "On-intent articles and blog posts written for readers and search — semantic coverage, clear structure, and publish-ready drafts.",
+      "AEO-structured articles and blog posts written for Google rankings and AI citations — FAQ markup, speakable summaries, entity coverage, and publish-ready drafts.",
     details: [
       "Brief-to-draft content aligned to approved keywords and search intent.",
-      "SEO blogging with headings, internals, and entity coverage built in.",
+      "AEO-structured writing — question-answer format, FAQ sections, and HowTo coverage.",
+      "Entity-rich, semantic SEO blogging built to earn Google AI Overview citations.",
       "Editorial tone matched to your brand — not generic AI filler.",
-      "Revision rounds so drafts ship when you are satisfied.",
     ],
     guide: {
       intro:
-        "Content writing and SEO blogging turn keyword research into pages that can rank and convert. SkillStack writers work from briefs tied to real search demand — not vague “blog about our industry” requests.",
+        "Content writing in 2026 means writing for two audiences simultaneously: the human reader and the AI system that may cite your page in its next answer. SkillStack writers work from briefs tied to real search demand — and every article is structured to rank on Google and be eligible for citation by ChatGPT, Perplexity, and Google AI Overviews.",
       sections: [
         {
+          title: "AEO-structured writing — built for AI citation",
+          body: "Answer Engine Optimisation starts at the draft stage. We write content in the format AI tools prefer: direct answers, short paragraphs, clear question headings, and summary blocks that can be lifted into AI responses.",
+          bullets: [
+            "Question-and-answer format aligned to People Also Ask and AI query patterns.",
+            "Speakable intro summaries — the answer AI tools quote most often.",
+            "FAQ sections with concise, citable answers ready for FAQPage schema.",
+            "HowTo-structured instructions where step-by-step content fits.",
+          ],
+        },
+        {
           title: "What we write",
-          body: "Guides, comparisons, local pages, thought pieces, and supporting cluster posts — each with a primary keyword job.",
+          body: "Guides, comparisons, local pages, thought pieces, and supporting cluster posts — each with a primary keyword job and an AI citation structure.",
           bullets: [
             "Pillar and supporting articles mapped to your topical cluster.",
             "Meta titles and descriptions drafted with the page.",
@@ -393,7 +404,7 @@ export const services: Service[] = [
         },
         {
           title: "Quality bar",
-          body: "We aim for useful, original pages that satisfy intent and respect Google’s helpful-content expectations.",
+          body: "We aim for useful, original pages that satisfy intent, respect Google's helpful-content expectations, and provide the depth AI systems cite.",
           bullets: [
             "Competitor SERP skim before drafting so structure is competitive.",
             "Readable length — long enough to cover the topic, not padded.",
@@ -403,11 +414,11 @@ export const services: Service[] = [
         },
         {
           title: "How it fits SkillStack",
-          body: "Pair content with keyword research, technical SEO, websites, and backlinks so publishing is part of a ranking system — not a content graveyard.",
+          body: "Pair content with keyword research, technical SEO, websites, and backlinks so publishing is part of a ranking and citation system — not a content graveyard.",
         },
       ],
       closing:
-        "You approve briefs and drafts. Published content stays yours; we keep process notes so your team can continue the calendar later.",
+        "You approve briefs and drafts. Published content stays yours — and is built from day one to rank on Google and earn a place in AI answers.",
     },
   },
   {
@@ -416,25 +427,35 @@ export const services: Service[] = [
     title: "Technical SEO & site audits",
     shortTitle: "Technical SEO",
     summary:
-      "Crawlability, indexation, Core Web Vitals, schema, and fix lists so Google can find — and trust — your important pages.",
+      "Crawlability, Core Web Vitals, entity-rich schema, and AI-ready structure — so Google can rank your pages and AI tools can cite them.",
     details: [
-      "Full technical audit with prioritized fix list.",
+      "Full technical audit with prioritized fix list for Google and AI readiness.",
       "Index coverage, canonicals, redirects, and sitemap hygiene.",
       "Core Web Vitals and PageSpeed-minded recommendations.",
-      "Schema and structured-data checks for rich-result eligibility.",
+      "Entity-rich schema and structured data for rich results and AI citation eligibility.",
     ],
     guide: {
       intro:
-        "Technical SEO makes sure great content is not trapped behind crawl errors, slow templates, or messy indexation. We audit, explain, and help implement fixes on WordPress or Next.js.",
+        "Technical SEO in 2026 has expanded beyond crawl paths and sitemaps. Your site must be readable by Google's crawlers, understandable by AI knowledge graphs, and fast enough to pass Core Web Vitals. SkillStack audits all three layers — then helps implement fixes on WordPress or Next.js.",
       sections: [
         {
-          title: "Audit coverage",
-          body: "We inspect how search engines see your site today and what blocks growth.",
+          title: "Audit coverage — Google and AI readiness",
+          body: "We inspect how search engines and AI crawlers see your site today and what blocks growth.",
           bullets: [
             "Robots, sitemaps, canonicals, and noindex mistakes.",
             "Redirect chains, soft 404s, and orphan pages.",
             "Mobile usability and Core Web Vitals hotspots.",
-            "Duplicate content and parameter URL issues.",
+            "Entity disambiguation — is your brand, founder, and service clearly defined in structured data?",
+          ],
+        },
+        {
+          title: "Schema and structured data for AI citation eligibility",
+          body: "AI systems like Google Gemini and ChatGPT build knowledge graphs from structured data. We audit and implement schema that signals authority to both Google and AI tools.",
+          bullets: [
+            "Organization, LocalBusiness, and Person schema for brand entity clarity.",
+            "FAQPage and HowTo schema for AI Overview and featured snippet eligibility.",
+            "Article and BreadcrumbList schema for content page signals.",
+            "AggregateRating schema where applicable for star-rich results in SERPs.",
           ],
         },
         {
@@ -449,11 +470,11 @@ export const services: Service[] = [
         },
         {
           title: "When to buy this",
-          body: "Ideal before a redesign, after a traffic drop, or when rankings stall despite good content — and as part of Growth or Full Stack packages.",
+          body: "Ideal before a redesign, after a traffic drop, when rankings stall despite good content, or when you want to qualify your site for AI Overview inclusion.",
         },
       ],
       closing:
-        "Technical health is the foundation under keywords, content, and links. Fix the pipes, then pour in the traffic strategy.",
+        "Technical health is the foundation under keywords, content, and links — and in 2026, the gateway to AI citation. Fix the pipes, then let the traffic and citations flow.",
     },
   },
 ];
