@@ -46,11 +46,14 @@ function CardStack({
   }, [cards.length, paused, reduceMotion]);
 
   const isNew = variant === "new";
+  const gap = 40;
+  const baseY = 108;
+  const stackHeight = baseY + cards.length * gap + 24;
 
   return (
     <div
       className="relative mx-auto w-full max-w-[280px] sm:max-w-xs"
-      style={{ perspective: "1100px", height: 340 }}
+      style={{ perspective: "1100px", height: stackHeight }}
       onPointerEnter={() => setPaused(true)}
       onPointerLeave={() => setPaused(false)}
     >
@@ -58,14 +61,14 @@ function CardStack({
         className="absolute inset-0"
         style={{
           transformStyle: "preserve-3d",
-          transform: "rotateX(18deg) rotateZ(-4deg)",
+          transform: "rotateX(14deg) rotateZ(-3deg)",
         }}
       >
         {cards.map((card, i) => {
           const fromBottom = cards.length - 1 - i;
-          const restY = fromBottom * 14 + 88;
-          const restX = fromBottom * 2;
-          const restRot = fromBottom * 1.2 - 4;
+          const restY = fromBottom * gap + baseY;
+          const restX = fromBottom * 3;
+          const restRot = fromBottom * 0.8 - 3;
           const isOut = !reduceMotion && featured === i;
 
           const cardBg = card.accent
@@ -91,8 +94,8 @@ function CardStack({
             : isOut
               ? "text-snow"
               : isNew
-                ? "text-sky-100/80"
-                : "text-white/35";
+                ? "text-sky-100/85"
+                : "text-white/70";
 
           return (
             <motion.button
@@ -100,7 +103,7 @@ function CardStack({
               key={card.label}
               aria-label={card.label}
               onClick={() => setFeatured(i)}
-              className={`absolute left-1/2 w-[92%] -translate-x-1/2 cursor-pointer rounded-xl border bg-gradient-to-br px-4 py-3.5 text-left shadow-[0_18px_40px_rgba(0,0,0,0.55)] ${cardBg} ${cardBorder}`}
+              className={`absolute left-1/2 w-[92%] -translate-x-1/2 cursor-pointer rounded-xl border bg-gradient-to-br px-4 py-3 text-left shadow-[0_18px_40px_rgba(0,0,0,0.55)] ${cardBg} ${cardBorder}`}
               style={{
                 transformStyle: "preserve-3d",
                 transformOrigin: "center bottom",
@@ -109,10 +112,10 @@ function CardStack({
               animate={
                 isOut
                   ? {
-                      y: 18,
+                      y: 16,
                       x: restX,
                       rotateZ: 0,
-                      rotateX: -18,
+                      rotateX: -14,
                       scale: 1.08,
                       zIndex: 50,
                       opacity: 1,
