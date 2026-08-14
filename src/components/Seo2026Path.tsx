@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const oldStack = [
   { label: "#1 on Google", sub: "The dream", top: true },
@@ -24,143 +24,151 @@ const newStack = [
   { label: "Strong SEO Foundations", sub: "Technical health" },
 ];
 
-const D = { gap: 38, offset: 20, tilt: 10, height: 380 };
-const M = { gap: 28, offset: 12, tilt: 7, height: 290 };
-
-function useCompact(bp = 640) {
-  const [compact, setCompact] = useState(true);
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${bp - 1}px)`);
-    const sync = () => setCompact(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, [bp]);
-  return compact;
-}
+type Card = { label: string; sub: string; top?: boolean; accent?: boolean };
 
 function CardStack({
   cards,
   variant,
 }: {
-  cards: { label: string; sub: string; top?: boolean; accent?: boolean }[];
+  cards: Card[];
   variant: "old" | "new";
 }) {
   const reduceMotion = useReducedMotion();
-  const compact = useCompact();
-  const m = compact ? M : D;
-  const [hovered, setHovered] = useState<number | null>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [featured, setFeatured] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (reduceMotion || paused) return;
+    const id = window.setInterval(() => {
+      setFeatured((i) => (i + 1) % cards.length);
+    }, 2200);
+    return () => window.clearInterval(id);
+  }, [cards.length, paused, reduceMotion]);
+
+  const isNew = variant === "new";
 
   return (
     <div
-      ref={rootRef}
-      className="relative mx-auto w-full max-w-xs touch-pan-y"
-      style={{ perspective: "900px", height: m.height }}
-      onPointerMove={(e) => {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const hit = el?.closest<HTMLElement>("[data-hit]");
-        if (!hit || !rootRef.current?.contains(hit)) return;
-        const n = Number(hit.dataset.hit);
-        if (!isNaN(n)) setHovered(n);
-      }}
-      onPointerLeave={() => setHovered(null)}
+      className="relative mx-auto w-full max-w-[280px] sm:max-w-xs"
+      style={{ perspective: "1100px", height: 340 }}
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
     >
       <div
         className="absolute inset-0"
-        style={{ transformStyle: "preserve-3d", transform: `rotateX(${m.tilt}deg)` }}
+        style={{
+          transformStyle: "preserve-3d",
+          transform: "rotateX(18deg) rotateZ(-4deg)",
+        }}
       >
         {cards.map((card, i) => {
           const fromBottom = cards.length - 1 - i;
-          const yRest = fromBottom * m.gap + m.offset;
-          const isHov = hovered === i;
-          let yOff = 0;
-          if (hovered !== null && !reduceMotion) {
-            if (i < hovered) yOff = compact ? 12 : 18;
-            else if (i > hovered) yOff = compact ? -12 : -18;
-            else yOff = compact ? -10 : -14;
-          }
-
-          const isNew = variant === "new";
-          const isOld = variant === "old";
+          const restY = fromBottom * 14 + 88;
+          const restX = fromBottom * 2;
+          const restRot = fromBottom * 1.2 - 4;
+          const isOut = !reduceMotion && featured === i;
 
           const cardBg = card.accent
             ? "from-[#0f2a20] to-[#071a12]"
-            : card.top && isOld
+            : card.top && !isNew
               ? "from-[#1a1a1a] to-[#111111]"
               : isNew
                 ? "from-[#163040] to-[#0d1f2c]"
                 : "from-[#1a1a1a] to-[#111111]";
-          const cardBorder = card.accent
-            ? "border-accent/50"
-            : isHov
-              ? "border-white/25"
-              : isOld
-                ? "border-white/8"
-                : "border-sky-500/20";
+          const cardBorder = isOut
+            ? card.accent
+              ? "border-accent/70"
+              : isNew
+                ? "border-sky-400/50"
+                : "border-white/30"
+            : card.accent
+              ? "border-accent/40"
+              : isNew
+                ? "border-sky-500/20"
+                : "border-white/10";
           const labelColor = card.accent
             ? "text-accent"
-            : card.top && isOld
-              ? "text-white/40"
-              : isOld
-                ? "text-white/30"
-                : "text-sky-100/85";
-
-          const idle = !reduceMotion && hovered === null;
-          const bob = compact ? 5 : 8;
-          const animate = idle
-            ? { y: [yRest, yRest - bob, yRest, yRest - bob * 0.5, yRest], opacity: 1, scale: [1, 1.015, 1, 1, 1], rotateX: 0 }
-            : { y: yRest + yOff, opacity: 1, scale: isHov && !reduceMotion ? (compact ? 1.03 : 1.05) : 1, rotateX: isHov && !reduceMotion ? -m.tilt : 0 };
+            : isOut
+              ? "text-snow"
+              : isNew
+                ? "text-sky-100/80"
+                : "text-white/35";
 
           return (
-            <motion.div
+            <motion.button
+              type="button"
               key={card.label}
-              className={`pointer-events-none absolute left-1/2 w-[92%] -translate-x-1/2 rounded-lg border bg-gradient-to-br px-3 py-2.5 shadow-[0_10px_32px_rgba(0,0,0,0.5)] sm:px-4 sm:py-3 ${cardBg} ${cardBorder}`}
-              style={{ zIndex: isHov ? 40 : i + 1, transformStyle: "preserve-3d", transformOrigin: "center bottom" }}
-              initial={reduceMotion ? { y: yRest, opacity: 1, scale: 1, rotateX: 0 } : { y: yRest + 40, opacity: 0, scale: 0.94, rotateX: 0 }}
-              animate={animate}
-              transition={
-                idle
-                  ? { duration: 4.5, delay: i * 0.12, repeat: Infinity, repeatDelay: 1.6, ease: [0.22, 1, 0.36, 1], times: [0, 0.28, 0.42, 0.62, 1] }
-                  : { type: "spring", stiffness: 340, damping: 24, mass: 0.5 }
+              aria-label={card.label}
+              onClick={() => setFeatured(i)}
+              className={`absolute left-1/2 w-[92%] -translate-x-1/2 cursor-pointer rounded-xl border bg-gradient-to-br px-4 py-3.5 text-left shadow-[0_18px_40px_rgba(0,0,0,0.55)] ${cardBg} ${cardBorder}`}
+              style={{
+                transformStyle: "preserve-3d",
+                transformOrigin: "center bottom",
+              }}
+              initial={false}
+              animate={
+                isOut
+                  ? {
+                      y: 18,
+                      x: restX,
+                      rotateZ: 0,
+                      rotateX: -18,
+                      scale: 1.08,
+                      zIndex: 50,
+                      opacity: 1,
+                    }
+                  : {
+                      y: restY,
+                      x: restX,
+                      rotateZ: restRot,
+                      rotateX: 0,
+                      scale: 1 - fromBottom * 0.012,
+                      zIndex: i + 1,
+                      opacity: 1,
+                    }
               }
+              transition={{
+                type: "spring",
+                stiffness: 280,
+                damping: 22,
+                mass: 0.7,
+              }}
             >
-              {card.accent && (
+              {isOut && (
                 <motion.div
                   aria-hidden
-                  className="pointer-events-none absolute inset-0 rounded-lg"
-                  style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(45,212,191,0.14), transparent 70%)" }}
-                  animate={reduceMotion ? {} : { opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  className="pointer-events-none absolute -inset-px rounded-xl"
+                  style={{
+                    background: isNew
+                      ? "radial-gradient(ellipse 80% 70% at 50% 0%, rgba(45,212,191,0.22), transparent 70%)"
+                      : "radial-gradient(ellipse 80% 70% at 50% 0%, rgba(255,255,255,0.08), transparent 70%)",
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                 />
               )}
-              <div className="flex items-center justify-between gap-2">
-                <span className={`min-w-0 truncate font-display text-[10px] font-semibold tracking-tight sm:text-sm ${labelColor}`}>
+              <div className="relative flex items-center justify-between gap-2">
+                <span
+                  className={`min-w-0 truncate font-display text-sm font-semibold tracking-tight ${labelColor}`}
+                >
                   {card.label}
                 </span>
-                <span className="shrink-0 text-[9px] tabular-nums text-white/20 sm:text-[10px]">
-                  {card.sub}
-                </span>
+                <span className="shrink-0 text-[10px] text-white/30">{card.sub}</span>
               </div>
-              <div className={`mt-1.5 h-px w-full bg-gradient-to-r ${card.accent ? "from-accent/50" : isOld ? "from-white/8" : "from-sky-500/25"} to-transparent`} />
-            </motion.div>
-          );
-        })}
-
-        {cards.map((card, i) => {
-          const fromBottom = cards.length - 1 - i;
-          const yRest = fromBottom * m.gap + m.offset;
-          return (
-            <div
-              key={`hit-${card.label}`}
-              data-hit={i}
-              className="absolute left-1/2 w-[90%] -translate-x-1/2"
-              style={{ top: 0, height: m.gap, transform: `translateY(${yRest}px)`, zIndex: 50 }}
-            />
+              <div
+                className={`relative mt-2 h-px w-full bg-gradient-to-r ${
+                  card.accent || isOut
+                    ? "from-accent/50"
+                    : isNew
+                      ? "from-sky-500/25"
+                      : "from-white/10"
+                } to-transparent`}
+              />
+            </motion.button>
           );
         })}
       </div>
-      <div className="pointer-events-none absolute bottom-1 left-1/2 h-6 w-36 -translate-x-1/2 rounded-[100%] bg-accent/10 blur-2xl" />
+      <div className="pointer-events-none absolute bottom-2 left-1/2 h-8 w-44 -translate-x-1/2 rounded-[100%] bg-accent/15 blur-2xl" />
     </div>
   );
 }
@@ -185,20 +193,19 @@ export default function Seo2026Path() {
             SEO looks different today.
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-muted sm:text-base">
-            The old linear path no longer works alone. In 2026, winning means ranking on Google <em>and</em> being cited by AI.
+            The old linear path no longer works alone. In 2026, winning means ranking on Google{" "}
+            <em>and</em> being cited by AI.
           </p>
         </motion.div>
 
-        {/* Two stacks */}
-        <div className="mt-16 grid grid-cols-1 gap-12 sm:gap-6 md:grid-cols-2 md:gap-16 lg:gap-24">
-          {/* Old way */}
+        <div className="mt-16 grid grid-cols-1 gap-16 md:grid-cols-2 md:gap-20">
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="mb-6 text-center">
+            <div className="mb-8 text-center">
               <span className="inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/40">
                 How people think SEO works
               </span>
@@ -206,14 +213,13 @@ export default function Seo2026Path() {
             <CardStack cards={oldStack} variant="old" />
           </motion.div>
 
-          {/* New way */}
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
           >
-            <div className="mb-6 text-center">
+            <div className="mb-8 text-center">
               <span className="inline-block rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
                 How it actually works in 2026
               </span>
@@ -222,7 +228,6 @@ export default function Seo2026Path() {
           </motion.div>
         </div>
 
-        {/* CTA */}
         <motion.div
           className="mt-14 flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-center sm:gap-5"
           initial={reduceMotion ? false : { opacity: 0 }}
