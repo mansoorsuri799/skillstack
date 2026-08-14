@@ -34,16 +34,16 @@ function CardStack({
   variant: "old" | "new";
 }) {
   const reduceMotion = useReducedMotion();
-  const [featured, setFeatured] = useState(0);
+  const [order, setOrder] = useState(() => cards.map((_, i) => i));
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     if (reduceMotion || paused) return;
     const id = window.setInterval(() => {
-      setFeatured((i) => (i + 1) % cards.length);
-    }, 2200);
+      setOrder((prev) => [...prev.slice(1), prev[0]]);
+    }, 2400);
     return () => window.clearInterval(id);
-  }, [cards.length, paused, reduceMotion]);
+  }, [paused, reduceMotion]);
 
   const isNew = variant === "new";
   const peek = 26;
@@ -65,14 +65,11 @@ function CardStack({
         }}
       >
         {cards.map((card, i) => {
-          const others = cards.map((_, idx) => idx).filter((idx) => idx !== featured);
-          const packed = others.indexOf(i);
-          const fromBottom =
-            packed === -1 ? 0 : others.length - 1 - packed;
-          const restY = fromBottom * peek + pileTop;
-          const restX = fromBottom * 2;
-          const restRot = fromBottom * 1.1 - 4;
-          const isOut = !reduceMotion && featured === i;
+          const rank = order.indexOf(i);
+          const isOut = rank === 0;
+          const restY = pileTop + rank * peek;
+          const restX = rank * 2;
+          const restRot = rank * 1.1 - 4;
 
           const cardBg = card.accent
             ? "from-[#0f2a20] to-[#071a12]"
@@ -105,7 +102,9 @@ function CardStack({
               type="button"
               key={card.label}
               aria-label={card.label}
-              onClick={() => setFeatured(i)}
+              onClick={() =>
+                setOrder((prev) => [i, ...prev.filter((idx) => idx !== i)])
+              }
               className={`absolute left-1/2 w-[92%] -translate-x-1/2 cursor-pointer rounded-xl border bg-gradient-to-br px-4 py-2.5 text-left shadow-[0_18px_40px_rgba(0,0,0,0.55)] ${cardBg} ${cardBorder}`}
               style={{
                 transformStyle: "preserve-3d",
@@ -113,7 +112,7 @@ function CardStack({
               }}
               initial={false}
               animate={
-                isOut
+                isOut && !reduceMotion
                   ? {
                       y: 14,
                       x: 0,
@@ -128,16 +127,16 @@ function CardStack({
                       x: restX,
                       rotateZ: restRot,
                       rotateX: 0,
-                      scale: 1 - fromBottom * 0.01,
-                      zIndex: packed + 1,
+                      scale: 1 - rank * 0.01,
+                      zIndex: cards.length - rank,
                       opacity: 1,
                     }
               }
               transition={{
                 type: "spring",
-                stiffness: 280,
-                damping: 22,
-                mass: 0.7,
+                stiffness: 260,
+                damping: 24,
+                mass: 0.75,
               }}
             >
               {isOut && (
