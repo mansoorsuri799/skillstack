@@ -6,7 +6,7 @@ const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
 /**
  * Edge-compatible NextAuth config.
  * Must NOT import Node.js-only modules (bcrypt, mongoose, …).
- * Used by src/middleware.ts to validate JWT cookies on the Edge runtime.
+ * Used by src/proxy.ts to validate JWT cookies on the Edge runtime.
  * The full config (with Credentials + Google providers and DB calls) lives in src/auth.ts.
  */
 const authConfig: NextAuthConfig = {
