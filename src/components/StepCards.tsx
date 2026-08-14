@@ -30,8 +30,8 @@ export default function StepCards({ steps }: { steps: Step[] }) {
         const colors = accentMap[step.accent] ?? "border-white/15 text-white/60";
         const [borderCls, textCls] = colors.split(" ");
 
-        /* 01-04 enter from the left, 05-08 from the right */
-        const xStart = idx < 4 ? -60 : 60;
+        /* 01-04 enter from the right, 05-08 from the left */
+        const xStart = idx < 4 ? 60 : -60;
 
         return (
           <motion.div
