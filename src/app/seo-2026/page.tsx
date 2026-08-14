@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FadeIn from "@/components/FadeIn";
 import JsonLd from "@/components/JsonLd";
+import SlideIn from "@/components/SlideIn";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
 import {
@@ -226,13 +227,14 @@ export default function Seo2026Page() {
 
           <div className="my-12 h-px w-full bg-white/10" />
 
-          {/* 8 Steps — each triggers individually on scroll */}
+          {/* 8 Steps — 01-04 slide from left, 05-08 slide from right */}
           <div className="space-y-6">
-            {steps.map((step) => {
+            {steps.map((step, idx) => {
               const colors = accentMap[step.accent] ?? "border-white/15 text-white/60";
               const [borderCls, textCls] = colors.split(" ");
+              const direction = idx < 4 ? "left" : "right";
               return (
-                <FadeIn key={step.n}>
+                <SlideIn key={step.n} direction={direction}>
                   <div className={`rounded-xl border bg-white/[0.025] p-6 sm:p-8 ${borderCls} ${step.final ? "ring-1 ring-accent/25" : ""}`}>
                     <div className="flex items-center gap-3">
                       <span
@@ -253,7 +255,7 @@ export default function Seo2026Page() {
                       {step.body}
                     </p>
                   </div>
-                </FadeIn>
+                </SlideIn>
               );
             })}
           </div>
