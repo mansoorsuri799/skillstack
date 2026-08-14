@@ -8,7 +8,7 @@ const { auth } = NextAuth(authConfig);
  * Pages that require an authenticated session.
  * Unauthenticated visitors are redirected to /login?callbackUrl=<current path>.
  */
-const PROTECTED_PATHS = ["/profile", "/pricing/success"];
+const PROTECTED_PATHS = ["/profile", "/pricing/success", "/dashboard"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;

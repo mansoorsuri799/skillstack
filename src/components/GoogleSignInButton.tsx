@@ -9,7 +9,7 @@ type GoogleSignInButtonProps = {
 };
 
 export default function GoogleSignInButton({
-  callbackUrl = "/",
+  callbackUrl = "/dashboard",
   label = "Continue with Google",
 }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false);
