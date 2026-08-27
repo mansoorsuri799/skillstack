@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Download,
+  Eye,
   FileText,
   Gauge,
   Shield,
@@ -260,8 +261,16 @@ export default function SiteAuditPage() {
   const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
+  const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const reportRef = useRef<HTMLElement>(null);
+
+  function scrollToReport() {
+    requestAnimationFrame(() => {
+      reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   useEffect(() => {
     if (project?.domain && project.domain !== "example.com") {
@@ -311,6 +320,7 @@ export default function SiteAuditPage() {
         setSiteUrl(formatAuditUrlInput(data.audit.report.domain));
       }
       await loadHistory();
+      scrollToReport();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Audit failed");
     } finally {
@@ -320,6 +330,7 @@ export default function SiteAuditPage() {
 
   async function loadAuditReport(id: string) {
     setError("");
+    setLoadingReportId(id);
     try {
       const res = await fetch(`/api/dashboard/audit/${id}`);
       const data = await res.json();
@@ -329,8 +340,11 @@ export default function SiteAuditPage() {
       if (data.audit.report?.domain) {
         setSiteUrl(formatAuditUrlInput(data.audit.report.domain));
       }
+      scrollToReport();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load audit");
+    } finally {
+      setLoadingReportId(null);
     }
   }
 
@@ -412,8 +426,12 @@ export default function SiteAuditPage() {
           <LoadingBlock label={`Auditing ${siteUrl || "site"} — security headers, on-page SEO, backlinks, Lighthouse mobile & desktop. This may take 2–3 minutes...`} />
         ) : null}
 
-        {report && !running ? (
-          <>
+        {loadingReportId ? (
+          <LoadingBlock label="Loading audit report..." />
+        ) : null}
+
+        {report && !running && !loadingReportId ? (
+          <section ref={reportRef} className="scroll-mt-6 space-y-5">
             <DashboardCard
               title={report.domain}
               description={`Audited ${new Date(report.preparedAt).toLocaleString()} · ${report.url}`}
@@ -447,7 +465,7 @@ export default function SiteAuditPage() {
             </MetricGrid>
             </DashboardCard>
             <ReportSections report={report} />
-          </>
+          </section>
         ) : null}
 
         {loading ? <LoadingBlock label="Loading audit history..." /> : null}
@@ -465,24 +483,31 @@ export default function SiteAuditPage() {
                   key: "site",
                   header: "Site",
                   cell: (row) => (
-                    <span className="text-snow">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (row.status === "completed") void loadAuditReport(row.id);
+                      }}
+                      disabled={row.status !== "completed" || loadingReportId === row.id}
+                      className={`text-left ${
+                        row.status === "completed"
+                          ? "text-snow hover:text-accent"
+                          : "cursor-default text-ink-muted"
+                      } ${activeAuditId === row.id ? "font-semibold text-accent" : ""}`}
+                    >
                       {row.targetUrl
                         ? formatAuditUrlInput(row.targetUrl)
                         : "—"}
-                    </span>
+                    </button>
                   ),
                 },
                 {
                   key: "date",
                   header: "Date",
                   cell: (row) => (
-                    <button
-                      type="button"
-                      onClick={() => void loadAuditReport(row.id)}
-                      className="text-left text-ink-muted hover:text-accent"
-                    >
+                    <span className="text-ink-muted">
                       {new Date(row.createdAt).toLocaleString()}
-                    </button>
+                    </span>
                   ),
                 },
                 {
@@ -524,12 +549,29 @@ export default function SiteAuditPage() {
                   cell: (row) => (
                     <div className="flex justify-end gap-2">
                       {row.status === "completed" ? (
-                        <a
-                          href={`/api/dashboard/audit/${row.id}/pdf`}
-                          className={`${buttonGhostClass} text-accent`}
-                        >
-                          <Download className="h-4 w-4" /> PDF
-                        </a>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => void loadAuditReport(row.id)}
+                            disabled={loadingReportId === row.id}
+                            className={`${buttonGhostClass} ${
+                              activeAuditId === row.id ? "text-accent" : ""
+                            }`}
+                          >
+                            <Eye className="h-4 w-4" />{" "}
+                            {loadingReportId === row.id
+                              ? "Loading..."
+                              : activeAuditId === row.id
+                                ? "Viewing"
+                                : "View report"}
+                          </button>
+                          <a
+                            href={`/api/dashboard/audit/${row.id}/pdf`}
+                            className={`${buttonGhostClass} text-accent`}
+                          >
+                            <Download className="h-4 w-4" /> PDF
+                          </a>
+                        </>
                       ) : null}
                       <button
                         type="button"
