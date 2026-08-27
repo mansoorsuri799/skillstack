@@ -2,9 +2,35 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
-import { runLighthouseAudit } from "@/lib/dataforseo/services";
+import { runFullSiteAudit } from "@/lib/audit/run-site-audit";
+import type { SiteAuditReport } from "@/lib/audit/types";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import { SiteAudit } from "@/models/SiteAudit";
+
+function summarizeAudit(a: {
+  _id: { toString(): string };
+  status: string;
+  score?: number | null;
+  seoScore?: number | null;
+  securityGrade?: string | null;
+  pagesCrawled?: number;
+  issues?: unknown[];
+  report?: SiteAuditReport | null;
+  createdAt: Date;
+}) {
+  const report = a.report as SiteAuditReport | null | undefined;
+  return {
+    id: a._id.toString(),
+    status: a.status,
+    score: a.score ?? null,
+    seoScore: a.seoScore ?? report?.performance.mobile.seo ?? null,
+    securityGrade: a.securityGrade ?? report?.overallSecurityGrade ?? null,
+    pagesCrawled: a.pagesCrawled ?? 0,
+    issueCount: report?.findings.length ?? a.issues?.length ?? 0,
+    findingCount: report?.findings.length ?? null,
+    createdAt: a.createdAt,
+  };
+}
 
 export async function GET(request: Request) {
   const result = await requireUser(request);
@@ -20,14 +46,7 @@ export async function GET(request: Request) {
     .lean();
 
   return NextResponse.json({
-    audits: audits.map((a) => ({
-      id: a._id.toString(),
-      status: a.status,
-      score: a.score,
-      pagesCrawled: a.pagesCrawled,
-      issueCount: a.issues.length,
-      createdAt: a.createdAt,
-    })),
+    audits: audits.map((a) => summarizeAudit(a)),
   });
 }
 
@@ -47,10 +66,6 @@ export async function POST(request: Request) {
     const project = await getProjectForUser(user.id);
     await connectDB();
 
-    const url = project.domain.startsWith("http")
-      ? project.domain
-      : `https://${project.domain}`;
-
     const audit = await SiteAudit.create({
       userId: user.id,
       projectId: project.id,
@@ -58,27 +73,29 @@ export async function POST(request: Request) {
     });
 
     try {
-      const lighthouse = await runLighthouseAudit(url);
+      const report = await runFullSiteAudit(project.domain, "SkillStack");
+
       audit.status = "completed";
-      audit.score = lighthouse.score;
-      audit.pagesCrawled = 1;
+      audit.score = report.performance.mobile.performance;
+      audit.seoScore = report.performance.mobile.seo;
+      audit.securityGrade = report.overallSecurityGrade;
+      audit.pagesCrawled = report.crawlability.pagesCrawled;
+      audit.report = report;
       audit.set(
         "issues",
-        lighthouse.issues.map((issue) => ({
+        report.lighthouseIssues.map((issue) => ({
           type: issue.type,
           severity: issue.severity as "critical" | "warning" | "notice",
           message: issue.message,
-          url,
+          url: report.url,
         })),
       );
       await audit.save();
 
       return NextResponse.json({
         audit: {
-          id: audit._id.toString(),
-          score: audit.score,
-          seoScore: lighthouse.seoScore,
-          issues: audit.issues,
+          ...summarizeAudit(audit.toObject()),
+          report,
         },
       });
     } catch (error) {
