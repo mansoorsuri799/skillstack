@@ -82,6 +82,17 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
     ],
   },
   {
+    label: "Competitive analysis",
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      {
+        href: "/dashboard/competitive/content-gap",
+        label: "Content gap",
+      },
+    ],
+  },
+  {
     label: "My Site",
     items: [
       { href: "/dashboard/gsc", label: "GSC Insights", icon: BarChart3 },
