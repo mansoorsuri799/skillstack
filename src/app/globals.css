@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #010409;
+  --bg-soft: #0d1117;
+  --bg-elevated: #161b22;
+  --snow: #f0f3f6;
+  --ink: #e6edf3;
+  --ink-muted: #8b949e;
+  --accent: #2dd4bf;
+  --accent-deep: #14b8a6;
+  --line: rgba(240, 243, 246, 0.1);
+  --mist: rgba(45, 212, 191, 0.1);
+  --foreground: var(--ink);
+  --background: var(--bg);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-snow: var(--snow);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-line: var(--line);
+  --color-mist: var(--mist);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--snow);
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Hero fade-up — CSS-only so LCP element is visible from first paint */
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-item {
+  animation: hero-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-item-1 { animation-delay: 0ms; }
+.hero-item-2 { animation-delay: 120ms; }
+.hero-item-3 { animation-delay: 240ms; }
+.hero-item-4 { animation-delay: 360ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-item {
+    animation: none;
+  }
+}
