@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { runFullSiteAudit } from "@/lib/audit/run-site-audit";
+import { parseAuditUrl } from "@/lib/audit/parse-url";
 import type { SiteAuditReport } from "@/lib/audit/types";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import { SiteAudit } from "@/models/SiteAudit";
@@ -28,6 +29,7 @@ function summarizeAudit(a: {
     pagesCrawled: a.pagesCrawled ?? 0,
     issueCount: report?.findings.length ?? a.issues?.length ?? 0,
     findingCount: report?.findings.length ?? null,
+    targetUrl: report?.url ?? report?.domain ?? null,
     createdAt: a.createdAt,
   };
 }
@@ -66,6 +68,20 @@ export async function POST(request: Request) {
     const project = await getProjectForUser(user.id);
     await connectDB();
 
+    const body = (await request.json().catch(() => ({}))) as { url?: string };
+    let auditUrl: string;
+    try {
+      auditUrl = parseAuditUrl(body.url ?? "");
+    } catch (error) {
+      return NextResponse.json(
+        {
+          message:
+            error instanceof Error ? error.message : "Enter a valid site URL.",
+        },
+        { status: 400 },
+      );
+    }
+
     const audit = await SiteAudit.create({
       userId: user.id,
       projectId: project.id,
@@ -73,7 +89,7 @@ export async function POST(request: Request) {
     });
 
     try {
-      const report = await runFullSiteAudit(project.domain, "SkillStack");
+      const report = await runFullSiteAudit(auditUrl, "SkillStack");
 
       audit.status = "completed";
       audit.score = report.performance.mobile.performance;

@@ -5,19 +5,17 @@ import {
   Download,
   FileText,
   Gauge,
-  Play,
   Shield,
   ShieldAlert,
   Zap,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
+import { SearchPanel, SearchToolbar } from "@/components/dashboard/SearchToolbar";
 import {
-  buttonPrimaryClass,
   DashboardAlert,
   DashboardCard,
   DataTable,
-  EmptyBlock,
   LoadingBlock,
   MetricGrid,
   MetricTile,
@@ -25,6 +23,7 @@ import {
   ResultsPanel,
 } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
+import { formatAuditUrlInput } from "@/lib/audit/parse-url";
 import type { SiteAuditReport } from "@/lib/audit/types";
 
 type AuditSummary = {
@@ -35,6 +34,7 @@ type AuditSummary = {
   securityGrade: string | null;
   issueCount: number;
   findingCount: number | null;
+  targetUrl: string | null;
   createdAt: string;
 };
 
@@ -252,12 +252,19 @@ function ReportSections({ report }: { report: SiteAuditReport }) {
 export default function SiteAuditPage() {
   const { project, dataForSeoConfigured, loading: projectLoading } =
     useDashboardProject();
+  const [siteUrl, setSiteUrl] = useState("");
   const [history, setHistory] = useState<AuditSummary[]>([]);
   const [report, setReport] = useState<SiteAuditReport | null>(null);
   const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (project?.domain && project.domain !== "example.com") {
+      setSiteUrl(formatAuditUrlInput(project.domain));
+    }
+  }, [project]);
 
   async function loadHistory() {
     setLoading(true);
@@ -278,16 +285,28 @@ export default function SiteAuditPage() {
   }, []);
 
   async function runAudit() {
+    if (!siteUrl.trim()) {
+      setError("Enter the site URL you want to audit.");
+      return;
+    }
+
     setRunning(true);
     setError("");
     setReport(null);
     setActiveAuditId(null);
     try {
-      const res = await fetch("/api/dashboard/audit", { method: "POST" });
+      const res = await fetch("/api/dashboard/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: siteUrl.trim() }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       setReport(data.audit.report);
       setActiveAuditId(data.audit.id);
+      if (data.audit.report?.domain) {
+        setSiteUrl(formatAuditUrlInput(data.audit.report.domain));
+      }
       await loadHistory();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Audit failed");
@@ -304,6 +323,9 @@ export default function SiteAuditPage() {
       if (!res.ok) throw new Error(data.message);
       setReport(data.audit.report);
       setActiveAuditId(id);
+      if (data.audit.report?.domain) {
+        setSiteUrl(formatAuditUrlInput(data.audit.report.domain));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load audit");
     }
@@ -325,46 +347,49 @@ export default function SiteAuditPage() {
   return (
     <DashboardShell
       title="Site Audit"
-      description={`Full SEO & technical audit for ${project?.domain ?? "your site"}`}
+      description="Enter a site URL, then run a full SEO and technical audit with PDF export."
       actions={
-        <div className="flex flex-wrap items-center gap-2">
-          {activeAuditId && report ? (
-            <button
-              type="button"
-              onClick={downloadPdf}
-              className="inline-flex items-center gap-2 rounded-xl border border-line bg-bg px-4 py-2.5 text-sm font-medium text-snow transition hover:border-accent/30"
-            >
-              <Download className="h-4 w-4" />
-              Download PDF
-            </button>
-          ) : null}
+        activeAuditId && report ? (
           <button
             type="button"
-            onClick={() => void runAudit()}
-            disabled={running}
-            className={buttonPrimaryClass}
+            onClick={downloadPdf}
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-bg px-4 py-2.5 text-sm font-medium text-snow transition hover:border-accent/30"
           >
-            {running ? (
-              "Running full audit..."
-            ) : (
-              <>
-                <Play className="h-4 w-4" /> Run full audit
-              </>
-            )}
+            <Download className="h-4 w-4" />
+            Download PDF
           </button>
-        </div>
+        ) : null
       }
     >
       <PageStack>
         <DataForSeoBanner configured={dataForSeoConfigured} />
         {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
+
+        <SearchPanel
+          title="Site URL"
+          description="Enter the domain or full URL to audit. Example: skillstack.com.pk or https://example.com"
+        >
+          <SearchToolbar
+            value={siteUrl}
+            onChange={setSiteUrl}
+            onSubmit={() => void runAudit()}
+            placeholder="example.com or https://example.com"
+            loading={running}
+            submitLabel={running ? "Running audit..." : "Run full audit"}
+          />
+        </SearchPanel>
+
         {running ? (
-          <LoadingBlock label="Running full SEO audit — security headers, on-page SEO, backlinks, Lighthouse mobile & desktop. This may take 2–3 minutes..." />
+          <LoadingBlock label={`Auditing ${siteUrl || "site"} — security headers, on-page SEO, backlinks, Lighthouse mobile & desktop. This may take 2–3 minutes...`} />
         ) : null}
 
         {report && !running ? (
           <>
-            <MetricGrid className="sm:grid-cols-2 lg:grid-cols-4">
+            <DashboardCard
+              title={report.domain}
+              description={`Audited ${new Date(report.preparedAt).toLocaleString()} · ${report.url}`}
+            >
+              <MetricGrid className="sm:grid-cols-2 lg:grid-cols-4">
               <MetricTile
                 label="Security grade"
                 value={report.overallSecurityGrade}
@@ -391,16 +416,9 @@ export default function SiteAuditPage() {
                 icon={FileText}
               />
             </MetricGrid>
+            </DashboardCard>
             <ReportSections report={report} />
           </>
-        ) : null}
-
-        {!running && !report ? (
-          <EmptyBlock
-            icon={Gauge}
-            title="Run a full SEO audit"
-            description="Security headers, on-page SEO, crawlability, backlinks, Lighthouse scores, executive summary, and a downloadable PDF report."
-          />
         ) : null}
 
         {loading ? <LoadingBlock label="Loading audit history..." /> : null}
@@ -411,6 +429,17 @@ export default function SiteAuditPage() {
               rows={history}
               rowKey={(row) => row.id}
               columns={[
+                {
+                  key: "site",
+                  header: "Site",
+                  cell: (row) => (
+                    <span className="text-snow">
+                      {row.targetUrl
+                        ? formatAuditUrlInput(row.targetUrl)
+                        : "—"}
+                    </span>
+                  ),
+                },
                 {
                   key: "date",
                   header: "Date",
