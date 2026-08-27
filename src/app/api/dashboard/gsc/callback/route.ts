@@ -1,22 +1,31 @@
 import { NextResponse } from "next/server";
+import { getAppBaseUrl } from "@/lib/app-url";
 import {
   exchangeCodeForTokens,
   listGscSites,
-  pickGscSiteForDomain,
+  listMatchingGscSites,
   verifyOAuthState,
 } from "@/lib/google/gsc";
-import { saveGscConnection, getProjectDocument } from "@/lib/dashboard/project";
+import {
+  getProjectDocument,
+  saveGscConnection,
+  saveGscPendingConnection,
+} from "@/lib/dashboard/project";
 
 export async function GET(request: Request) {
-  const authUrl = process.env.AUTH_URL?.trim() ?? "http://localhost:3000";
+  const authUrl = getAppBaseUrl();
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
   if (error) {
+    const hint =
+      error === "redirect_uri_mismatch"
+        ? " The site owner must add the production redirect URI in Google Cloud Console."
+        : "";
     return NextResponse.redirect(
-      `${authUrl}/dashboard/gsc?error=${encodeURIComponent(error)}`,
+      `${authUrl}/dashboard/gsc?error=${encodeURIComponent(error + hint)}`,
     );
   }
 
@@ -38,7 +47,7 @@ export async function GET(request: Request) {
     const refreshToken = tokens.refresh_token;
     if (!refreshToken) {
       throw new Error(
-        "Google did not return a refresh token. Try disconnecting and reconnecting with consent.",
+        "Google did not return a refresh token. Disconnect any old connection in your Google account and try again.",
       );
     }
 
@@ -50,19 +59,33 @@ export async function GET(request: Request) {
     }
 
     const project = await getProjectDocument(userId);
-    const siteUrl = pickGscSiteForDomain(sites, project.domain);
-    if (!siteUrl) {
-      throw new Error("Could not match a Search Console property to your project domain.");
-    }
-
-    await saveGscConnection(userId, {
+    const matching = listMatchingGscSites(sites, project.domain);
+    const tokenBundle = {
       refreshToken,
       accessToken: tokens.access_token!,
       expiresAt: new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000),
-      siteUrl,
-    });
+    };
 
-    return NextResponse.redirect(`${authUrl}/dashboard/gsc?connected=1`);
+    if (matching.length === 1) {
+      await saveGscConnection(userId, {
+        ...tokenBundle,
+        siteUrl: matching[0],
+      });
+      return NextResponse.redirect(`${authUrl}/dashboard/gsc?connected=1`);
+    }
+
+    if (matching.length > 1) {
+      await saveGscPendingConnection(userId, {
+        ...tokenBundle,
+        siteOptions: matching,
+      });
+      return NextResponse.redirect(`${authUrl}/dashboard/gsc?select=1`);
+    }
+
+    const preview = sites.slice(0, 6).join(", ");
+    throw new Error(
+      `No Search Console property matches ${project.domain}. Properties on this Google account: ${preview}. Update your project domain in dashboard settings, then connect again.`,
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "GSC connection failed";
     return NextResponse.redirect(

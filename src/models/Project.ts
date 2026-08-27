@@ -13,6 +13,7 @@ const ProjectSchema = new Schema(
     languageCode: { type: String, default: "en" },
     gscConnected: { type: Boolean, default: false },
     gscSiteUrl: { type: String, default: null },
+    gscPendingSites: { type: [String], default: null, select: false },
     gscRefreshToken: { type: String, default: null, select: false },
     gscAccessToken: { type: String, default: null, select: false },
     gscTokenExpiry: { type: Date, default: null, select: false },

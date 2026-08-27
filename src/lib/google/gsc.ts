@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { getAppBaseUrl, getGscRedirectUri } from "@/lib/app-url";
 import { normalizeDomain } from "@/lib/dataforseo/client";
 
 const GSC_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
@@ -48,10 +49,9 @@ export function verifyOAuthState(state: string): string | null {
 
 export function getGscConnectUrl(state: string) {
   const clientId = process.env.AUTH_GOOGLE_ID?.trim();
-  const authUrl = process.env.AUTH_URL?.trim() ?? "http://localhost:3000";
   if (!clientId) throw new Error("AUTH_GOOGLE_ID is not configured.");
 
-  const redirectUri = `${authUrl}/api/dashboard/gsc/callback`;
+  const redirectUri = getGscRedirectUri();
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
@@ -98,11 +98,10 @@ async function exchangeToken(body: Record<string, string>) {
 }
 
 export async function exchangeCodeForTokens(code: string) {
-  const authUrl = process.env.AUTH_URL?.trim() ?? "http://localhost:3000";
   return exchangeToken({
     grant_type: "authorization_code",
     code,
-    redirect_uri: `${authUrl}/api/dashboard/gsc/callback`,
+    redirect_uri: getGscRedirectUri(),
   });
 }
 
@@ -137,17 +136,24 @@ export function pickGscSiteForDomain(sites: string[], domain: string) {
 
   if (sites.includes(domainProperty)) return domainProperty;
 
-  const matches = sites.filter((site) => {
-    const lower = site.toLowerCase();
-    return (
-      lower.includes(normalized) ||
-      lower === `https://${normalized}/` ||
-      lower === `http://${normalized}/` ||
-      lower === `https://www.${normalized}/`
-    );
-  });
+  const matches = sites.filter((site) => siteMatchesDomain(site, normalized));
+  return matches[0] ?? null;
+}
 
-  return matches[0] ?? sites[0] ?? null;
+export function siteMatchesDomain(siteUrl: string, normalizedDomain: string) {
+  const lower = siteUrl.toLowerCase();
+  if (siteUrl === `sc-domain:${normalizedDomain}`) return true;
+  return (
+    lower.includes(normalizedDomain) ||
+    lower === `https://${normalizedDomain}/` ||
+    lower === `http://${normalizedDomain}/` ||
+    lower === `https://www.${normalizedDomain}/`
+  );
+}
+
+export function listMatchingGscSites(sites: string[], domain: string) {
+  const normalized = normalizeDomain(domain);
+  return sites.filter((site) => siteMatchesDomain(site, normalized));
 }
 
 export type GscRow = {

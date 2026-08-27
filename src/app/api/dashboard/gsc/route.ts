@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAppBaseUrl, getGscRedirectUri, isGoogleOAuthConfigured } from "@/lib/app-url";
 import { requireUser } from "@/lib/auth-session";
 import {
   getValidGscAccessToken,
@@ -6,6 +7,8 @@ import {
 } from "@/lib/google/gsc";
 import {
   disconnectGsc,
+  finalizeGscSite,
+  getGscPendingSites,
   getProjectDocument,
   updateGscTokens,
 } from "@/lib/dashboard/project";
@@ -19,10 +22,28 @@ export async function GET(request: Request) {
   const tab = searchParams.get("tab") ?? "queries";
 
   try {
+    const pendingSites = await getGscPendingSites(user.id);
     const project = await getProjectDocument(user.id, true);
+
+    if (pendingSites.length > 0) {
+      return NextResponse.json({
+        connected: false,
+        pendingSites,
+        oauthConfigured: isGoogleOAuthConfigured(),
+        redirectUri: getGscRedirectUri(),
+        appBaseUrl: getAppBaseUrl(),
+        rows: [],
+        summary: null,
+      });
+    }
+
     if (!project.gscConnected || !project.gscSiteUrl) {
       return NextResponse.json({
         connected: false,
+        pendingSites: [],
+        oauthConfigured: isGoogleOAuthConfigured(),
+        redirectUri: getGscRedirectUri(),
+        appBaseUrl: getAppBaseUrl(),
         rows: [],
         summary: null,
       });
@@ -86,6 +107,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       connected: true,
+      pendingSites: [],
       siteUrl: project.gscSiteUrl,
       tab,
       rows,
@@ -99,6 +121,27 @@ export async function GET(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "GSC load failed";
     return NextResponse.json({ message }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  const result = await requireUser(request);
+  if ("response" in result) return result.response;
+  const { user } = result;
+
+  try {
+    const body = await request.json();
+    const siteUrl = String(body.siteUrl ?? "").trim();
+    if (!siteUrl) {
+      return NextResponse.json({ message: "Choose a property." }, { status: 400 });
+    }
+
+    const project = await finalizeGscSite(user.id, siteUrl);
+    return NextResponse.json({ ok: true, project });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not save property";
+    return NextResponse.json({ message }, { status: 400 });
   }
 }
 

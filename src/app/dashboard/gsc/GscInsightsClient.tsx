@@ -28,6 +28,14 @@ type GscRow = {
   position: number;
 };
 
+function formatOAuthError(raw: string) {
+  const decoded = decodeURIComponent(raw);
+  if (decoded.includes("redirect_uri_mismatch")) {
+    return "Google OAuth is not configured for this site yet. The SkillStack admin must add the production callback URL in Google Cloud Console.";
+  }
+  return decoded;
+}
+
 export default function GscInsightsClient() {
   const searchParams = useSearchParams();
   const { project, loading: projectLoading, refresh: refreshProject } =
@@ -42,6 +50,9 @@ export default function GscInsightsClient() {
   } | null>(null);
   const [siteUrl, setSiteUrl] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [pendingSites, setPendingSites] = useState<string[]>([]);
+  const [selectedSite, setSelectedSite] = useState("");
+  const [oauthConfigured, setOauthConfigured] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -49,12 +60,38 @@ export default function GscInsightsClient() {
   useEffect(() => {
     const err = searchParams.get("error");
     const ok = searchParams.get("connected");
-    if (err) setError(decodeURIComponent(err));
+    const select = searchParams.get("select");
+    if (err) setError(formatOAuthError(err));
     if (ok) {
       setMessage("Search Console connected successfully.");
       void refreshProject();
     }
+    if (select) setMessage("Choose which Search Console property to link.");
   }, [searchParams, refreshProject]);
+
+  const loadStatus = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/dashboard/gsc?tab=queries");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setOauthConfigured(data.oauthConfigured !== false);
+      setPendingSites(data.pendingSites ?? []);
+      setSelectedSite(data.pendingSites?.[0] ?? "");
+      setConnected(Boolean(data.connected));
+      if (data.connected) {
+        setRows(data.rows ?? []);
+        setSummary(data.summary);
+        setSiteUrl(data.siteUrl ?? null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Load failed");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const loadData = useCallback(async (nextTab: GscTab = tab) => {
     setLoading(true);
@@ -75,20 +112,50 @@ export default function GscInsightsClient() {
   }, [tab]);
 
   useEffect(() => {
-    if (!projectLoading && project?.gscConnected) {
+    if (!projectLoading) {
+      void loadStatus();
+    }
+  }, [projectLoading, loadStatus]);
+
+  useEffect(() => {
+    if (!projectLoading && project?.gscConnected && connected) {
       void loadData(tab);
     }
-  }, [projectLoading, project?.gscConnected, tab, loadData]);
+  }, [projectLoading, project?.gscConnected, connected, tab, loadData]);
 
   function switchTab(next: GscTab) {
     setTab(next);
     if (connected) void loadData(next);
   }
 
+  async function confirmProperty() {
+    if (!selectedSite) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/dashboard/gsc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteUrl: selectedSite }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setPendingSites([]);
+      setMessage("Search Console connected successfully.");
+      await refreshProject();
+      await loadStatus();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save property");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function disconnect() {
     const res = await fetch("/api/dashboard/gsc", { method: "DELETE" });
     if (res.ok) {
       setConnected(false);
+      setPendingSites([]);
       setRows([]);
       setSummary(null);
       setSiteUrl(null);
@@ -105,7 +172,9 @@ export default function GscInsightsClient() {
     );
   }
 
-  const showConnect = !project?.gscConnected && !connected;
+  const showConnect =
+    !project?.gscConnected && !connected && pendingSites.length === 0;
+  const showPropertyPicker = pendingSites.length > 0;
 
   return (
     <DashboardShell
@@ -134,27 +203,60 @@ export default function GscInsightsClient() {
         {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
         {message ? <DashboardAlert variant="success">{message}</DashboardAlert> : null}
 
+        {showPropertyPicker ? (
+          <ResultsPanel title="Choose Search Console property">
+            <p className="text-sm text-ink-muted">
+              Multiple properties match <strong className="text-snow">{project?.domain}</strong>.
+              Pick the one you want SkillStack to use.
+            </p>
+            <div className="mt-4 space-y-2">
+              {pendingSites.map((site) => (
+                <label
+                  key={site}
+                  className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-bg px-4 py-3"
+                >
+                  <input
+                    type="radio"
+                    name="gsc-site"
+                    value={site}
+                    checked={selectedSite === site}
+                    onChange={() => setSelectedSite(site)}
+                  />
+                  <span className="truncate text-sm text-snow">{site}</span>
+                </label>
+              ))}
+            </div>
+            <div className="mt-6">
+              <button
+                type="button"
+                className={buttonPrimaryClass}
+                disabled={loading || !selectedSite}
+                onClick={() => void confirmProperty()}
+              >
+                Use this property
+              </button>
+            </div>
+          </ResultsPanel>
+        ) : null}
+
         {showConnect ? (
           <ResultsPanel title="Connect Google Search Console">
             <p className="text-sm text-ink-muted">
-              Connect the Google account that owns Search Console for{" "}
-              <strong className="text-snow">{project?.domain}</strong>. You need a
-              verified property first.
+              Sign in with the Google account that has access to Search Console for{" "}
+              <strong className="text-snow">{project?.domain}</strong>. Each SkillStack
+              user connects their own Google account — your data stays private to your
+              project.
             </p>
             <ul className="mt-3 space-y-1 text-xs text-ink-muted">
-              <li>
-                1. Enable <strong>Google Search Console API</strong> in Google Cloud
-                Console
-              </li>
-              <li>
-                2. Add redirect URI:{" "}
-                <code className="rounded bg-black/30 px-1">
-                  {typeof window !== "undefined" ? window.location.origin : ""}
-                  /api/dashboard/gsc/callback
-                </code>
-              </li>
-              <li>3. Click connect below (uses your existing Google OAuth app)</li>
+              <li>1. Verify your site in Google Search Console first</li>
+              <li>2. Set your project domain in dashboard settings to match that property</li>
+              <li>3. Click connect and approve read-only access</li>
             </ul>
+            {!oauthConfigured ? (
+              <DashboardAlert variant="error">
+                Google OAuth is not configured on this SkillStack deployment.
+              </DashboardAlert>
+            ) : null}
             <div className="mt-6 flex flex-wrap gap-3">
               <a href="/api/dashboard/gsc/connect" className={buttonPrimaryClass}>
                 Connect with Google

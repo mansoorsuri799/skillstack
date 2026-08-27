@@ -1,14 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  BarChart3,
-  Globe,
-  Hash,
-  Search,
-  TrendingUp,
-} from "lucide-react";
+import { Globe } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import {
+  DomainOverviewPanel,
+  type DomainOverviewPanelData,
+} from "@/components/dashboard/DomainOverviewPanel";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
 import { useAutoAnalyze } from "@/components/dashboard/useAutoAnalyze";
 import {
@@ -23,19 +21,13 @@ import {
   DataTable,
   EmptyBlock,
   LoadingBlock,
-  MetricGrid,
-  MetricTile,
   PageStack,
   ResultsPanel,
 } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
 import { DOMAIN_SCOPES, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
 
-type Overview = {
-  domain: string;
-  organicTraffic: number | null;
-  organicKeywords: number | null;
-  topPositions: { pos1: number | null; pos2_3: number | null; pos4_10: number | null };
+type Overview = DomainOverviewPanelData & {
   topKeywords: Array<{
     keyword: string;
     searchVolume: number | null;
@@ -108,7 +100,7 @@ export default function DomainPage() {
   return (
     <DashboardShell
       title="Domain Overview"
-      description="Organic visibility, traffic estimates, and top keywords"
+      description="Domain health, authority, traffic, and keyword visibility"
     >
       <PageStack>
         <DataForSeoBanner configured={dataForSeoConfigured} />
@@ -116,7 +108,7 @@ export default function DomainPage() {
 
         <SearchPanel
           title="Domain analysis"
-          description="See organic traffic estimates, ranking distribution, top keywords, and top pages."
+          description="Analyze a domain to see health score, authority metrics, organic traffic, and top rankings."
         >
           <SearchToolbar
             value={domain}
@@ -148,41 +140,12 @@ export default function DomainPage() {
         </SearchPanel>
 
         {loading && !overview ? (
-          <LoadingBlock label="Analyzing domain visibility..." />
+          <LoadingBlock label="Analyzing domain — this can take up to a minute..." />
         ) : null}
 
         {overview ? (
           <>
-            <MetricGrid className="lg:grid-cols-4">
-              <MetricTile
-                label="Est. organic traffic"
-                value={overview.organicTraffic}
-                icon={TrendingUp}
-                featured
-              />
-              <MetricTile
-                label="Organic keywords"
-                value={overview.organicKeywords}
-                icon={Search}
-                featured
-              />
-              <MetricTile
-                label="#1 positions"
-                value={overview.topPositions.pos1}
-                icon={Hash}
-              />
-              <MetricTile
-                label="Top 10 positions"
-                value={
-                  overview.topPositions.pos4_10 != null
-                    ? (overview.topPositions.pos4_10 ?? 0) +
-                      (overview.topPositions.pos2_3 ?? 0) +
-                      (overview.topPositions.pos1 ?? 0)
-                    : null
-                }
-                icon={BarChart3}
-              />
-            </MetricGrid>
+            <DomainOverviewPanel data={overview} />
 
             <ResultsPanel
               title={`Ranking data for ${overview.domain}`}
@@ -286,7 +249,7 @@ export default function DomainPage() {
             <EmptyBlock
               icon={Globe}
               title="Analyze any domain"
-              description="Enter a domain with location and scope filters to see organic traffic, top keywords, and top pages."
+              description="Enter a domain with location and scope filters to see health, authority, traffic, and ranking data."
             />
           )
         )}

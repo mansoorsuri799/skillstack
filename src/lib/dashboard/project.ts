@@ -108,9 +108,54 @@ export async function saveGscConnection(
   project.gscAccessToken = data.accessToken;
   project.gscTokenExpiry = data.expiresAt;
   project.gscSiteUrl = data.siteUrl;
+  project.gscPendingSites = null;
   project.gscConnected = true;
   await project.save();
   return toProjectDto(project);
+}
+
+export async function saveGscPendingConnection(
+  userId: string,
+  data: {
+    refreshToken: string;
+    accessToken: string;
+    expiresAt: Date;
+    siteOptions: string[];
+  },
+) {
+  await connectDB();
+  const project = await getOrCreateProject(userId);
+  project.gscRefreshToken = data.refreshToken;
+  project.gscAccessToken = data.accessToken;
+  project.gscTokenExpiry = data.expiresAt;
+  project.gscPendingSites = data.siteOptions;
+  project.gscSiteUrl = null;
+  project.gscConnected = false;
+  await project.save();
+}
+
+export async function finalizeGscSite(userId: string, siteUrl: string) {
+  await connectDB();
+  const project = await getProjectDocument(userId, true);
+  const pending = project.gscPendingSites ?? [];
+  if (!pending.includes(siteUrl)) {
+    throw new Error("That Search Console property is not available for selection.");
+  }
+  if (!project.gscRefreshToken) {
+    throw new Error("Search Console authorization expired. Connect again.");
+  }
+
+  project.gscSiteUrl = siteUrl;
+  project.gscPendingSites = null;
+  project.gscConnected = true;
+  await project.save();
+  return toProjectDto(project);
+}
+
+export async function getGscPendingSites(userId: string) {
+  await connectDB();
+  const project = await getProjectDocument(userId, true);
+  return project.gscPendingSites ?? [];
 }
 
 export async function disconnectGsc(userId: string) {
@@ -120,6 +165,7 @@ export async function disconnectGsc(userId: string) {
   project.gscAccessToken = null;
   project.gscTokenExpiry = null;
   project.gscSiteUrl = null;
+  project.gscPendingSites = null;
   project.gscConnected = false;
   await project.save();
   return toProjectDto(project);

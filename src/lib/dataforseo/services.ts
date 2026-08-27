@@ -185,6 +185,7 @@ export async function getDomainOverview(
         pos_1?: number | null;
         pos_2_3?: number | null;
         pos_4_10?: number | null;
+        estimated_paid_traffic_cost?: number | null;
       } | null;
     } | null;
   }>(overviewRes)[0];
@@ -227,6 +228,7 @@ export async function getDomainOverview(
   return {
     domain,
     organicTraffic: organic?.etv ?? null,
+    organicTrafficValue: organic?.estimated_paid_traffic_cost ?? null,
     organicKeywords: organic?.count ?? null,
     topPositions: {
       pos1: organic?.pos_1 ?? null,

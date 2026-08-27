@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAppBaseUrl } from "@/lib/app-url";
 import { requireUser } from "@/lib/auth-session";
 import { getGscConnectUrl, signOAuthState } from "@/lib/google/gsc";
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(
       new URL(
         `/dashboard/gsc?error=${encodeURIComponent(message)}`,
-        process.env.AUTH_URL ?? "http://localhost:3000",
+        getAppBaseUrl(),
       ),
     );
   }
