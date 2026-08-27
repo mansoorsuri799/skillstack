@@ -30,6 +30,8 @@ export function OrganicSearchLayout({
   dataForSeoConfigured,
   projectLoading,
   onAnalyze,
+  showLocation = true,
+  showScope = true,
   children,
 }: {
   title: string;
@@ -46,6 +48,8 @@ export function OrganicSearchLayout({
   dataForSeoConfigured: boolean;
   projectLoading: boolean;
   onAnalyze: () => void;
+  showLocation?: boolean;
+  showScope?: boolean;
   children: ReactNode;
 }) {
   if (projectLoading) {
@@ -71,24 +75,28 @@ export function OrganicSearchLayout({
             loading={loading}
             submitLabel="Analyze"
           >
-            <ToolbarSelect
-              label="Location"
-              value={locationCode}
-              onChange={(v) => setLocationCode(Number(v))}
-              options={RESEARCH_LOCATIONS.map((l) => ({
-                value: l.code,
-                label: l.label,
-              }))}
-            />
-            <ToolbarSelect
-              label="Scope"
-              value={scope}
-              onChange={setScope}
-              options={DOMAIN_SCOPES.map((s) => ({
-                value: s.value,
-                label: s.label,
-              }))}
-            />
+            {showLocation ? (
+              <ToolbarSelect
+                label="Location"
+                value={locationCode}
+                onChange={(v) => setLocationCode(Number(v))}
+                options={RESEARCH_LOCATIONS.map((l) => ({
+                  value: l.code,
+                  label: l.label,
+                }))}
+              />
+            ) : null}
+            {showScope ? (
+              <ToolbarSelect
+                label="Scope"
+                value={scope}
+                onChange={setScope}
+                options={DOMAIN_SCOPES.map((s) => ({
+                  value: s.value,
+                  label: s.label,
+                }))}
+              />
+            ) : null}
           </SearchToolbar>
         </SearchPanel>
 

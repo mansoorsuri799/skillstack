@@ -93,6 +93,37 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
     ],
   },
   {
+    label: "Pages",
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      {
+        href: "/dashboard/pages/best-by-links",
+        label: "Best by links",
+      },
+    ],
+  },
+  {
+    label: "Internal links",
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      {
+        href: "/dashboard/internal-links",
+        label: "Internal links",
+        exact: true,
+      },
+      {
+        href: "/dashboard/internal-links/most-linked",
+        label: "Most linked pages",
+      },
+      {
+        href: "/dashboard/internal-links/anchors",
+        label: "Internal anchors",
+      },
+    ],
+  },
+  {
     label: "My Site",
     items: [
       { href: "/dashboard/gsc", label: "GSC Insights", icon: BarChart3 },
