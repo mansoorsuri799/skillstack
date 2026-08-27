@@ -33,3 +33,18 @@ export async function GET(request: Request, context: RouteContext) {
     },
   });
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  const result = await requireUser(request);
+  if ("response" in result) return result.response;
+  const { user } = result;
+  const { id } = await context.params;
+
+  await connectDB();
+  const deleted = await SiteAudit.deleteOne({ _id: id, userId: user.id });
+  if (deleted.deletedCount === 0) {
+    return NextResponse.json({ message: "Audit not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

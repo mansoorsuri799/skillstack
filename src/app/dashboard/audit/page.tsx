@@ -7,12 +7,14 @@ import {
   Gauge,
   Shield,
   ShieldAlert,
+  Trash2,
   Zap,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
 import { SearchPanel, SearchToolbar } from "@/components/dashboard/SearchToolbar";
 import {
+  buttonGhostClass,
   DashboardAlert,
   DashboardCard,
   DataTable,
@@ -258,6 +260,7 @@ export default function SiteAuditPage() {
   const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -334,6 +337,32 @@ export default function SiteAuditPage() {
   function downloadPdf() {
     if (!activeAuditId) return;
     window.open(`/api/dashboard/audit/${activeAuditId}/pdf`, "_blank");
+  }
+
+  async function removeAudit(id: string) {
+    const row = history.find((item) => item.id === id);
+    const label = row?.targetUrl
+      ? formatAuditUrlInput(row.targetUrl)
+      : "this audit";
+    if (!window.confirm(`Remove audit for ${label}?`)) return;
+
+    setRemovingId(id);
+    setError("");
+    try {
+      const res = await fetch(`/api/dashboard/audit/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setHistory((prev) => prev.filter((item) => item.id !== id));
+      if (activeAuditId === id) {
+        setActiveAuditId(null);
+        setReport(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not remove audit");
+    } finally {
+      setRemovingId(null);
+    }
   }
 
   if (projectLoading) {
@@ -424,7 +453,10 @@ export default function SiteAuditPage() {
         {loading ? <LoadingBlock label="Loading audit history..." /> : null}
 
         {history.length > 0 ? (
-          <ResultsPanel title="Recent audits">
+          <ResultsPanel
+            title="Recent audits"
+            description="Open a past report, download PDF, or remove entries you no longer need."
+          >
             <DataTable
               rows={history}
               rowKey={(row) => row.id}
@@ -486,17 +518,30 @@ export default function SiteAuditPage() {
                   ),
                 },
                 {
-                  key: "pdf",
+                  key: "actions",
                   header: "",
-                  cell: (row) =>
-                    row.status === "completed" ? (
-                      <a
-                        href={`/api/dashboard/audit/${row.id}/pdf`}
-                        className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                  className: "text-right",
+                  cell: (row) => (
+                    <div className="flex justify-end gap-2">
+                      {row.status === "completed" ? (
+                        <a
+                          href={`/api/dashboard/audit/${row.id}/pdf`}
+                          className={`${buttonGhostClass} text-accent`}
+                        >
+                          <Download className="h-4 w-4" /> PDF
+                        </a>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => void removeAudit(row.id)}
+                        disabled={removingId === row.id}
+                        className={buttonGhostClass}
                       >
-                        <Download className="h-3 w-3" /> PDF
-                      </a>
-                    ) : null,
+                        <Trash2 className="h-4 w-4" />{" "}
+                        {removingId === row.id ? "Removing..." : "Remove"}
+                      </button>
+                    </div>
+                  ),
                 },
               ]}
             />
