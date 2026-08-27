@@ -10,6 +10,7 @@ const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
  * The full config (with Credentials + Google providers and DB calls) lives in src/auth.ts.
  */
 const authConfig: NextAuthConfig = {
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   providers: [],
 
   session: {
