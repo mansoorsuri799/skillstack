@@ -47,6 +47,7 @@ export function SearchToolbar({
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (loading) return;
         onSubmit();
       }}
       className="flex flex-col gap-3 xl:flex-row xl:items-end"
@@ -54,18 +55,24 @@ export function SearchToolbar({
       <div className="relative min-w-0 flex-1">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
         <input
-          className={`${inputClass} pl-10`}
+          className={`${inputClass} pl-10 ${loading ? "cursor-not-allowed opacity-70" : ""}`}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            if (loading) return;
+            onChange(e.target.value);
+          }}
           placeholder={placeholder}
           required
+          disabled={loading}
+          readOnly={loading}
+          aria-busy={loading}
         />
       </div>
       {children ? (
         <div className="flex flex-wrap items-end gap-3">{children}</div>
       ) : null}
       <button type="submit" disabled={loading} className={`${buttonPrimaryClass} shrink-0`}>
-        {loading ? "Searching..." : submitLabel}
+        {submitLabel}
       </button>
     </form>
   );
