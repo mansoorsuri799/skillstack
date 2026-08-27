@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import DashboardAppShell from "@/components/dashboard/DashboardAppShell";
 
 export default async function DashboardLayout({
   children,
@@ -11,5 +12,5 @@ export default async function DashboardLayout({
     redirect("/login?callbackUrl=/dashboard");
   }
 
-  return <div className="min-h-[100dvh] bg-bg">{children}</div>;
+  return <DashboardAppShell>{children}</DashboardAppShell>;
 }

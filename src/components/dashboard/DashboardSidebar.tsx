@@ -11,13 +11,36 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Logo from "@/components/Logo";
 import {
   dashboardNavGroups,
   type DashboardNavGroup,
   type DashboardNavItem,
 } from "@/lib/dashboard/navigation";
+
+type MobileMenuContextValue = {
+  open: boolean;
+  openMenu: () => void;
+  closeMenu: () => void;
+};
+
+const MobileMenuContext = createContext<MobileMenuContextValue | null>(null);
+
+function useMobileMenu() {
+  const ctx = useContext(MobileMenuContext);
+  if (!ctx) {
+    throw new Error("useMobileMenu must be used within DashboardAppShell");
+  }
+  return ctx;
+}
 
 function NavLink({
   href,
@@ -40,6 +63,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      data-nav-active={active ? "true" : undefined}
       onClick={onNavigate}
       className={`relative flex items-center gap-2.5 rounded-md py-1.5 text-sm transition-colors ${
         nested ? "px-3 pl-6" : "px-3"
@@ -66,7 +90,9 @@ function NavGroupSection({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const groupActive = group.items.some((item) => pathname.startsWith(item.href));
+  const groupActive = group.items.some((item) =>
+    item.exact ? pathname === item.href : pathname.startsWith(item.href),
+  );
   const [open, setOpen] = useState(group.defaultOpen ?? true);
 
   useEffect(() => {
@@ -126,24 +152,43 @@ function NavGroupSection({
   );
 }
 
-export default function DashboardSidebar({
-  mobileOpen,
-  onMobileClose,
-}: {
-  mobileOpen?: boolean;
-  onMobileClose?: () => void;
-}) {
+function DashboardSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const activeLink = nav.querySelector<HTMLElement>('[data-nav-active="true"]');
+    if (!activeLink) return;
+
+    requestAnimationFrame(() => {
+      activeLink.scrollIntoView({ block: "nearest", behavior: "auto" });
+    });
+  }, [pathname]);
+
+  return (
+    <nav ref={navRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
+      {dashboardNavGroups.map((group) => (
+        <NavGroupSection key={group.label} group={group} onNavigate={onNavigate} />
+      ))}
+    </nav>
+  );
+}
+
+function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
   const { data: session } = useSession();
   const [accountOpen, setAccountOpen] = useState(false);
 
-  const sidebar = (
+  return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-line bg-bg-soft">
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-4">
         <Logo size="sm" href="/dashboard" />
-        {onMobileClose ? (
+        {onNavigate ? (
           <button
             type="button"
-            onClick={onMobileClose}
+            onClick={onNavigate}
             className="rounded-md p-1 text-ink-muted hover:bg-white/5 md:hidden"
             aria-label="Close menu"
           >
@@ -152,15 +197,7 @@ export default function DashboardSidebar({
         ) : null}
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {dashboardNavGroups.map((group) => (
-          <NavGroupSection
-            key={group.label}
-            group={group}
-            onNavigate={onMobileClose}
-          />
-        ))}
-      </nav>
+      <DashboardSidebarNav onNavigate={onNavigate} />
 
       <div className="border-t border-line p-3">
         <div className="relative">
@@ -206,38 +243,60 @@ export default function DashboardSidebar({
       </div>
     </aside>
   );
+}
+
+export default function DashboardSidebar() {
+  const { open, closeMenu } = useMobileMenu();
 
   return (
     <>
-      <div className="hidden md:flex">{sidebar}</div>
-      {mobileOpen ? (
+      <div className="hidden h-full md:flex">
+        <SidebarPanel />
+      </div>
+      {open ? (
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
             className="absolute inset-0 bg-black/60"
-            onClick={onMobileClose}
+            onClick={closeMenu}
             aria-label="Close overlay"
           />
-          <div className="relative h-full w-60">{sidebar}</div>
+          <div className="relative h-full w-60">
+            <SidebarPanel onNavigate={closeMenu} />
+          </div>
         </div>
       ) : null}
     </>
   );
 }
 
-export function DashboardMobileToggle({
-  onOpen,
-}: {
-  onOpen: () => void;
-}) {
+export function DashboardMobileToggle() {
+  const { openMenu } = useMobileMenu();
+
   return (
     <button
       type="button"
-      onClick={onOpen}
+      onClick={openMenu}
       className="rounded-md border border-line p-2 text-ink md:hidden"
       aria-label="Open menu"
     >
       <Menu className="h-5 w-5" />
     </button>
+  );
+}
+
+export function DashboardMobileMenuProvider({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <MobileMenuContext.Provider
+      value={{
+        open,
+        openMenu: () => setOpen(true),
+        closeMenu: () => setOpen(false),
+      }}
+    >
+      {children}
+    </MobileMenuContext.Provider>
   );
 }
