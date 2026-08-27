@@ -41,12 +41,17 @@ function formatCompact(value: number | null, currency = false): string {
   return `${prefix}${value.toLocaleString()}`;
 }
 
+function formatStat(value: number | null): string {
+  if (value === null || value === undefined) return "—";
+  return value.toLocaleString();
+}
+
 function ChangeBadge({ change }: { change: number | null }) {
   if (change === null || change === 0) return null;
   const positive = change > 0;
   return (
     <span
-      className={`text-sm font-semibold tabular-nums ${
+      className={`text-xs font-semibold tabular-nums sm:text-sm ${
         positive ? "text-emerald-400" : "text-red-400"
       }`}
     >
@@ -116,6 +121,7 @@ function MetricColumn({
   filledTrend = false,
   footer,
   children,
+  className = "",
 }: {
   title: string;
   subtitle?: string;
@@ -126,31 +132,34 @@ function MetricColumn({
   filledTrend?: boolean;
   footer?: ReactNode;
   children?: ReactNode;
+  className?: string;
 }) {
+  const showTrend = Boolean(trend && trend.length > 0);
+
   return (
-    <div className="flex min-h-[11rem] flex-col border-line px-4 py-4 first:pl-0 last:pr-0 md:border-r md:last:border-r-0">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-medium text-ink-muted">{title}</p>
-          {subtitle ? (
-            <p className="mt-0.5 text-[10px] text-ink-muted/80">{subtitle}</p>
-          ) : null}
-        </div>
+    <div
+      className={`flex min-h-[12.5rem] flex-col px-4 py-5 sm:px-5 lg:min-h-[13.5rem] ${className}`}
+    >
+      <div>
+        <p className="text-xs font-medium text-ink-muted">{title}</p>
+        {subtitle ? (
+          <p className="mt-1 text-[11px] leading-snug text-ink-muted/80">{subtitle}</p>
+        ) : null}
       </div>
 
-      <div className="mt-3 flex items-end gap-2">
-        <p className="font-display text-3xl font-semibold tabular-nums text-snow">
+      <div className="mt-4 flex items-end gap-2">
+        <div className="font-display text-3xl font-semibold tabular-nums leading-none text-snow">
           {value}
-        </p>
+        </div>
         {change !== undefined ? <ChangeBadge change={change ?? null} /> : null}
       </div>
 
-      {footer ? <div className="mt-1 text-xs text-ink-muted">{footer}</div> : null}
-      {children}
+      {footer ? <div className="mt-2 text-xs leading-relaxed text-ink-muted">{footer}</div> : null}
+      {children ? <div className="mt-3 flex-1">{children}</div> : null}
 
-      {trend ? (
-        <div className="mt-auto pt-3">
-          <Sparkline values={trend} color={trendColor} filled={filledTrend} />
+      {showTrend ? (
+        <div className="mt-auto pt-4">
+          <Sparkline values={trend!} color={trendColor} filled={filledTrend} />
         </div>
       ) : null}
     </div>
@@ -170,7 +179,7 @@ function HealthScoreRing({ score }: { score: number | null }) {
 
   return (
     <div
-      className={`flex h-16 w-16 items-center justify-center rounded-full border-4 bg-bg/40 font-display text-2xl font-bold tabular-nums ${color} ${
+      className={`flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-full border-[5px] bg-bg/40 font-display text-2xl font-bold tabular-nums ${color} ${
         score != null && score >= 80
           ? "border-emerald-500/40"
           : score != null && score >= 50
@@ -183,12 +192,55 @@ function HealthScoreRing({ score }: { score: number | null }) {
   );
 }
 
+function HealthScoreColumn({
+  health,
+  className = "",
+}: {
+  health: DomainOverviewPanelData["health"];
+  className?: string;
+}) {
+  const stats = [
+    { label: "Crawled", value: health.crawled },
+    { label: "Redirects", value: health.redirects },
+    { label: "Broken", value: health.broken },
+    { label: "Blocked", value: health.blocked },
+  ];
+
+  return (
+    <div
+      className={`flex min-h-[12.5rem] flex-col px-4 py-5 sm:px-5 lg:min-h-[13.5rem] ${className}`}
+    >
+      <p className="text-xs font-medium text-ink-muted">Health Score</p>
+
+      <div className="mt-4 flex flex-col gap-4">
+        <HealthScoreRing score={health.score} />
+
+        <div className="grid grid-cols-2 gap-2.5">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-lg border border-line/70 bg-bg/60 px-3 py-2.5"
+            >
+              <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+                {stat.label}
+              </p>
+              <p className="mt-1.5 font-display text-lg font-semibold tabular-nums leading-none text-snow">
+                {formatStat(stat.value)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData }) {
   const siteLabel = data.domain.replace(/^www\./i, "");
 
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-bg-elevated shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line bg-bg text-xs font-semibold uppercase text-accent">
             {siteLabel.slice(0, 2)}
@@ -214,39 +266,8 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
         </span>
       </div>
 
-      <div className="grid grid-cols-1 divide-y divide-line md:grid-cols-6 md:divide-x md:divide-y-0">
-        <MetricColumn
-          title="Health Score"
-          value={<HealthScoreRing score={data.health.score} />}
-          trend={[]}
-        >
-          <ul className="mt-3 space-y-1 text-xs text-ink-muted">
-            <li className="flex justify-between gap-4">
-              <span>Crawled</span>
-              <span className="tabular-nums text-snow">
-                {data.health.crawled?.toLocaleString() ?? "—"}
-              </span>
-            </li>
-            <li className="flex justify-between gap-4">
-              <span>Redirects</span>
-              <span className="tabular-nums text-snow">
-                {data.health.redirects?.toLocaleString() ?? "—"}
-              </span>
-            </li>
-            <li className="flex justify-between gap-4">
-              <span>Broken</span>
-              <span className="tabular-nums text-snow">
-                {data.health.broken?.toLocaleString() ?? "—"}
-              </span>
-            </li>
-            <li className="flex justify-between gap-4">
-              <span>Blocked</span>
-              <span className="tabular-nums text-snow">
-                {data.health.blocked?.toLocaleString() ?? "—"}
-              </span>
-            </li>
-          </ul>
-        </MetricColumn>
+      <div className="divide-y divide-line xl:grid xl:grid-cols-[minmax(13rem,1.35fr)_repeat(5,minmax(0,1fr))] xl:divide-x xl:divide-y-0">
+        <HealthScoreColumn health={data.health} />
 
         <MetricColumn
           title="Domain Rating"
@@ -300,10 +321,13 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
           trend={data.organicKeywords.trend}
           trendColor="#fb923c"
         >
-          <ul className="mt-3 space-y-1 text-[11px]">
+          <ul className="space-y-2.5">
             {data.organicKeywords.byCountry.map((row) => (
-              <li key={row.code} className="flex items-center justify-between gap-2">
-                <span className="text-ink-muted">{row.code}</span>
+              <li
+                key={row.code}
+                className="flex items-center justify-between gap-3 text-[11px] leading-none"
+              >
+                <span className="min-w-[1.75rem] font-medium text-ink-muted">{row.code}</span>
                 <span className="flex items-center gap-2 tabular-nums text-snow">
                   {row.count?.toLocaleString() ?? "—"}
                   <ChangeBadge change={row.change} />
