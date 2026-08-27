@@ -8,14 +8,15 @@ import {
   ExternalLink,
   LogOut,
   Menu,
-  Settings,
   User,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import {
   dashboardNavGroups,
+  type DashboardNavGroup,
+  type DashboardNavItem,
 } from "@/lib/dashboard/navigation";
 
 function NavLink({
@@ -23,12 +24,14 @@ function NavLink({
   label,
   icon: Icon,
   exact,
+  nested,
   onNavigate,
 }: {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<{ className?: string }>;
   exact?: boolean;
+  nested?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -38,7 +41,9 @@ function NavLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className={`relative flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+      className={`relative flex items-center gap-2.5 rounded-md py-1.5 text-sm transition-colors ${
+        nested ? "px-3 pl-6" : "px-3"
+      } ${
         active
           ? "bg-white/10 font-medium text-snow"
           : "text-ink-muted hover:bg-white/5 hover:text-ink"
@@ -47,9 +52,77 @@ function NavLink({
       {active ? (
         <span className="absolute bottom-1 left-0 top-1 w-[3px] rounded-r-full bg-accent" />
       ) : null}
-      <Icon className="h-4 w-4 shrink-0" />
+      {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
       <span className="truncate">{label}</span>
     </Link>
+  );
+}
+
+function NavGroupSection({
+  group,
+  onNavigate,
+}: {
+  group: DashboardNavGroup;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+  const groupActive = group.items.some((item) => pathname.startsWith(item.href));
+  const [open, setOpen] = useState(group.defaultOpen ?? true);
+
+  useEffect(() => {
+    if (groupActive) setOpen(true);
+  }, [groupActive]);
+
+  if (group.collapsible) {
+    return (
+      <div className="mb-5">
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="mb-2 flex w-full items-center justify-between px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-muted/70"
+        >
+          <span>{group.label}</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+        {open ? (
+          <div className="space-y-0.5">
+            {group.items.map((item: DashboardNavItem) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                exact={item.exact}
+                nested
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-5">
+      <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-muted/70">
+        {group.label}
+      </p>
+      <div className="space-y-0.5">
+        {group.items.map((item) => (
+          <NavLink
+            key={item.href}
+            href={item.href}
+            label={item.label}
+            icon={item.icon}
+            exact={item.exact}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -81,23 +154,11 @@ export default function DashboardSidebar({
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {dashboardNavGroups.map((group) => (
-          <div key={group.label} className="mb-5">
-            <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-muted/70">
-              {group.label}
-            </p>
-            <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  icon={item.icon}
-                  exact={item.exact}
-                  onNavigate={onMobileClose}
-                />
-              ))}
-            </div>
-          </div>
+          <NavGroupSection
+            key={group.label}
+            group={group}
+            onNavigate={onMobileClose}
+          />
         ))}
       </nav>
 

@@ -16,13 +16,15 @@ import {
 export type DashboardNavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   exact?: boolean;
 };
 
 export type DashboardNavGroup = {
   label: string;
   items: DashboardNavItem[];
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 };
 
 export const connectNavGroup: DashboardNavGroup = {
@@ -53,6 +55,29 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
         href: "/dashboard/prompt-explorer",
         label: "Prompt Explorer",
         icon: MessageSquare,
+      },
+    ],
+  },
+  {
+    label: "Organic search",
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      {
+        href: "/dashboard/organic/keywords",
+        label: "Organic keywords",
+      },
+      {
+        href: "/dashboard/organic/positions",
+        label: "Organic positions",
+      },
+      {
+        href: "/dashboard/organic/pages",
+        label: "Top pages",
+      },
+      {
+        href: "/dashboard/organic/competitors",
+        label: "Organic competitors",
       },
     ],
   },
