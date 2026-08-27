@@ -19,6 +19,7 @@ import {
   onPageApi,
   serpApi,
   taskItems,
+  taskResultItems,
 } from "@/lib/dataforseo/client";
 
 export type KeywordResult = {
@@ -75,7 +76,7 @@ export async function researchKeywords(
         limit,
       } as DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
     ]);
-    const items = taskItems<{
+    const items = taskResultItems<{
       keyword_data?: {
         keyword?: string | null;
         keyword_info?: {
@@ -105,7 +106,7 @@ export async function researchKeywords(
         limit,
       } as DataforseoLabsGoogleKeywordIdeasLiveRequestInfo,
     ]);
-    const items = taskItems<{
+    const items = taskResultItems<{
       keyword?: string | null;
       keyword_info?: {
         search_volume?: number | null;
@@ -128,7 +129,7 @@ export async function researchKeywords(
     } as DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo,
   ]);
 
-  const items = taskItems<{
+  const items = taskResultItems<{
     keyword?: string | null;
     keyword_info?: {
       search_volume?: number | null;
@@ -190,7 +191,7 @@ export async function getDomainOverview(
     } | null;
   }>(overviewRes)[0];
 
-  const keywords = taskItems<{
+  const keywords = taskResultItems<{
     keyword_data?: {
       keyword?: string | null;
       keyword_info?: {
@@ -211,7 +212,7 @@ export async function getDomainOverview(
 
   const organic = overview?.metrics?.organic;
 
-  const topPages = taskItems<{
+  const topPages = taskResultItems<{
     page_address?: string | null;
     metrics?: {
       organic?: { etv?: number | null; count?: number | null } | null;

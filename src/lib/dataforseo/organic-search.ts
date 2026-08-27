@@ -4,7 +4,7 @@ import {
   DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
 } from "dataforseo-client";
-import { labsApi, taskItems } from "@/lib/dataforseo/client";
+import { labsApi, taskItems, taskResultItems } from "@/lib/dataforseo/client";
 
 export type OrganicKeywordRow = {
   keyword: string;
@@ -105,7 +105,7 @@ export async function getOrganicKeywords(
     } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   ]);
 
-  const keywords = taskItems<{
+  const keywords = taskResultItems<{
     keyword_data?: {
       keyword?: string | null;
       keyword_info?: {
@@ -187,7 +187,7 @@ export async function getOrganicTopPages(
     } as unknown as DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
   ]);
 
-  const pages = taskItems<{
+  const pages = taskResultItems<{
     page_address?: string | null;
     metrics?: {
       organic?: { etv?: number | null; count?: number | null } | null;

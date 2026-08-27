@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Globe } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import {
@@ -8,7 +8,6 @@ import {
   type DomainOverviewPanelData,
 } from "@/components/dashboard/DomainOverviewPanel";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
-import { useAutoAnalyze } from "@/components/dashboard/useAutoAnalyze";
 import {
   SearchPanel,
   SearchToolbar,
@@ -66,6 +65,7 @@ export default function DomainPage() {
     if (!domain.trim()) return;
     setLoading(true);
     setError("");
+    setOverview(null);
     try {
       const res = await fetch("/api/dashboard/domain", {
         method: "POST",
@@ -81,13 +81,6 @@ export default function DomainPage() {
       setLoading(false);
     }
   }
-
-  const runLookup = useCallback(() => onLookup(), [domain, locationCode, scope]);
-
-  useAutoAnalyze(
-    Boolean(project && dataForSeoConfigured && domain && domain !== "example.com"),
-    runLookup,
-  );
 
   if (projectLoading) {
     return (
@@ -108,7 +101,7 @@ export default function DomainPage() {
 
         <SearchPanel
           title="Domain analysis"
-          description="Analyze a domain to see health score, authority metrics, organic traffic, and top rankings."
+          description="Enter a domain, then press Enter or click Analyze."
         >
           <SearchToolbar
             value={domain}
@@ -139,11 +132,11 @@ export default function DomainPage() {
           </SearchToolbar>
         </SearchPanel>
 
-        {loading && !overview ? (
+        {loading ? (
           <LoadingBlock label="Analyzing domain — this can take up to a minute..." />
         ) : null}
 
-        {overview ? (
+        {overview && !loading ? (
           <>
             <DomainOverviewPanel data={overview} />
 
@@ -249,7 +242,7 @@ export default function DomainPage() {
             <EmptyBlock
               icon={Globe}
               title="Analyze any domain"
-              description="Enter a domain with location and scope filters to see health, authority, traffic, and ranking data."
+              description="Enter a domain with location and scope filters, then press Enter or click Analyze."
             />
           )
         )}

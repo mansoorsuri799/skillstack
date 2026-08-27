@@ -60,7 +60,10 @@ export default function KeywordsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      setResults(data.results);
+      setResults(data.results ?? []);
+      if ((data.results ?? []).length === 0) {
+        setError("No keywords found for that seed. Try a different keyword or mode.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Research failed");
     } finally {

@@ -65,3 +65,25 @@ export function taskItems<T>(response: unknown): T[] {
   if (!task?.result) return [];
   return task.result;
 }
+
+export function taskResult<T>(response: unknown): T | null {
+  const data = response as {
+    tasks?: Array<{
+      result?: T[] | null;
+      status_code?: number;
+      status_message?: string | null;
+    }> | null;
+  } | null;
+  const task = data?.tasks?.[0];
+  if (!task) return null;
+  if (task.status_code != null && task.status_code >= 40000) {
+    throw new Error(task.status_message ?? "DataForSEO request failed.");
+  }
+  return task.result?.[0] ?? null;
+}
+
+/** Labs live endpoints return keyword/page rows under result[0].items */
+export function taskResultItems<T>(response: unknown): T[] {
+  const result = taskResult<{ items?: T[] | null }>(response);
+  return result?.items ?? [];
+}
