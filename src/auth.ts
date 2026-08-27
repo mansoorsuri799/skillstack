@@ -61,7 +61,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user?.id) {
         token.id = user.id;
         token.name = user.name ?? token.name;
@@ -73,8 +73,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const dbUser = await User.findOne({
           email: token.email.toLowerCase().trim(),
         });
-        if (dbUser) token.id = dbUser._id.toString();
+        if (dbUser) {
+          token.id = dbUser._id.toString();
+          token.name = dbUser.name;
+          token.picture = dbUser.image ?? token.picture;
+        }
       }
+
+      if (trigger === "update" && session?.user) {
+        if (session.user.name) token.name = session.user.name as string;
+        if (session.user.image) token.picture = session.user.image as string;
+      }
+
+      if (trigger === "update" && token.id && !session?.user?.name) {
+        await connectDB();
+        const dbUser = await User.findById(token.id).select("name image");
+        if (dbUser) {
+          token.name = dbUser.name;
+          token.picture = dbUser.image ?? token.picture;
+        }
+      }
+
       return token;
     },
 
@@ -122,12 +141,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         } else {
           dbUser.googleId = account.providerAccountId;
           dbUser.emailVerified = dbUser.emailVerified ?? new Date();
-          if (user.image) dbUser.image = user.image;
-          if (user.name?.trim()) dbUser.name = user.name.trim();
           await dbUser.save();
         }
 
         user.id = dbUser._id.toString();
+        user.name = dbUser.name;
+        user.email = dbUser.email;
+        user.image = dbUser.image ?? undefined;
         return true;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

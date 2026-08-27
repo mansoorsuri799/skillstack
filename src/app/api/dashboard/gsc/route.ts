@@ -30,8 +30,8 @@ export async function GET(request: Request) {
         connected: false,
         pendingSites,
         oauthConfigured: isGoogleOAuthConfigured(),
-        redirectUri: getGscRedirectUri(),
-        appBaseUrl: getAppBaseUrl(),
+        redirectUri: getGscRedirectUri(request),
+        appBaseUrl: getAppBaseUrl(request),
         rows: [],
         summary: null,
       });
@@ -42,8 +42,8 @@ export async function GET(request: Request) {
         connected: false,
         pendingSites: [],
         oauthConfigured: isGoogleOAuthConfigured(),
-        redirectUri: getGscRedirectUri(),
-        appBaseUrl: getAppBaseUrl(),
+        redirectUri: getGscRedirectUri(request),
+        appBaseUrl: getAppBaseUrl(request),
         rows: [],
         summary: null,
       });

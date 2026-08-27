@@ -4,10 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
+  Check,
   ChevronDown,
   ExternalLink,
+  Globe,
   LogOut,
   Menu,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
   User,
   X,
 } from "lucide-react";
@@ -15,16 +21,26 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import Logo from "@/components/Logo";
+import { UserAvatar } from "@/components/UserAvatar";
 import {
   dashboardNavGroups,
   type DashboardNavGroup,
   type DashboardNavItem,
 } from "@/lib/dashboard/navigation";
+import {
+  useDashboardProject,
+  type DashboardProject,
+} from "@/components/dashboard/useDashboardProject";
+import { NewProjectModal } from "@/components/dashboard/NewProjectModal";
+import { RenameProjectModal } from "@/components/dashboard/RenameProjectModal";
+import { DeleteProjectModal } from "@/components/dashboard/DeleteProjectModal";
 
 type MobileMenuContextValue = {
   open: boolean;
@@ -79,6 +95,214 @@ function NavLink({
       {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
       <span className="truncate">{label}</span>
     </Link>
+  );
+}
+
+function ProjectRowItem({
+  project,
+  isActive,
+  onSelect,
+  onRename,
+  onDelete,
+}: {
+  project: DashboardProject;
+  isActive: boolean;
+  onSelect: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!menuOpen || !buttonRef.current) {
+      setMenuPos(null);
+      return;
+    }
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: Math.max(8, rect.right - 140),
+    });
+
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleScroll() {
+      setMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [menuOpen]);
+
+  return (
+    <div
+      className={`group relative flex items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors ${
+        isActive
+          ? "bg-white/10 font-medium text-snow shadow-sm"
+          : "text-ink-muted hover:bg-white/5 hover:text-ink"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex min-w-0 flex-1 items-center gap-2 pr-1 text-left"
+      >
+        <Globe
+          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+            isActive ? "text-accent" : "text-ink-muted/70 group-hover:text-ink"
+          }`}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium leading-tight text-snow">
+            {project.name || project.domain}
+          </p>
+          <p className="truncate text-[10px] text-ink-muted/80 leading-none mt-0.5">
+            {project.domain}
+          </p>
+        </div>
+      </button>
+
+      <div className="flex shrink-0 items-center gap-1">
+        {isActive ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" title="Active project" />
+        ) : null}
+
+        <button
+          ref={buttonRef}
+          type="button"
+          aria-label="Project options"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((v) => !v);
+          }}
+          className={`rounded p-1 text-ink-muted hover:bg-white/10 hover:text-snow transition-opacity ${
+            menuOpen ? "opacity-100 bg-white/10 text-snow" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          <MoreHorizontal className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {menuOpen && menuPos && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              ref={menuRef}
+              className="fixed z-50 min-w-[8.5rem] rounded-lg border border-line bg-bg-elevated py-1 shadow-2xl backdrop-blur-md"
+              style={{ top: menuPos.top, left: menuPos.left }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onRename();
+                }}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-ink hover:bg-white/5"
+              >
+                <Pencil className="h-3.5 w-3.5 text-ink-muted" />
+                Rename
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete();
+                }}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
+    </div>
+  );
+}
+
+function ProjectsSidebarSection({
+  onNavigate,
+  onOpenNewModal,
+  onOpenRenameModal,
+  onOpenDeleteModal,
+}: {
+  onNavigate?: () => void;
+  onOpenNewModal: () => void;
+  onOpenRenameModal: (project: DashboardProject) => void;
+  onOpenDeleteModal: (project: DashboardProject) => void;
+}) {
+  const { project: activeProject, projects, selectProject } = useDashboardProject();
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div className="mb-4">
+      <div className="mb-1.5 flex items-center justify-between px-3">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted/70 hover:text-ink"
+        >
+          <span>Projects</span>
+          <span className="rounded-full bg-white/5 px-1.5 py-0.2 text-[10px] tabular-nums text-ink-muted">
+            {projects.length}
+          </span>
+          <ChevronDown
+            className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        <button
+          type="button"
+          onClick={onOpenNewModal}
+          className="rounded p-1 text-ink-muted hover:bg-white/5 hover:text-accent"
+          title="Create new project"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {open ? (
+        <div className="max-h-48 space-y-0.5 overflow-y-auto px-1 overscroll-contain">
+          {projects.length === 0 ? (
+            <p className="px-2.5 py-2 text-xs text-ink-muted/60">No saved projects.</p>
+          ) : (
+            projects.map((item) => (
+              <ProjectRowItem
+                key={item.id}
+                project={item}
+                isActive={activeProject?.id === item.id}
+                onSelect={async () => {
+                  if (activeProject?.id !== item.id) {
+                    await selectProject(item.id);
+                  }
+                  onNavigate?.();
+                }}
+                onRename={() => onOpenRenameModal(item)}
+                onDelete={() => onOpenDeleteModal(item)}
+              />
+            ))
+          )}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -152,7 +376,17 @@ function NavGroupSection({
   );
 }
 
-function DashboardSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+function DashboardSidebarNav({
+  onNavigate,
+  onOpenNewModal,
+  onOpenRenameModal,
+  onOpenDeleteModal,
+}: {
+  onNavigate?: () => void;
+  onOpenNewModal: () => void;
+  onOpenRenameModal: (project: DashboardProject) => void;
+  onOpenDeleteModal: (project: DashboardProject) => void;
+}) {
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);
 
@@ -169,7 +403,16 @@ function DashboardSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }, [pathname]);
 
   return (
-    <nav ref={navRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
+    <nav ref={navRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+      <ProjectsSidebarSection
+        onNavigate={onNavigate}
+        onOpenNewModal={onOpenNewModal}
+        onOpenRenameModal={onOpenRenameModal}
+        onOpenDeleteModal={onOpenDeleteModal}
+      />
+
+      <div className="my-3 border-t border-line/60" />
+
       {dashboardNavGroups.map((group) => (
         <NavGroupSection key={group.label} group={group} onNavigate={onNavigate} />
       ))}
@@ -180,68 +423,127 @@ function DashboardSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
   const { data: session } = useSession();
   const [accountOpen, setAccountOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<DashboardProject | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DashboardProject | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.profile) return;
+        setProfileImage(data.profile.image ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
+
+  const avatarImage = profileImage ?? session?.user?.image ?? null;
+  const displayName = session?.user?.name ?? "Account";
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-line bg-bg-soft">
-      <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-4">
-        <Logo size="sm" href="/dashboard" />
-        {onNavigate ? (
-          <button
-            type="button"
-            onClick={onNavigate}
-            className="rounded-md p-1 text-ink-muted hover:bg-white/5 md:hidden"
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        ) : null}
-      </div>
-
-      <DashboardSidebarNav onNavigate={onNavigate} />
-
-      <div className="border-t border-line p-3">
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setAccountOpen((v) => !v)}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-white/5"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-bold text-accent">
-              {session?.user?.name?.[0]?.toUpperCase() ?? "U"}
-            </span>
-            <span className="min-w-0 flex-1 truncate">
-              {session?.user?.name ?? "Account"}
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-ink-muted" />
-          </button>
-          {accountOpen ? (
-            <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg border border-line bg-bg-elevated py-1 shadow-xl">
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
-                onClick={() => setAccountOpen(false)}
-              >
-                <User className="h-4 w-4" /> Profile
-              </Link>
-              <Link
-                href="/"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
-                onClick={() => setAccountOpen(false)}
-              >
-                <ExternalLink className="h-4 w-4" /> Marketing site
-              </Link>
-              <button
-                type="button"
-                onClick={() => void signOut({ callbackUrl: "/" })}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
-              >
-                <LogOut className="h-4 w-4" /> Sign out
-              </button>
-            </div>
+    <>
+      <aside className="flex h-full w-60 shrink-0 flex-col border-r border-line bg-bg-soft">
+        <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-4">
+          <Logo size="sm" href="/dashboard" />
+          {onNavigate ? (
+            <button
+              type="button"
+              onClick={onNavigate}
+              className="rounded-md p-1 text-ink-muted hover:bg-white/5 md:hidden"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
           ) : null}
         </div>
-      </div>
-    </aside>
+
+        <div className="px-3 pt-3 pb-1">
+          <button
+            type="button"
+            onClick={() => setNewProjectOpen(true)}
+            className="flex w-full items-center justify-between rounded-lg border border-line/80 bg-white/5 px-3 py-2 text-sm font-medium text-snow shadow-sm transition-all hover:border-accent/40 hover:bg-white/10 hover:text-white"
+          >
+            <span className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-accent" />
+              New project
+            </span>
+          </button>
+        </div>
+
+        <DashboardSidebarNav
+          onNavigate={onNavigate}
+          onOpenNewModal={() => setNewProjectOpen(true)}
+          onOpenRenameModal={(proj) => setRenameTarget(proj)}
+          onOpenDeleteModal={(proj) => setDeleteTarget(proj)}
+        />
+
+        <div className="border-t border-line p-3">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setAccountOpen((v) => !v)}
+              className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-snow hover:bg-white/5"
+            >
+              <UserAvatar name={displayName} image={avatarImage} size="md" />
+              <span className="min-w-0 flex-1 truncate font-medium">{displayName}</span>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-ink-muted transition-transform ${
+                  accountOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {accountOpen ? (
+              <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg border border-line bg-bg-elevated py-1 shadow-xl">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
+                  onClick={() => setAccountOpen(false)}
+                >
+                  <User className="h-4 w-4" /> Profile
+                </Link>
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
+                  onClick={() => setAccountOpen(false)}
+                >
+                  <ExternalLink className="h-4 w-4" /> Marketing site
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => void signOut({ callbackUrl: "/" })}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </aside>
+
+      <NewProjectModal
+        open={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
+      />
+
+      <RenameProjectModal
+        project={renameTarget}
+        open={Boolean(renameTarget)}
+        onClose={() => setRenameTarget(null)}
+      />
+
+      <DeleteProjectModal
+        project={deleteTarget}
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+      />
+    </>
   );
 }
 

@@ -13,7 +13,7 @@ import {
 } from "@/lib/dashboard/project";
 
 export async function GET(request: Request) {
-  const authUrl = getAppBaseUrl();
+  const authUrl = getAppBaseUrl(request);
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   if (error) {
     const hint =
       error === "redirect_uri_mismatch"
-        ? " The site owner must add the production redirect URI in Google Cloud Console."
+        ? " Google sign-in could not be completed. Please try again."
         : "";
     return NextResponse.redirect(
       `${authUrl}/dashboard/gsc?error=${encodeURIComponent(error + hint)}`,
@@ -35,15 +35,17 @@ export async function GET(request: Request) {
     );
   }
 
-  const userId = verifyOAuthState(state);
-  if (!userId) {
+  const verified = verifyOAuthState(state);
+  if (!verified) {
     return NextResponse.redirect(
       `${authUrl}/dashboard/gsc?error=${encodeURIComponent("Invalid or expired OAuth state")}`,
     );
   }
 
+  const { userId, redirectUri } = verified;
+
   try {
-    const tokens = await exchangeCodeForTokens(code);
+    const tokens = await exchangeCodeForTokens(code, redirectUri);
     const refreshToken = tokens.refresh_token;
     if (!refreshToken) {
       throw new Error(

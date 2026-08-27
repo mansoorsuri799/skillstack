@@ -3,6 +3,26 @@ import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { exploreBrandMentions } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
+import {
+  aiToolLimitJson,
+  AiToolLimitError,
+  assertAiToolAvailable,
+  getAiToolUsage,
+  incrementAiToolUsage,
+} from "@/lib/dashboard/ai-tool-limits";
+
+export async function GET(request: Request) {
+  const result = await requireUser(request);
+  if ("response" in result) return result.response;
+
+  try {
+    const usage = await getAiToolUsage(result.user.id, "brandLookup");
+    return NextResponse.json({ usage });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not load usage";
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -17,6 +37,8 @@ export async function POST(request: Request) {
   const { user } = result;
 
   try {
+    await assertAiToolAvailable(user.id, "brandLookup");
+
     const project = await getProjectForUser(user.id);
     const body = await request.json();
     const brand = String(body.brand ?? "").trim();
@@ -25,8 +47,12 @@ export async function POST(request: Request) {
     }
 
     const lookup = await exploreBrandMentions(brand, project.domain);
-    return NextResponse.json({ result: lookup });
+    const usage = await incrementAiToolUsage(user.id, "brandLookup");
+    return NextResponse.json({ result: lookup, usage });
   } catch (error) {
+    if (error instanceof AiToolLimitError) {
+      return NextResponse.json(aiToolLimitJson(error), { status: 402 });
+    }
     const message = error instanceof Error ? error.message : "Lookup failed";
     return NextResponse.json({ message }, { status: 500 });
   }

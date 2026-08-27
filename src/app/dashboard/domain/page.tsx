@@ -1,20 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Globe } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import { DomainOverviewToolbar } from "@/components/dashboard/DomainOverviewToolbar";
 import {
   DomainOverviewPanel,
   type DomainOverviewPanelData,
 } from "@/components/dashboard/DomainOverviewPanel";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
-import {
-  SearchPanel,
-  SearchToolbar,
-  TabBar,
-  TabPanel,
-  ToolbarSelect,
-} from "@/components/dashboard/SearchToolbar";
+import { TabBar, TabPanel } from "@/components/dashboard/SearchToolbar";
 import {
   DashboardAlert,
   DataTable,
@@ -24,7 +19,11 @@ import {
   ResultsPanel,
 } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
-import { DOMAIN_SCOPES, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import {
+  sortDomainKeywords,
+  type DomainKeywordSort,
+  type DomainScope,
+} from "@/lib/dashboard/domain-overview-config";
 
 type Overview = DomainOverviewPanelData & {
   topKeywords: Array<{
@@ -33,6 +32,8 @@ type Overview = DomainOverviewPanelData & {
     cpc: number | null;
     rank: number | null;
     url: string | null;
+    etv?: number | null;
+    difficulty?: number | null;
   }>;
   topPages: Array<{
     url: string;
@@ -48,7 +49,8 @@ export default function DomainPage() {
     useDashboardProject();
   const [domain, setDomain] = useState("");
   const [locationCode, setLocationCode] = useState(2840);
-  const [scope, setScope] = useState("subdomains");
+  const [scope, setScope] = useState<DomainScope>("subdomains");
+  const [sortBy, setSortBy] = useState<DomainKeywordSort>("traffic");
   const [tab, setTab] = useState<DomainTab>("keywords");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,6 +84,11 @@ export default function DomainPage() {
     }
   }
 
+  const sortedKeywords = useMemo(() => {
+    if (!overview) return [];
+    return sortDomainKeywords(overview.topKeywords, sortBy);
+  }, [overview, sortBy]);
+
   if (projectLoading) {
     return (
       <DashboardShell title="Domain Overview">
@@ -93,44 +100,24 @@ export default function DomainPage() {
   return (
     <DashboardShell
       title="Domain Overview"
-      description="Domain health, authority, traffic, and keyword visibility"
+      description="Analyze any domain's SEO profile: traffic, keywords, and backlinks."
     >
-      <PageStack>
+      <PageStack className="!max-w-none w-full">
         <DataForSeoBanner configured={dataForSeoConfigured} />
         {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
 
-        <SearchPanel
-          title="Domain analysis"
-          description="Enter a domain, then press Enter or click Analyze."
-        >
-          <SearchToolbar
-            value={domain}
-            onChange={setDomain}
-            onSubmit={() => void onLookup()}
-            placeholder="competitor.com"
-            loading={loading}
-            submitLabel="Analyze"
-          >
-            <ToolbarSelect
-              label="Location"
-              value={locationCode}
-              onChange={(v) => setLocationCode(Number(v))}
-              options={RESEARCH_LOCATIONS.map((l) => ({
-                value: l.code,
-                label: l.label,
-              }))}
-            />
-            <ToolbarSelect
-              label="Scope"
-              value={scope}
-              onChange={setScope}
-              options={DOMAIN_SCOPES.map((s) => ({
-                value: s.value,
-                label: s.label,
-              }))}
-            />
-          </SearchToolbar>
-        </SearchPanel>
+        <DomainOverviewToolbar
+          domain={domain}
+          onDomainChange={setDomain}
+          scope={scope}
+          onScopeChange={setScope}
+          locationCode={locationCode}
+          onLocationChange={setLocationCode}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          onSubmit={() => void onLookup()}
+          loading={loading}
+        />
 
         {loading ? (
           <LoadingBlock label="Analyzing domain — this can take up to a minute..." />
@@ -149,7 +136,7 @@ export default function DomainPage() {
                   {
                     id: "keywords",
                     label: "Top keywords",
-                    count: overview.topKeywords.length,
+                    count: sortedKeywords.length,
                   },
                   {
                     id: "pages",
@@ -164,7 +151,7 @@ export default function DomainPage() {
               <TabPanel>
                 {tab === "keywords" ? (
                   <DataTable
-                    rows={overview.topKeywords}
+                    rows={sortedKeywords}
                     rowKey={(row) => row.keyword}
                     columns={[
                       {
@@ -182,11 +169,38 @@ export default function DomainPage() {
                         ),
                       },
                       {
+                        key: "traffic",
+                        header: "Traffic",
+                        cell: (row) => (
+                          <span className="text-ink-muted">
+                            {row.etv != null ? Math.round(row.etv).toLocaleString() : "—"}
+                          </span>
+                        ),
+                      },
+                      {
                         key: "volume",
                         header: "Volume",
                         cell: (row) => (
                           <span className="text-ink-muted">
                             {row.searchVolume?.toLocaleString() ?? "—"}
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "score",
+                        header: "Score",
+                        cell: (row) => (
+                          <span className="text-ink-muted">
+                            {row.difficulty ?? "—"}
+                          </span>
+                        ),
+                      },
+                      {
+                        key: "cpc",
+                        header: "CPC",
+                        cell: (row) => (
+                          <span className="text-ink-muted">
+                            {row.cpc != null ? `$${row.cpc.toFixed(2)}` : "—"}
                           </span>
                         ),
                       },
@@ -241,8 +255,8 @@ export default function DomainPage() {
           !loading && (
             <EmptyBlock
               icon={Globe}
-              title="Analyze any domain"
-              description="Enter a domain with location and scope filters, then press Enter or click Analyze."
+              title="Enter a domain to get started"
+              description="Choose scope, country, and sort order — then click Search."
             />
           )
         )}

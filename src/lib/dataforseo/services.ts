@@ -21,6 +21,7 @@ import {
   taskItems,
   taskResultItems,
 } from "@/lib/dataforseo/client";
+import { ALL_LOCATIONS_CODE, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
 
 export type KeywordResult = {
   keyword: string;
@@ -28,6 +29,7 @@ export type KeywordResult = {
   cpc: number | null;
   difficulty: number | null;
   competition: number | null;
+  intent?: string | null;
 };
 
 function mapKeywordItems(
@@ -39,20 +41,36 @@ function mapKeywordItems(
       competition?: number | null;
       keyword_difficulty?: number | null;
     } | null;
+    keyword_info_normalized_with_clickstream?: {
+      search_volume?: number | null;
+      cpc?: number | null;
+      competition?: number | null;
+    } | null;
     keyword_properties?: { keyword_difficulty?: number | null } | null;
   }>,
+  useClickstream = false,
 ): KeywordResult[] {
   return items
-    .map((item) => ({
-      keyword: item.keyword ?? "",
-      searchVolume: item.keyword_info?.search_volume ?? null,
-      cpc: item.keyword_info?.cpc ?? null,
-      difficulty:
-        item.keyword_properties?.keyword_difficulty ??
-        item.keyword_info?.keyword_difficulty ??
-        null,
-      competition: item.keyword_info?.competition ?? null,
-    }))
+    .map((item) => {
+      const clickstream = item.keyword_info_normalized_with_clickstream;
+      const standard = item.keyword_info;
+      const volumeSource =
+        useClickstream && clickstream?.search_volume != null
+          ? clickstream
+          : standard;
+      return {
+        keyword: item.keyword ?? "",
+        searchVolume:
+          volumeSource?.search_volume ?? standard?.search_volume ?? null,
+        cpc: volumeSource?.cpc ?? standard?.cpc ?? null,
+        difficulty:
+          item.keyword_properties?.keyword_difficulty ??
+          standard?.keyword_difficulty ??
+          null,
+        competition:
+          volumeSource?.competition ?? standard?.competition ?? null,
+      };
+    })
     .filter((k) => k.keyword);
 }
 
@@ -62,7 +80,18 @@ export async function researchKeywords(
   languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
+  useClickstream = false,
 ): Promise<KeywordResult[]> {
+  if (locationCode === ALL_LOCATIONS_CODE) {
+    return researchKeywordsAllLocations(
+      seed,
+      languageCode,
+      limit,
+      mode,
+      useClickstream,
+    );
+  }
+
   const api = labsApi();
   const resolvedMode =
     mode === "auto" ? "suggestions" : mode;
@@ -74,6 +103,7 @@ export async function researchKeywords(
         location_code: locationCode,
         language_code: languageCode,
         limit,
+        include_clickstream_data: useClickstream,
       } as DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
     ]);
     const items = taskResultItems<{
@@ -85,6 +115,11 @@ export async function researchKeywords(
           competition?: number | null;
           keyword_difficulty?: number | null;
         } | null;
+        keyword_info_normalized_with_clickstream?: {
+          search_volume?: number | null;
+          cpc?: number | null;
+          competition?: number | null;
+        } | null;
         keyword_properties?: { keyword_difficulty?: number | null } | null;
       } | null;
     }>(response);
@@ -92,8 +127,11 @@ export async function researchKeywords(
       items.map((item) => ({
         keyword: item.keyword_data?.keyword,
         keyword_info: item.keyword_data?.keyword_info,
+        keyword_info_normalized_with_clickstream:
+          item.keyword_data?.keyword_info_normalized_with_clickstream,
         keyword_properties: item.keyword_data?.keyword_properties,
       })),
+      useClickstream,
     );
   }
 
@@ -104,6 +142,7 @@ export async function researchKeywords(
         location_code: locationCode,
         language_code: languageCode,
         limit,
+        include_clickstream_data: useClickstream,
       } as DataforseoLabsGoogleKeywordIdeasLiveRequestInfo,
     ]);
     const items = taskResultItems<{
@@ -114,9 +153,14 @@ export async function researchKeywords(
         competition?: number | null;
         keyword_difficulty?: number | null;
       } | null;
+      keyword_info_normalized_with_clickstream?: {
+        search_volume?: number | null;
+        cpc?: number | null;
+        competition?: number | null;
+      } | null;
       keyword_properties?: { keyword_difficulty?: number | null } | null;
     }>(response);
-    return mapKeywordItems(items);
+    return mapKeywordItems(items, useClickstream);
   }
 
   const response = await api.googleKeywordSuggestionsLive([
@@ -125,6 +169,8 @@ export async function researchKeywords(
       location_code: locationCode,
       language_code: languageCode,
       include_seed_keyword: true,
+      include_clickstream_data: useClickstream,
+      order_by: ["keyword_info.search_volume,desc"],
       limit,
     } as DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo,
   ]);
@@ -137,14 +183,55 @@ export async function researchKeywords(
       competition?: number | null;
       keyword_difficulty?: number | null;
     } | null;
+    keyword_info_normalized_with_clickstream?: {
+      search_volume?: number | null;
+      cpc?: number | null;
+      competition?: number | null;
+    } | null;
     keyword_properties?: { keyword_difficulty?: number | null } | null;
   }>(response);
 
-  return mapKeywordItems(items);
+  return mapKeywordItems(items, useClickstream);
+}
+
+export async function researchKeywordsAllLocations(
+  seed: string,
+  languageCode = "en",
+  limit = 50,
+  mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
+  useClickstream = false,
+): Promise<KeywordResult[]> {
+  const batches = await Promise.all(
+    RESEARCH_LOCATIONS.map((location) =>
+      researchKeywords(
+        seed,
+        location.code,
+        languageCode,
+        limit,
+        mode,
+        useClickstream,
+      ).catch(() => [] as KeywordResult[]),
+    ),
+  );
+
+  const merged = new Map<string, KeywordResult>();
+  for (const batch of batches) {
+    for (const row of batch) {
+      const key = row.keyword.toLowerCase();
+      const existing = merged.get(key);
+      if (!existing || (row.searchVolume ?? 0) > (existing.searchVolume ?? 0)) {
+        merged.set(key, row);
+      }
+    }
+  }
+
+  return [...merged.values()]
+    .sort((a, b) => (b.searchVolume ?? 0) - (a.searchVolume ?? 0))
+    .slice(0, limit);
 }
 
 export async function getDomainOverview(
-  domain: string,
+  target: string,
   locationCode = 2840,
   languageCode = "en",
   includeSubdomains = true,
@@ -153,14 +240,14 @@ export async function getDomainOverview(
   const [overviewRes, keywordsRes, pagesRes] = await Promise.all([
     api.googleDomainRankOverviewLive([
       {
-        target: domain,
+        target,
         location_code: locationCode,
         language_code: languageCode,
       } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
     ]),
     api.googleRankedKeywordsLive([
       {
-        target: domain,
+        target,
         location_code: locationCode,
         language_code: languageCode,
         limit: 25,
@@ -169,7 +256,7 @@ export async function getDomainOverview(
     ]),
     api.googleRelevantPagesLive([
       {
-        target: domain,
+        target,
         location_code: locationCode,
         language_code: languageCode,
         limit: 25,
@@ -198,9 +285,14 @@ export async function getDomainOverview(
         search_volume?: number | null;
         cpc?: number | null;
       } | null;
+      keyword_properties?: { keyword_difficulty?: number | null } | null;
     } | null;
     ranked_serp_element?: {
-      serp_item?: { rank_absolute?: number | null; url?: string | null } | null;
+      serp_item?: {
+        rank_absolute?: number | null;
+        url?: string | null;
+        etv?: number | null;
+      } | null;
     } | null;
   }>(keywordsRes).map((item) => ({
     keyword: item.keyword_data?.keyword ?? "",
@@ -208,6 +300,8 @@ export async function getDomainOverview(
     cpc: item.keyword_data?.keyword_info?.cpc ?? null,
     rank: item.ranked_serp_element?.serp_item?.rank_absolute ?? null,
     url: item.ranked_serp_element?.serp_item?.url ?? null,
+    etv: item.ranked_serp_element?.serp_item?.etv ?? null,
+    difficulty: item.keyword_data?.keyword_properties?.keyword_difficulty ?? null,
   }));
 
   const organic = overview?.metrics?.organic;
@@ -227,7 +321,7 @@ export async function getDomainOverview(
     .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0));
 
   return {
-    domain,
+    domain: target.replace(/^https?:\/\//i, "").split("/")[0] ?? target,
     organicTraffic: organic?.etv ?? null,
     organicTrafficValue: organic?.estimated_paid_traffic_cost ?? null,
     organicKeywords: organic?.count ?? null,
@@ -335,11 +429,17 @@ export async function getReferringDomains(
   }));
 }
 
-export async function checkKeywordRank(
+type RankCheckOptions = {
+  depth?: number;
+  device?: "mobile" | "desktop";
+};
+
+async function checkKeywordRankForDevice(
   keyword: string,
   domain: string,
-  locationCode = 2840,
-  languageCode = "en",
+  locationCode: number,
+  languageCode: string,
+  options: RankCheckOptions,
 ) {
   const api = serpApi();
   const response = await api.googleOrganicLiveAdvanced([
@@ -347,7 +447,8 @@ export async function checkKeywordRank(
       keyword,
       location_code: locationCode,
       language_code: languageCode,
-      depth: 100,
+      depth: options.depth ?? 100,
+      device: options.device ?? "mobile",
     } as SerpGoogleOrganicLiveAdvancedRequestInfo,
   ]);
 
@@ -370,6 +471,43 @@ export async function checkKeywordRank(
     position: match?.rank_absolute ?? null,
     url: match?.url ?? null,
   };
+}
+
+export async function checkKeywordRank(
+  keyword: string,
+  domain: string,
+  locationCode = 2840,
+  languageCode = "en",
+  options: { depth?: number; device?: "mobile" | "desktop" | "both" } = {},
+) {
+  const depth = options.depth ?? 100;
+  const device = options.device ?? "mobile";
+
+  if (device === "both") {
+    const [mobile, desktop] = await Promise.all([
+      checkKeywordRankForDevice(keyword, domain, locationCode, languageCode, {
+        depth,
+        device: "mobile",
+      }),
+      checkKeywordRankForDevice(keyword, domain, locationCode, languageCode, {
+        depth,
+        device: "desktop",
+      }),
+    ]);
+
+    const mobilePos = mobile.position ?? Number.POSITIVE_INFINITY;
+    const desktopPos = desktop.position ?? Number.POSITIVE_INFINITY;
+
+    if (mobilePos <= desktopPos) {
+      return mobile;
+    }
+    return desktop;
+  }
+
+  return checkKeywordRankForDevice(keyword, domain, locationCode, languageCode, {
+    depth,
+    device,
+  });
 }
 
 export async function runLighthouseAudit(url: string) {

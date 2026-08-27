@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BarChart3, ExternalLink, RefreshCw, Unplug } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import { connectWithGoogleClass, GoogleIcon } from "@/components/dashboard/GoogleIcon";
 import { TabBar } from "@/components/dashboard/SearchToolbar";
 import {
   buttonGhostClass,
@@ -31,7 +32,7 @@ type GscRow = {
 function formatOAuthError(raw: string) {
   const decoded = decodeURIComponent(raw);
   if (decoded.includes("redirect_uri_mismatch")) {
-    return "Google OAuth is not configured for this site yet. The SkillStack admin must add the production callback URL in Google Cloud Console.";
+    return "Google sign-in could not be completed. Please try again or contact support if the problem continues.";
   }
   return decoded;
 }
@@ -258,7 +259,8 @@ export default function GscInsightsClient() {
               </DashboardAlert>
             ) : null}
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="/api/dashboard/gsc/connect" className={buttonPrimaryClass}>
+              <a href="/api/dashboard/gsc/connect" className={connectWithGoogleClass}>
+                <GoogleIcon className="h-[18px] w-[18px]" />
                 Connect with Google
               </a>
               <a

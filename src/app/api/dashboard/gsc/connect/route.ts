@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAppBaseUrl } from "@/lib/app-url";
+import { getAppBaseUrl, getGscRedirectUri } from "@/lib/app-url";
 import { requireUser } from "@/lib/auth-session";
 import { getGscConnectUrl, signOAuthState } from "@/lib/google/gsc";
 
@@ -9,15 +9,16 @@ export async function GET(request: Request) {
   const { user } = result;
 
   try {
-    const state = signOAuthState(user.id);
-    const url = getGscConnectUrl(state);
+    const redirectUri = getGscRedirectUri(request);
+    const state = signOAuthState(user.id, redirectUri);
+    const url = getGscConnectUrl(state, redirectUri);
     return NextResponse.redirect(url);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Connect failed";
     return NextResponse.redirect(
       new URL(
         `/dashboard/gsc?error=${encodeURIComponent(message)}`,
-        getAppBaseUrl(),
+        getAppBaseUrl(request),
       ),
     );
   }

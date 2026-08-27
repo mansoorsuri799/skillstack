@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
-import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import {
-  getBacklinksList,
-  getBacklinksSummary,
-  getReferringDomains,
-} from "@/lib/dataforseo/services";
+  fetchBacklinkRows,
+  fetchBacklinksOverview,
+  fetchReferringDomainRows,
+  fetchTopPageRows,
+} from "@/lib/dataforseo/backlinks-dashboard";
+import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import { getProjectForUser } from "@/lib/dashboard/project";
 
 export async function POST(request: Request) {
@@ -24,21 +25,33 @@ export async function POST(request: Request) {
     const project = await getProjectForUser(user.id);
     const body = await request.json();
     const domain = normalizeDomain(String(body.domain ?? project.domain));
-    const includeSubdomains = body.scope !== "domain";
-    const tab = body.tab ?? "summary";
+    const scope = String(body.scope ?? "subdomains");
+    const includeSubdomains = scope === "subdomains" || scope === "subfolder";
+    const tab = body.tab ?? "overview";
+    const mode =
+      body.mode === "as_is" ? ("as_is" as const) : ("one_per_domain" as const);
+
+    if (!domain) {
+      return NextResponse.json({ message: "Enter a domain to analyze." }, { status: 400 });
+    }
 
     if (tab === "backlinks") {
-      const rows = await getBacklinksList(domain, includeSubdomains);
+      const rows = await fetchBacklinkRows(domain, includeSubdomains, mode);
       return NextResponse.json({ tab, rows });
     }
 
     if (tab === "referring") {
-      const rows = await getReferringDomains(domain, includeSubdomains);
+      const rows = await fetchReferringDomainRows(domain, includeSubdomains);
       return NextResponse.json({ tab, rows });
     }
 
-    const summary = await getBacklinksSummary(domain, includeSubdomains);
-    return NextResponse.json({ tab: "summary", summary });
+    if (tab === "pages") {
+      const rows = await fetchTopPageRows(domain, includeSubdomains);
+      return NextResponse.json({ tab, rows });
+    }
+
+    const overview = await fetchBacklinksOverview(domain, includeSubdomains);
+    return NextResponse.json({ tab: "overview", overview });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lookup failed";
     return NextResponse.json({ message }, { status: 500 });

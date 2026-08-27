@@ -13,9 +13,9 @@ function authSecret() {
   return secret;
 }
 
-export function signOAuthState(userId: string) {
+export function signOAuthState(userId: string, redirectUri: string) {
   const payload = Buffer.from(
-    JSON.stringify({ userId, ts: Date.now() }),
+    JSON.stringify({ userId, ts: Date.now(), redirectUri }),
   ).toString("base64url");
   const sig = crypto
     .createHmac("sha256", authSecret())
@@ -24,7 +24,10 @@ export function signOAuthState(userId: string) {
   return `${payload}.${sig}`;
 }
 
-export function verifyOAuthState(state: string): string | null {
+export function verifyOAuthState(state: string): {
+  userId: string;
+  redirectUri: string;
+} | null {
   const [payload, sig] = state.split(".");
   if (!payload || !sig) return null;
 
@@ -38,20 +41,22 @@ export function verifyOAuthState(state: string): string | null {
     const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
       userId?: string;
       ts?: number;
+      redirectUri?: string;
     };
     if (!data.userId || !data.ts) return null;
     if (Date.now() - data.ts > 15 * 60 * 1000) return null;
-    return data.userId;
+    return {
+      userId: data.userId,
+      redirectUri: data.redirectUri ?? getGscRedirectUri(),
+    };
   } catch {
     return null;
   }
 }
 
-export function getGscConnectUrl(state: string) {
+export function getGscConnectUrl(state: string, redirectUri: string) {
   const clientId = process.env.AUTH_GOOGLE_ID?.trim();
   if (!clientId) throw new Error("AUTH_GOOGLE_ID is not configured.");
-
-  const redirectUri = getGscRedirectUri();
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
@@ -97,11 +102,11 @@ async function exchangeToken(body: Record<string, string>) {
   return data;
 }
 
-export async function exchangeCodeForTokens(code: string) {
+export async function exchangeCodeForTokens(code: string, redirectUri: string) {
   return exchangeToken({
     grant_type: "authorization_code",
     code,
-    redirect_uri: getGscRedirectUri(),
+    redirect_uri: redirectUri,
   });
 }
 

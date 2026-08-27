@@ -22,10 +22,12 @@ const ProjectSchema = new Schema(
   { timestamps: true },
 );
 
-ProjectSchema.index({ userId: 1 }, { unique: true });
+ProjectSchema.index({ userId: 1, updatedAt: -1 });
 
 export type ProjectDocument = InferSchemaType<typeof ProjectSchema> & {
   _id: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export const Project: Model<ProjectDocument> =
@@ -41,6 +43,8 @@ export type ProjectDto = {
   gscConnected: boolean;
   gscSiteUrl: string | null;
   mcpConnected: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export function toProjectDto(project: ProjectDocument): ProjectDto {
@@ -53,5 +57,7 @@ export function toProjectDto(project: ProjectDocument): ProjectDto {
     gscConnected: Boolean(project.gscConnected),
     gscSiteUrl: project.gscSiteUrl ?? null,
     mcpConnected: Boolean(project.mcpConnected),
+    createdAt: project.createdAt ? new Date(project.createdAt).toISOString() : undefined,
+    updatedAt: project.updatedAt ? new Date(project.updatedAt).toISOString() : undefined,
   };
 }

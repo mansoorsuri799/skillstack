@@ -22,6 +22,7 @@ import {
   inputClass,
 } from "@/components/dashboard/ui";
 import type { DashboardProject } from "@/components/dashboard/useDashboardProject";
+import { loadUserPreferences } from "@/lib/dashboard/user-preferences";
 
 type StepId = "domain" | "mcp" | "gsc" | "competitor";
 
@@ -161,7 +162,21 @@ export default function DashboardOnboarding({
   }, [project.domain]);
 
   useEffect(() => {
-    setCompetitorDone(localStorage.getItem("ss-competitor-done") === "1");
+    setCompetitorDone(false);
+    void loadUserPreferences().then((prefs) => {
+      if (prefs?.onboardingCompetitorDone) {
+        setCompetitorDone(true);
+        return;
+      }
+      if (localStorage.getItem("ss-competitor-done") === "1") {
+        setCompetitorDone(true);
+        void fetch("/api/dashboard/preferences", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ onboardingCompetitorDone: true }),
+        });
+      }
+    });
   }, []);
 
   const doneCount = STEPS.filter((s) =>
@@ -197,6 +212,11 @@ export default function DashboardOnboarding({
   function markCompetitorDone() {
     localStorage.setItem("ss-competitor-done", "1");
     setCompetitorDone(true);
+    void fetch("/api/dashboard/preferences", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ onboardingCompetitorDone: true }),
+    });
   }
 
   return (

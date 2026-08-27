@@ -1,38 +1,240 @@
 import mongoose, { type HydratedDocument } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { normalizeDomain } from "@/lib/dataforseo/client";
-import { Project, toProjectDto, type ProjectDocument } from "@/models/Project";
+import { Project, toProjectDto, type ProjectDocument, type ProjectDto } from "@/models/Project";
+import { User } from "@/models/User";
 
 type ProjectModel = HydratedDocument<ProjectDocument>;
 
+let droppedOldIndex = false;
+async function ensureProjectIndexes() {
+  if (droppedOldIndex) return;
+  try {
+    await Project.collection.dropIndex("userId_1");
+  } catch {
+    // Already dropped or does not exist
+  }
+  droppedOldIndex = true;
+}
+
+export function formatDomainToProjectName(domainInput: string): string {
+  const clean = normalizeDomain(domainInput);
+  if (!clean) return "My Site";
+  const mainPart = clean.split(".")[0];
+  if (!mainPart) return clean;
+  return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
+}
+
 export async function getOrCreateProject(userId: string): Promise<ProjectModel> {
   await connectDB();
-  let project = await Project.findOne({ userId });
-  if (project) return project;
+  await ensureProjectIndexes();
 
+  const user = await User.findById(userId);
+  if (user?.activeProjectId) {
+    const active = await Project.findOne({
+      _id: user.activeProjectId,
+      userId,
+    });
+    if (active) return active;
+  }
+
+  // Fallback: pick the latest updated project for this user
+  let project = await Project.findOne({ userId }).sort({ updatedAt: -1 });
+  if (project) {
+    if (user && String(user.activeProjectId) !== String(project._id)) {
+      user.activeProjectId = project._id;
+      await user.save();
+    }
+    return project;
+  }
+
+  // Create initial default project
   project = await Project.create({
     userId,
     name: "My Site",
     domain: "example.com",
   });
+
+  if (user) {
+    user.activeProjectId = project._id;
+    await user.save();
+  }
+
   return project;
 }
 
-export async function getProjectDocument(userId: string, withSecrets = false) {
+export async function listProjectsForUser(userId: string): Promise<ProjectDto[]> {
   await connectDB();
-  let query = Project.findOne({ userId });
-  if (withSecrets) {
-    query = query.select("+gscRefreshToken +gscAccessToken +gscTokenExpiry");
+  await ensureProjectIndexes();
+  const projects = await Project.find({ userId }).sort({ updatedAt: -1 });
+  return projects.map(toProjectDto);
+}
+
+export async function createProjectForUser(
+  userId: string,
+  data: {
+    domain: string;
+    name?: string;
+    locationCode?: number;
+    languageCode?: string;
+  },
+): Promise<{ activeProject: ProjectDto; projects: ProjectDto[] }> {
+  await connectDB();
+  await ensureProjectIndexes();
+
+  const domain = normalizeDomain(data.domain);
+  if (!domain || !domain.includes(".")) {
+    throw new Error("Enter a valid domain (e.g. cardrummy.app)");
   }
-  let project = await query;
+
+  const name = data.name?.trim() || formatDomainToProjectName(domain);
+  const project = await Project.create({
+    userId,
+    name,
+    domain,
+    locationCode: data.locationCode ?? 2840,
+    languageCode: data.languageCode ?? "en",
+  });
+
+  await User.updateOne({ _id: userId }, { activeProjectId: project._id });
+
+  const all = await listProjectsForUser(userId);
+  return {
+    activeProject: toProjectDto(project),
+    projects: all,
+  };
+}
+
+export async function selectActiveProject(
+  userId: string,
+  projectId: string,
+): Promise<{ activeProject: ProjectDto; projects: ProjectDto[] }> {
+  await connectDB();
+  await ensureProjectIndexes();
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    throw new Error("Invalid project ID");
+  }
+
+  const project = await Project.findOne({ _id: projectId, userId });
   if (!project) {
-    project = await Project.create({
+    throw new Error("Project not found");
+  }
+
+  // Bump updatedAt so it acts like recently accessed project
+  project.updatedAt = new Date();
+  await project.save();
+
+  await User.updateOne({ _id: userId }, { activeProjectId: project._id });
+
+  const all = await listProjectsForUser(userId);
+  return {
+    activeProject: toProjectDto(project),
+    projects: all,
+  };
+}
+
+export async function updateProjectById(
+  userId: string,
+  projectId: string,
+  data: {
+    name?: string;
+    domain?: string;
+    locationCode?: number;
+    languageCode?: string;
+  },
+): Promise<{ activeProject: ProjectDto; projects: ProjectDto[] }> {
+  await connectDB();
+  await ensureProjectIndexes();
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    throw new Error("Invalid project ID");
+  }
+
+  const project = await Project.findOne({ _id: projectId, userId });
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  if (data.domain !== undefined) {
+    const domain = normalizeDomain(data.domain);
+    if (!domain || !domain.includes(".")) {
+      throw new Error("Enter a valid domain (e.g. cardrummy.app)");
+    }
+    project.domain = domain;
+  }
+
+  if (data.name !== undefined && data.name.trim()) {
+    project.name = data.name.trim();
+  }
+
+  if (data.locationCode !== undefined) {
+    project.locationCode = data.locationCode;
+  }
+
+  if (data.languageCode !== undefined) {
+    project.languageCode = data.languageCode;
+  }
+
+  await project.save();
+
+  const user = await User.findById(userId);
+  const activeId = user?.activeProjectId ? String(user.activeProjectId) : String(project._id);
+  const activeDoc = String(project._id) === activeId ? project : await getOrCreateProject(userId);
+
+  const all = await listProjectsForUser(userId);
+  return {
+    activeProject: toProjectDto(activeDoc),
+    projects: all,
+  };
+}
+
+export async function deleteProjectById(
+  userId: string,
+  projectId: string,
+): Promise<{ activeProject: ProjectDto; projects: ProjectDto[] }> {
+  await connectDB();
+  await ensureProjectIndexes();
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    throw new Error("Invalid project ID");
+  }
+
+  await Project.deleteOne({ _id: projectId, userId });
+
+  // Get next active project
+  const remaining = await Project.find({ userId }).sort({ updatedAt: -1 });
+  let nextActive: ProjectModel;
+
+  if (remaining.length === 0) {
+    nextActive = await Project.create({
       userId,
       name: "My Site",
       domain: "example.com",
     });
+  } else {
+    nextActive = remaining[0];
   }
-  return project;
+
+  await User.updateOne({ _id: userId }, { activeProjectId: nextActive._id });
+
+  const all = await listProjectsForUser(userId);
+  return {
+    activeProject: toProjectDto(nextActive),
+    projects: all,
+  };
+}
+
+export async function getProjectDocument(userId: string, withSecrets = false) {
+  await connectDB();
+  await ensureProjectIndexes();
+
+  const active = await getOrCreateProject(userId);
+  if (!withSecrets) return active;
+
+  return (await Project.findById(active._id).select(
+    "+gscRefreshToken +gscAccessToken +gscTokenExpiry",
+  )) ?? active;
 }
 
 export async function updateProjectDomain(
@@ -48,7 +250,11 @@ export async function updateProjectDomain(
 
   const project = await getOrCreateProject(userId);
   project.domain = domain;
-  if (name?.trim()) project.name = name.trim();
+  if (name?.trim()) {
+    project.name = name.trim();
+  } else if (project.name === "My Site" || !project.name) {
+    project.name = formatDomainToProjectName(domain);
+  }
   await project.save();
   return toProjectDto(project);
 }

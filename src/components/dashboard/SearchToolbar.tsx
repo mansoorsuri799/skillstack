@@ -33,6 +33,8 @@ export function SearchToolbar({
   placeholder,
   loading,
   submitLabel = "Search",
+  inputLabel = "Search",
+  filterLayout = "inline",
   children,
 }: {
   value: string;
@@ -41,21 +43,17 @@ export function SearchToolbar({
   placeholder: string;
   loading?: boolean;
   submitLabel?: string;
+  inputLabel?: string;
+  filterLayout?: "inline" | "stacked";
   children?: ReactNode;
 }) {
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (loading) return;
-        onSubmit();
-      }}
-      className="flex flex-col gap-3 xl:flex-row xl:items-end"
-    >
-      <div className="relative min-w-0 flex-1">
+  const inputField = (
+    <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-xs font-medium text-ink-muted">
+      <span>{inputLabel}</span>
+      <div className="relative">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
         <input
-          className={`${inputClass} pl-10 ${loading ? "cursor-not-allowed opacity-70" : ""}`}
+          className={`${inputClass} w-full pl-10 ${loading ? "cursor-not-allowed opacity-70" : ""}`}
           value={value}
           onChange={(e) => {
             if (loading) return;
@@ -68,12 +66,56 @@ export function SearchToolbar({
           aria-busy={loading}
         />
       </div>
+    </label>
+  );
+
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={loading}
+      className={`${buttonPrimaryClass} w-full shrink-0 sm:w-auto`}
+    >
+      {submitLabel}
+    </button>
+  );
+
+  if (filterLayout === "stacked") {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (loading) return;
+          onSubmit();
+        }}
+        className="space-y-4"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          {inputField}
+          {submitButton}
+        </div>
+        {children ? (
+          <div className="grid gap-3 border-t border-line/60 pt-4 sm:grid-cols-2 lg:grid-cols-3">
+            {children}
+          </div>
+        ) : null}
+      </form>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (loading) return;
+        onSubmit();
+      }}
+      className="flex flex-col gap-3 xl:flex-row xl:items-end"
+    >
+      {inputField}
       {children ? (
         <div className="flex flex-wrap items-end gap-3">{children}</div>
       ) : null}
-      <button type="submit" disabled={loading} className={`${buttonPrimaryClass} shrink-0`}>
-        {submitLabel}
-      </button>
+      {submitButton}
     </form>
   );
 }
@@ -83,18 +125,25 @@ export function ToolbarSelect({
   onChange,
   options,
   label,
+  disabled,
+  className = "",
 }: {
   value: string | number;
   onChange: (value: string) => void;
   options: Array<{ value: string | number; label: string }>;
   label?: string;
+  disabled?: boolean;
+  className?: string;
 }) {
   return (
-    <label className="flex shrink-0 flex-col gap-1.5 text-xs font-medium text-ink-muted">
+    <label
+      className={`flex min-w-0 flex-col gap-1.5 text-xs font-medium text-ink-muted ${className}`}
+    >
       {label ? <span>{label}</span> : null}
       <select
-        className={`${inputClass} min-w-[9rem] cursor-pointer`}
+        className={`${inputClass} w-full min-w-0 cursor-pointer sm:min-w-[9.5rem] ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       >
         {options.map((opt) => (

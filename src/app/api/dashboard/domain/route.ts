@@ -4,7 +4,8 @@ import {
   attachGscVisitors,
   getDomainDashboard,
 } from "@/lib/dataforseo/domain-dashboard";
-import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
+import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
+import type { DomainScope } from "@/lib/dashboard/domain-overview-config";
 import {
   getProjectDocument,
   updateGscTokens,
@@ -31,13 +32,14 @@ export async function POST(request: Request) {
   try {
     const project = await getProjectDocument(user.id, true);
     const body = await request.json();
-    const domain = normalizeDomain(String(body.domain ?? project.domain));
+    const domainInput = String(body.domain ?? project.domain).trim();
+    const scope = (body.scope ?? "subdomains") as DomainScope;
 
     let overview = await getDomainDashboard(
-      domain,
+      domainInput,
       body.locationCode ?? project.locationCode,
       body.languageCode ?? project.languageCode,
-      body.scope !== "domain",
+      scope,
     );
 
     if (project.gscConnected && project.gscSiteUrl) {

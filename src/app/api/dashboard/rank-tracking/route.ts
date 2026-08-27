@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
-import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
-import { checkKeywordRank } from "@/lib/dataforseo/services";
+import { normalizeDomain } from "@/lib/dataforseo/client";
 import { getProjectForUser } from "@/lib/dashboard/project";
-import { RankTracking } from "@/models/RankTracking";
+import {
+  migrateLegacyRankTracking,
+  serializeTrackedDomain,
+} from "@/lib/dashboard/rank-tracking";
+import { addKeywordsToTrackedDomain } from "@/lib/dashboard/rank-tracking-service";
+import {
+  SEARCH_DEPTH_OPTIONS,
+  TRACKING_DEVICES,
+  TRACKING_SCHEDULES,
+  type SearchTargeting,
+  type TrackingDevice,
+  type TrackingSchedule,
+} from "@/lib/dashboard/rank-tracking-config";
+import { TrackedDomain } from "@/models/TrackedDomain";
 
 export async function GET(request: Request) {
   const result = await requireUser(request);
@@ -14,26 +26,20 @@ export async function GET(request: Request) {
   const project = await getProjectForUser(user.id);
   await connectDB();
 
-  let tracking = await RankTracking.findOne({ projectId: project.id });
-  if (!tracking) {
-    tracking = await RankTracking.create({
-      userId: user.id,
-      projectId: project.id,
-      keywords: [],
-    });
-  }
+  await migrateLegacyRankTracking(
+    user.id,
+    project.id,
+    project.domain,
+    project.locationCode,
+    project.languageCode,
+  );
+
+  const domains = await TrackedDomain.find({ projectId: project.id }).sort({
+    createdAt: -1,
+  });
 
   return NextResponse.json({
-    config: {
-      id: tracking._id.toString(),
-      name: tracking.name,
-      keywords: tracking.keywords.map((k) => ({
-        id: k._id.toString(),
-        keyword: k.keyword,
-        lastPosition: k.lastPosition,
-        snapshots: k.snapshots.slice(-30),
-      })),
-    },
+    domains: domains.map(serializeTrackedDomain),
   });
 }
 
@@ -45,85 +51,96 @@ export async function POST(request: Request) {
   try {
     const project = await getProjectForUser(user.id);
     const body = await request.json();
-    const action = body.action as string | undefined;
 
-    await connectDB();
-    let tracking = await RankTracking.findOne({ projectId: project.id });
-    if (!tracking) {
-      tracking = await RankTracking.create({
-        userId: user.id,
-        projectId: project.id,
-        keywords: [],
-      });
-    }
-
-    if (action === "refreshAll") {
-      if (!isDataForSeoConfigured()) {
-        return NextResponse.json(
-          { message: "Add DATAFORSEO_API_KEY to refresh ranks." },
-          { status: 503 },
-        );
-      }
-
-      for (const entry of tracking.keywords) {
-        const rank = await checkKeywordRank(
-          entry.keyword,
-          project.domain,
-          project.locationCode,
-          project.languageCode,
-        );
-        entry.lastPosition = rank.position;
-        entry.snapshots.push({
-          date: new Date(),
-          position: rank.position,
-          url: rank.url ?? "",
-        });
-      }
-
-      await tracking.save();
-      return NextResponse.json({ ok: true, refreshed: tracking.keywords.length });
-    }
-
-    const keyword = String(body.keyword ?? "").trim().toLowerCase();
-    if (!keyword) {
-      return NextResponse.json({ message: "Enter a keyword." }, { status: 400 });
-    }
-
-    let position: number | null = null;
-    let url: string | null = null;
-
-    if (isDataForSeoConfigured()) {
-      const rank = await checkKeywordRank(
-        keyword,
+    if (body.keyword) {
+      await connectDB();
+      await migrateLegacyRankTracking(
+        user.id,
+        project.id,
         project.domain,
         project.locationCode,
         project.languageCode,
       );
-      position = rank.position;
-      url = rank.url;
+
+      let tracked = body.domainId
+        ? await TrackedDomain.findOne({ _id: body.domainId, projectId: project.id })
+        : await TrackedDomain.findOne({ projectId: project.id }).sort({ createdAt: -1 });
+
+      if (!tracked) {
+        tracked = await TrackedDomain.create({
+          userId: user.id,
+          projectId: project.id,
+          domain: project.domain,
+          locationCode: project.locationCode,
+          languageCode: project.languageCode,
+          keywords: [],
+        });
+      }
+
+      await addKeywordsToTrackedDomain(tracked, [
+        {
+          keyword: String(body.keyword),
+          searchVolume: body.searchVolume ?? null,
+        },
+      ]);
+
+      return NextResponse.json({ ok: true, domainId: tracked._id.toString() });
     }
 
-    const existing = tracking.keywords.find((k) => k.keyword === keyword);
+    const domain = normalizeDomain(String(body.domain ?? ""));
+
+    if (!domain) {
+      return NextResponse.json({ message: "Enter a domain to track." }, { status: 400 });
+    }
+
+    const locationCode = Number(body.locationCode ?? project.locationCode ?? 2840);
+    const languageCode = String(body.languageCode ?? project.languageCode ?? "en");
+    const searchTargeting = String(
+      body.searchTargeting ?? "national",
+    ) as SearchTargeting;
+    const device = String(body.device ?? "mobile") as TrackingDevice;
+    const schedule = String(body.schedule ?? "weekly") as TrackingSchedule;
+    const searchDepth = Number(body.searchDepth ?? 40);
+
+    if (!TRACKING_DEVICES.some((d) => d.value === device)) {
+      return NextResponse.json({ message: "Invalid device." }, { status: 400 });
+    }
+    if (!TRACKING_SCHEDULES.some((s) => s.value === schedule)) {
+      return NextResponse.json({ message: "Invalid schedule." }, { status: 400 });
+    }
+    if (!SEARCH_DEPTH_OPTIONS.some((d) => d.depth === searchDepth)) {
+      return NextResponse.json({ message: "Invalid search depth." }, { status: 400 });
+    }
+    if (!["national", "local"].includes(searchTargeting)) {
+      return NextResponse.json({ message: "Invalid search targeting." }, { status: 400 });
+    }
+
+    await connectDB();
+
+    const existing = await TrackedDomain.findOne({ projectId: project.id, domain });
     if (existing) {
-      existing.lastPosition = position;
-      existing.snapshots.push({
-        date: new Date(),
-        position,
-        url: url ?? "",
-      });
-    } else {
-      tracking.keywords.push({
-        keyword,
-        lastPosition: position,
-        snapshots: [{ date: new Date(), position, url: url ?? "" }],
-      });
+      return NextResponse.json(
+        { message: "That domain is already being tracked." },
+        { status: 409 },
+      );
     }
 
-    await tracking.save();
+    const tracked = await TrackedDomain.create({
+      userId: user.id,
+      projectId: project.id,
+      domain,
+      locationCode,
+      languageCode,
+      searchTargeting,
+      device,
+      schedule,
+      searchDepth,
+      keywords: [],
+    });
 
-    return NextResponse.json({ ok: true, position, url });
+    return NextResponse.json({ domain: serializeTrackedDomain(tracked) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Tracking failed";
+    const message = error instanceof Error ? error.message : "Could not add domain";
     return NextResponse.json({ message }, { status: 500 });
   }
 }

@@ -53,6 +53,34 @@ const UserSchema = new Schema(
       sparse: true,
       select: false,
     },
+
+    /** Unlimited Brand Lookup & Prompt Explorer (set after plan purchase). */
+    dashboardPro: { type: Boolean, default: false },
+    brandLookupUsageCount: { type: Number, default: 0, min: 0 },
+    promptExplorerUsageCount: { type: Number, default: 0, min: 0 },
+
+    /** Per-user dashboard UI state (syncs across devices). */
+    keywordRecentSearches: {
+      type: [String],
+      default: [],
+      validate: {
+        validator(v: string[]) {
+          return v.length <= 8;
+        },
+        message: "Too many recent searches",
+      },
+    },
+    onboardingCompetitorDone: { type: Boolean, default: false },
+
+    /** Last keyword research results — restored when returning to the tool. */
+    keywordResearchSession: { type: Schema.Types.Mixed, default: null },
+
+    /** Currently active project for dashboard tools. */
+    activeProjectId: {
+      type: Schema.Types.ObjectId,
+      ref: "Project",
+      default: null,
+    },
   },
   { timestamps: true },
 );

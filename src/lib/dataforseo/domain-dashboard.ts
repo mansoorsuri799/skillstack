@@ -13,6 +13,10 @@ import {
   onPageApi,
   taskItems,
 } from "@/lib/dataforseo/client";
+import {
+  resolveDomainTarget,
+  type DomainScope,
+} from "@/lib/dashboard/domain-overview-config";
 import { getDomainOverview } from "@/lib/dataforseo/services";
 
 const COUNTRY_MARKETS = [
@@ -295,15 +299,13 @@ async function getDomainHealth(domain: string) {
 }
 
 export async function getDomainDashboard(
-  domain: string,
+  targetInput: string,
   locationCode = 2840,
   languageCode = "en",
-  includeSubdomains = true,
+  scope: DomainScope = "subdomains",
 ): Promise<DomainDashboard> {
-  const normalized = normalizeDomain(domain);
-  const scopeLabel = includeSubdomains
-    ? `*.${normalized}/*`
-    : `${normalized}/*`;
+  const resolved = resolveDomainTarget(targetInput, scope);
+  const { target, hostDomain, includeSubdomains, scopeLabel } = resolved;
 
   const [
     overview,
@@ -312,11 +314,11 @@ export async function getDomainDashboard(
     health,
     countryBreakdown,
   ] = await Promise.all([
-    getDomainOverview(normalized, locationCode, languageCode, includeSubdomains),
-    getBacklinksMetrics(normalized, includeSubdomains),
-    fetchHistoricalOverview(normalized, locationCode, languageCode),
-    getDomainHealth(normalized),
-    getCountryKeywordBreakdown(normalized, languageCode),
+    getDomainOverview(target, locationCode, languageCode, includeSubdomains),
+    getBacklinksMetrics(hostDomain, includeSubdomains),
+    fetchHistoricalOverview(hostDomain, locationCode, languageCode),
+    getDomainHealth(hostDomain),
+    getCountryKeywordBreakdown(hostDomain, languageCode),
   ]);
 
   const historicalOrganic = organicSeriesFromHistorical(historicalRes);

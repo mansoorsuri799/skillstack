@@ -5,10 +5,12 @@ import Link from "next/link";
 import {
   FormEvent,
   KeyboardEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { useSession } from "next-auth/react";
 import type { PublicProfile } from "@/models/User";
 
 const inputClass =
@@ -55,9 +57,14 @@ function fileToAvatarDataUrl(file: File): Promise<string> {
 }
 
 export default function ProfileEditor() {
+  const { update: updateSession } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
+  const loadedRef = useRef(false);
+  const skipInitialSaveRef = useRef(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
@@ -77,6 +84,8 @@ export default function ProfileEditor() {
     availableForWork: false,
     image: null as string | null,
   });
+  const formRef = useRef(form);
+  formRef.current = form;
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +118,7 @@ export default function ProfileEditor() {
           availableForWork: p.availableForWork,
           image: p.image,
         });
+        loadedRef.current = true;
       } catch {
         if (!cancelled) setError("Could not load profile.");
       } finally {
@@ -119,6 +129,85 @@ export default function ProfileEditor() {
       cancelled = true;
     };
   }, []);
+
+  const persistProfile = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const snapshot = formRef.current;
+      setError("");
+      if (!options?.silent) setOk("");
+      setSaving(true);
+      setSaveState("idle");
+      try {
+        const res = await fetch("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: snapshot.name,
+            username: snapshot.username,
+            headline: snapshot.headline,
+            bio: snapshot.bio,
+            skills: snapshot.skills,
+            location: snapshot.location,
+            company: snapshot.company,
+            website: snapshot.website,
+            linkedin: snapshot.linkedin,
+            xProfile: snapshot.xProfile,
+            availableForWork: snapshot.availableForWork,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Save failed.");
+          setSaveState("error");
+          return false;
+        }
+        const p = data.profile as PublicProfile;
+        if (!options?.silent) {
+          setForm((f) => ({
+            ...f,
+            name: p.name,
+            username: p.username || "",
+            headline: p.headline,
+            bio: p.bio,
+            skills: p.skills,
+            location: p.location,
+            company: p.company,
+            website: p.website,
+            linkedin: p.linkedin,
+            xProfile: p.xProfile,
+            availableForWork: p.availableForWork,
+            image: p.image,
+          }));
+        }
+        await updateSession({ user: { name: p.name, image: p.image } });
+        setSaveState("saved");
+        if (!options?.silent) setOk("Profile saved.");
+        return true;
+      } catch {
+        setError("Something went wrong.");
+        setSaveState("error");
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [updateSession],
+  );
+
+  useEffect(() => {
+    if (!loadedRef.current) return;
+    if (skipInitialSaveRef.current) {
+      skipInitialSaveRef.current = false;
+      return;
+    }
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      void persistProfile({ silent: true });
+    }, 1200);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [form, persistProfile]);
 
   function addSkill(raw?: string) {
     const value = (raw ?? skillDraft).trim();
@@ -164,6 +253,7 @@ export default function ProfileEditor() {
       }
       const p = data.profile as PublicProfile;
       setForm((f) => ({ ...f, image: p.image }));
+      await updateSession({ user: { name: p.name, image: p.image } });
       setOk("Profile photo updated.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update photo.");
@@ -189,6 +279,7 @@ export default function ProfileEditor() {
         return;
       }
       setForm((f) => ({ ...f, image: null }));
+      await updateSession({ user: { image: null } });
       setOk("Profile photo removed.");
     } catch {
       setError("Could not remove photo.");
@@ -198,54 +289,8 @@ export default function ProfileEditor() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
-    setOk("");
-    setSaving(true);
-    try {
-      const res = await fetch("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          username: form.username,
-          headline: form.headline,
-          bio: form.bio,
-          skills: form.skills,
-          location: form.location,
-          company: form.company,
-          website: form.website,
-          linkedin: form.linkedin,
-          xProfile: form.xProfile,
-          availableForWork: form.availableForWork,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Save failed.");
-        setSaving(false);
-        return;
-      }
-      const p = data.profile as PublicProfile;
-      setForm((f) => ({
-        ...f,
-        name: p.name,
-        username: p.username || "",
-        headline: p.headline,
-        bio: p.bio,
-        skills: p.skills,
-        location: p.location,
-        company: p.company,
-        website: p.website,
-        linkedin: p.linkedin,
-        xProfile: p.xProfile,
-        availableForWork: p.availableForWork,
-        image: p.image,
-      }));
-      setOk("Profile saved.");
-    } catch {
-      setError("Something went wrong.");
-    }
-    setSaving(false);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    await persistProfile();
   }
 
   if (loading) {
@@ -478,14 +523,22 @@ export default function ProfileEditor() {
 
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
       {ok ? <p className="text-sm text-accent">{ok}</p> : null}
+      {!ok && saveState === "saved" && !saving ? (
+        <p className="text-sm text-ink-muted">Changes saved to your account.</p>
+      ) : null}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-[#010409] hover:bg-accent-deep disabled:opacity-60"
-      >
-        {saving ? "Saving…" : "Save profile"}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-[#010409] hover:bg-accent-deep disabled:opacity-60"
+        >
+          {saving ? "Saving…" : "Save profile"}
+        </button>
+        {saving ? (
+          <span className="text-sm text-ink-muted">Saving your profile…</span>
+        ) : null}
+      </div>
     </form>
   );
 }
