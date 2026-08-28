@@ -63,62 +63,6 @@ export function ResultsPanel({
   );
 }
 
-export function MetricTile({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  featured = false,
-}: {
-  label: string;
-  value: string | number | null;
-  hint?: string;
-  icon?: LucideIcon;
-  featured?: boolean;
-}) {
-  const display =
-    value === null || value === undefined
-      ? "—"
-      : typeof value === "number"
-        ? value.toLocaleString()
-        : value;
-
-  return (
-    <div
-      className={`group relative overflow-hidden rounded-xl border transition hover:border-accent/25 ${
-        featured
-          ? "border-accent/20 bg-gradient-to-br from-accent/[0.12] via-accent/[0.04] to-transparent p-5 sm:min-h-[8.5rem]"
-          : "border-line bg-bg p-4 hover:bg-white/[0.02]"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
-          {label}
-        </p>
-        {Icon ? (
-          <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-              featured
-                ? "bg-accent/20 text-accent"
-                : "bg-white/5 text-ink-muted group-hover:text-accent"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-          </span>
-        ) : null}
-      </div>
-      <p
-        className={`mt-3 font-display font-semibold tabular-nums text-snow ${
-          featured ? "text-3xl md:text-4xl" : "text-2xl"
-        }`}
-      >
-        {display}
-      </p>
-      {hint ? <p className="mt-1.5 text-xs text-ink-muted">{hint}</p> : null}
-    </div>
-  );
-}
-
 export function MetricGrid({
   children,
   className = "",
@@ -127,8 +71,85 @@ export function MetricGrid({
   className?: string;
 }) {
   return (
-    <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${className}`}>
+    <div
+      className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${className}`}
+    >
       {children}
+    </div>
+  );
+}
+
+export function MetricTile({
+  label,
+  value,
+  subvalue,
+  hint,
+  icon: Icon,
+  trend,
+  featured = false,
+}: {
+  label: string;
+  value: string | number | null;
+  subvalue?: string;
+  hint?: string;
+  icon?: LucideIcon;
+  trend?: { value: number; label: string };
+  featured?: boolean;
+}) {
+  const displayValue = value === null || value === undefined ? "—" : value;
+  const secondaryText = subvalue ?? hint;
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl border p-5 transition-all ${
+        featured
+          ? "border-accent/30 bg-gradient-to-br from-accent/[0.08] to-transparent shadow-[0_0_30px_-10px_rgba(45,212,191,0.15)]"
+          : "border-line bg-bg-elevated hover:border-line/80"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+          {label}
+        </p>
+        {Icon ? (
+          <span
+            className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+              featured
+                ? "bg-accent/20 text-accent"
+                : "bg-white/5 text-ink-muted"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-3 flex items-baseline gap-2">
+        <span
+          className={`font-display text-2xl font-bold tracking-tight md:text-3xl ${
+            featured ? "text-snow" : "text-snow"
+          }`}
+        >
+          {displayValue}
+        </span>
+        {secondaryText ? (
+          <span className="text-xs text-ink-muted">{secondaryText}</span>
+        ) : null}
+      </div>
+
+      {trend ? (
+        <div className="mt-2 flex items-center gap-1.5 text-xs">
+          <span
+            className={`font-medium ${
+              trend.value >= 0 ? "text-accent" : "text-red-400"
+            }`}
+          >
+            {trend.value >= 0 ? "+" : ""}
+            {trend.value}%
+          </span>
+          <span className="text-ink-muted">{trend.label}</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -138,32 +159,19 @@ export function DashboardAlert({
   variant = "info",
 }: {
   children: ReactNode;
-  variant?: "info" | "error" | "success";
+  variant?: "info" | "warning" | "error" | "success";
 }) {
-  const styles = {
-    info: "border-accent/30 bg-accent/10 text-ink",
-    error: "border-red-500/30 bg-red-500/10 text-red-200",
-    success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
-  }[variant];
+  const styles =
+    variant === "error"
+      ? "border-red-500/20 bg-red-500/10 text-red-300"
+      : variant === "warning"
+        ? "border-amber-500/20 bg-amber-500/10 text-amber-300"
+        : variant === "success"
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+          : "border-accent/20 bg-accent/10 text-snow";
 
   return (
     <div className={`rounded-xl border px-4 py-3 text-sm ${styles}`}>{children}</div>
-  );
-}
-
-export function Skeleton({
-  className = "",
-  rounded = "rounded-2xl",
-}: {
-  className?: string;
-  rounded?: string;
-}) {
-  return (
-    <div
-      className={`relative overflow-hidden bg-[#161b22]/75 border border-white/[0.05] ${rounded} ${className}`}
-    >
-      <div className="pointer-events-none absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
-    </div>
   );
 }
 
@@ -175,26 +183,13 @@ export function LoadingBlock({
   className?: string;
 }) {
   return (
-    <div className={`space-y-4 py-2 w-full animate-in fade-in duration-200 ${className}`}>
-      {label ? (
-        <div className="flex items-center gap-2.5 px-1 py-1 text-xs text-ink-muted">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
-          </span>
-          <span className="font-medium text-snow/90">{label}</span>
-        </div>
-      ) : (
-        <Skeleton className="h-4 w-36 rounded-full" />
-      )}
-
-      {/* Top wide container (matching user screenshot) */}
-      <Skeleton className="h-32 md:h-36 w-full rounded-2xl" />
-
-      {/* Bottom 2-column cards (matching user screenshot) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-36 md:h-40 w-full rounded-2xl" />
-        <Skeleton className="h-36 md:h-40 w-full rounded-2xl" />
+    <div className={`flex items-center justify-center py-12 w-full ${className}`}>
+      <div className="flex items-center gap-2.5 rounded-full border border-line bg-bg-elevated px-4 py-2 text-xs text-ink-muted shadow-sm">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+        </span>
+        <span className="font-medium text-snow">{label || "Loading..."}</span>
       </div>
     </div>
   );
@@ -237,16 +232,26 @@ export type DataTableColumn<T> = {
 };
 
 export function DataTable<T>({
-  columns,
   rows,
+  columns,
   rowKey,
-  minWidth = "640px",
+  emptyMessage = "No data to display.",
+  minWidth = "600px",
 }: {
-  columns: DataTableColumn<T>[];
   rows: T[];
+  columns: DataTableColumn<T>[];
   rowKey: (row: T, index: number) => string;
+  emptyMessage?: string;
   minWidth?: string;
 }) {
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-xl border border-line bg-bg/30 px-6 py-12 text-center text-sm text-ink-muted">
+        {emptyMessage}
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-xl border border-line">
       <div className="overflow-x-auto">
@@ -307,34 +312,18 @@ export const buttonGhostClass =
 export function DifficultyBadge({ value }: { value: number | null }) {
   if (value === null) return <span className="text-ink-muted">—</span>;
   const tier =
-    value <= 20 ? "Easy" : value <= 40 ? "Medium" : value <= 60 ? "Hard" : "Very hard";
-  const color =
-    value <= 20
-      ? "text-emerald-400"
-      : value <= 40
-        ? "text-yellow-400"
-        : value <= 60
-          ? "text-orange-400"
-          : "text-red-400";
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-2 py-0.5 text-xs ${color}`}
-    >
-      {value} · {tier}
-    </span>
-  );
-}
+    value < 30
+      ? { label: "Easy", color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" }
+      : value < 60
+        ? { label: "Medium", color: "text-amber-400 bg-amber-400/10 border-amber-400/20" }
+        : { label: "Hard", color: "text-red-400 bg-red-400/10 border-red-400/20" };
 
-export function BoolBadge({ value, trueLabel = "Yes", falseLabel = "No" }: { value: boolean; trueLabel?: string; falseLabel?: string }) {
   return (
     <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-        value
-          ? "bg-emerald-500/10 text-emerald-300"
-          : "bg-white/5 text-ink-muted"
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${tier.color}`}
     >
-      {value ? trueLabel : falseLabel}
+      <span className="tabular-nums font-semibold">{value}</span>
+      <span className="text-[10px] uppercase tracking-wider">{tier.label}</span>
     </span>
   );
 }
