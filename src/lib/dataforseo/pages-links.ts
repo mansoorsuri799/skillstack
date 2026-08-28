@@ -53,6 +53,49 @@ export type InternalAnchorRow = {
   targetPages: number;
 };
 
+export function isTechnicalOrFeedUrl(urlStr: string): boolean {
+  if (!urlStr) return true;
+  try {
+    const parsed = new URL(urlStr);
+    const path = parsed.pathname.toLowerCase();
+    const search = parsed.search.toLowerCase();
+
+    if (
+      path.includes("/feed") ||
+      path.includes("/wp-json") ||
+      path.includes("/xmlrpc") ||
+      path.includes("/wp-admin") ||
+      path.includes("/wp-login") ||
+      path.includes("/trackback") ||
+      path.includes("/oembed") ||
+      path.includes("/wp-includes") ||
+      search.includes("feed=") ||
+      search.includes("format=xml") ||
+      search.includes("format=json") ||
+      search.includes("rest_route=") ||
+      search.includes("oembed")
+    ) {
+      return true;
+    }
+
+    if (/\.(xml|json|rss|atom|txt|css|js|map|ico|svg|woff2?|ttf|eot)$/i.test(path)) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    const lower = urlStr.toLowerCase();
+    return (
+      lower.includes("/feed") ||
+      lower.includes("/wp-json") ||
+      lower.includes("oembed") ||
+      lower.includes("xmlrpc") ||
+      lower.includes(".xml") ||
+      lower.includes(".json")
+    );
+  }
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -233,6 +276,9 @@ export async function getInternalLinksList(
       const to = item.link_to ?? "";
       if (!from || !to) continue;
 
+      // Skip technical endpoints: /feed/, /comments/feed/, /wp-json/, oembed, XML/JSON, etc.
+      if (isTechnicalOrFeedUrl(from) || isTechnicalOrFeedUrl(to)) continue;
+
       totalLinksCount += 1;
       const meta = pageItemsMap.get(from);
 
@@ -274,8 +320,10 @@ export async function getInternalLinksList(
         (item.text || "").toLowerCase().includes(".webp") ||
         (item.link_type || "").includes("image");
 
+      const anchorText = item.text?.trim() || "";
+
       group.links.push({
-        anchor: item.text?.trim() || "(empty anchor)",
+        anchor: anchorText || (isImg ? "IMAGE" : group.sourceTitle || domain),
         targetUrl: to,
         type: isImg ? "IMAGE" : "CONTENT",
         statusCode: item.status_code ?? (item.is_broken ? 404 : undefined),
@@ -285,13 +333,13 @@ export async function getInternalLinksList(
       });
     }
 
-    const groups = Array.from(groupsMap.values());
+    const groups = Array.from(groupsMap.values()).filter((g) => g.links.length > 0);
 
     return {
       domain: normalizeDomain(domain),
       groups,
       totalGroups: groups.length,
-      totalLinks: result?.total_items_count ?? totalLinksCount,
+      totalLinks: totalLinksCount,
     };
   });
 }
@@ -329,7 +377,7 @@ export async function getMostLinkedPages(
         internalLinksOut: item.meta?.internal_links_count ?? null,
         externalLinksOut: item.meta?.external_links_count ?? null,
       }))
-      .filter((row) => row.url)
+      .filter((row) => row.url && !isTechnicalOrFeedUrl(row.url))
       .sort((a, b) => (b.inboundLinks ?? 0) - (a.inboundLinks ?? 0));
 
     return { domain: normalizeDomain(domain), pages };
@@ -360,8 +408,10 @@ export async function getInternalAnchors(
     const anchorMap = new Map<string, { links: number; targets: Set<string> }>();
 
     for (const item of result?.items ?? []) {
-      const anchor = (item.text ?? "").trim() || "(empty anchor)";
       const target = item.link_to ?? "";
+      if (isTechnicalOrFeedUrl(target)) continue;
+      const anchor = (item.text ?? "").trim();
+      if (!anchor || anchor === "(empty anchor)") continue;
       const entry = anchorMap.get(anchor) ?? { links: 0, targets: new Set<string>() };
       entry.links += 1;
       if (target) entry.targets.add(target);

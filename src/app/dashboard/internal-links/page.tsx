@@ -20,6 +20,7 @@ import {
   ResultsPanel,
 } from "@/components/dashboard/ui";
 import type { InternalLinkGroupRow } from "@/lib/dataforseo/pages-links";
+import { isTechnicalOrFeedUrl } from "@/lib/dataforseo/pages-links";
 
 type LinksData = {
   domain: string;
@@ -45,10 +46,20 @@ export default function InternalLinksPage() {
 
   const filteredGroups = useMemo(() => {
     if (!data?.groups) return [];
-    if (!searchQuery.trim()) return data.groups;
+    
+    // Clean all groups to remove feed, wp-json, and technical links
+    const sanitized = data.groups
+      .filter((g) => !isTechnicalOrFeedUrl(g.sourceUrl))
+      .map((g) => ({
+        ...g,
+        links: g.links.filter((l) => !isTechnicalOrFeedUrl(l.targetUrl)),
+      }))
+      .filter((g) => g.links.length > 0);
+
+    if (!searchQuery.trim()) return sanitized;
 
     const q = searchQuery.toLowerCase().trim();
-    return data.groups.filter(
+    return sanitized.filter(
       (g) =>
         g.sourceUrl.toLowerCase().includes(q) ||
         (g.sourceTitle || "").toLowerCase().includes(q) ||
