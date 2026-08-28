@@ -2,7 +2,7 @@ import { getDomainOverview } from "@/lib/dataforseo/services";
 import { queryGscAnalytics, getValidGscAccessToken } from "@/lib/google/gsc";
 import { runPromptExplorer } from "@/lib/dataforseo/services";
 
-type SamContext = {
+type SuriContext = {
   domain: string;
   projectName: string;
   gscProject?: {
@@ -14,10 +14,10 @@ type SamContext = {
   } | null;
 };
 
-export async function runSamAgentReply(
+export async function runSuriAgentReply(
   prompt: string,
   history: Array<{ role: "user" | "assistant"; content: string }>,
-  context: SamContext,
+  context: SuriContext,
 ): Promise<{
   answer: string;
   sources: Array<{ title: string; url: string }>;
@@ -73,7 +73,7 @@ export async function runSamAgentReply(
           ).join("\n");
 
           return {
-            answer: `Here are the top high-potential ranking opportunities for **${domain}**:\n\n${kwList || "No keywords currently ranking in positions #4–#20."}\n\n### SAM's Quick-Win Strategy:\n1. **Add FAQ Schema**: Inject Question/Answer accordions targeting secondary search intent.\n2. **Strengthen Internal Links**: Link from your highest-authority pages to these target URLs using descriptive anchor text.\n3. **Intent Refresh**: Update titles to include the current year and primary benefit.`,
+            answer: `Here are the top high-potential ranking opportunities for **${domain}**:\n\n${kwList || "No keywords currently ranking in positions #4–#20."}\n\n### Suri's Quick-Win Strategy:\n1. **Add FAQ Schema**: Inject Question/Answer accordions targeting secondary search intent.\n2. **Strengthen Internal Links**: Link from your highest-authority pages to these target URLs using descriptive anchor text.\n3. **Intent Refresh**: Update titles to include the current year and primary benefit.`,
             sources: [
               { title: `Domain Organic Report — ${domain}`, url: `https://${domain}` },
             ],
@@ -88,7 +88,7 @@ export async function runSamAgentReply(
   // 3. Fallback to Live AI Search query with project domain injected for hyper-relevant context
   try {
     const contextualPrompt = domain && domain !== "example.com"
-      ? `Acting as SAM, an expert SEO agent for the website ${domain}: ${prompt}`
+      ? `Acting as Suri, an expert SEO agent for the website ${domain}: ${prompt}`
       : prompt;
 
     const result = await runPromptExplorer(contextualPrompt);
@@ -105,3 +105,6 @@ export async function runSamAgentReply(
     };
   }
 }
+
+// Backward compatibility alias
+export const runSamAgentReply = runSuriAgentReply;

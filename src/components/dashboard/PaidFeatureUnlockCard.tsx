@@ -13,14 +13,14 @@ export type UnlockFeature = {
 
 export function TopUpgradeBanner() {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-[#388bfd]/30 bg-[#388bfd]/[0.08] px-4 py-3 text-xs text-[#79c0ff]">
+    <div className="flex items-center justify-between rounded-xl border border-accent/25 bg-accent/[0.06] px-4 py-3 text-xs text-snow/90">
       <p>
         We hope you&apos;re enjoying SkillStack!{" "}
-        <Link href="/pricing" className="font-semibold text-snow underline hover:text-[#58a6ff]">
+        <Link href="/pricing" className="font-semibold text-accent underline hover:text-snow transition">
           Upgrade anytime
         </Link>{" "}
         or{" "}
-        <Link href="/contact" className="underline hover:text-[#58a6ff]">
+        <Link href="/contact" className="underline hover:text-accent transition">
           reach out with questions
         </Link>
         .
@@ -43,16 +43,16 @@ export function PaidFeatureUnlockCard({
   upgradeHref?: string;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#30363d] bg-[#0d1117]/80 p-6 md:p-8 space-y-6">
+    <section className="overflow-hidden rounded-2xl border border-line bg-bg-elevated/70 p-6 md:p-8 space-y-6 shadow-sm">
       {/* Top Header Row with Paid Plan Pill & Upgrade Button */}
       <div className="flex items-center justify-between gap-3">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-[#161b22] px-3 py-1 text-xs font-medium text-[#79c0ff]">
-          <Sparkles className="h-3.5 w-3.5 text-[#58a6ff]" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+          <Sparkles className="h-3.5 w-3.5 text-accent" />
           Paid plan
         </span>
         <Link
           href={upgradeHref}
-          className="inline-flex items-center justify-center rounded-lg bg-[#2f81f7] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1f6feb] shadow-sm"
+          className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-[#010409] transition hover:bg-accent-deep shadow-sm"
         >
           Upgrade
         </Link>
@@ -72,7 +72,7 @@ export function PaidFeatureUnlockCard({
           const Icon = feature.icon;
           return (
             <div key={feature.title} className="space-y-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#30363d] bg-[#161b22] text-[#58a6ff]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-bg text-accent">
                 <Icon className="h-4 w-4" />
               </span>
               <h3 className="text-sm font-semibold text-snow">
@@ -87,7 +87,7 @@ export function PaidFeatureUnlockCard({
       </div>
 
       {/* Optional Interactive Search / Trial Form */}
-      {footer ? <div className="mt-8 border-t border-[#30363d] pt-8">{footer}</div> : null}
+      {footer ? <div className="mt-8 border-t border-line/60 pt-8">{footer}</div> : null}
     </section>
   );
 }
