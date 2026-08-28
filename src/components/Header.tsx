@@ -33,8 +33,8 @@ export default function Header() {
   });
 
   const showAuth = status === "authenticated" && Boolean(session?.user);
-  // Default to showing guest links immediately (even during initial loading) to eliminate layout flicker
-  const showGuest = !showAuth;
+  const showGuest = status === "unauthenticated";
+  const isLoading = status === "loading";
 
   return (
     <header
@@ -60,6 +60,10 @@ export default function Header() {
         </nav>
 
         <div className="relative z-10 flex shrink-0 items-center gap-2">
+          {isLoading ? (
+            <div className="hidden h-9 w-36 rounded-md sm:block" />
+          ) : null}
+
           {showAuth ? (
             <>
               <Link
