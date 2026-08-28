@@ -316,6 +316,23 @@ export async function saveGscConnection(
   project.gscSiteUrl = data.siteUrl;
   project.gscPendingSites = null;
   project.gscConnected = true;
+
+  if (project.domain === "example.com" || !project.domain) {
+    const extracted = data.siteUrl
+      .replace(/^sc-domain:/i, "")
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "")
+      .replace(/\/.*$/, "")
+      .toLowerCase()
+      .trim();
+    if (extracted && extracted.includes(".")) {
+      project.domain = extracted;
+      if (project.name === "My Site" || !project.name) {
+        project.name = formatDomainToProjectName(extracted);
+      }
+    }
+  }
+
   await project.save();
   return toProjectDto(project);
 }
@@ -344,7 +361,7 @@ export async function finalizeGscSite(userId: string, siteUrl: string) {
   await connectDB();
   const project = await getProjectDocument(userId, true);
   const pending = project.gscPendingSites ?? [];
-  if (!pending.includes(siteUrl)) {
+  if (pending.length > 0 && !pending.includes(siteUrl)) {
     throw new Error("That Search Console property is not available for selection.");
   }
   if (!project.gscRefreshToken) {
@@ -354,6 +371,23 @@ export async function finalizeGscSite(userId: string, siteUrl: string) {
   project.gscSiteUrl = siteUrl;
   project.gscPendingSites = null;
   project.gscConnected = true;
+
+  if (project.domain === "example.com" || !project.domain) {
+    const extracted = siteUrl
+      .replace(/^sc-domain:/i, "")
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "")
+      .replace(/\/.*$/, "")
+      .toLowerCase()
+      .trim();
+    if (extracted && extracted.includes(".")) {
+      project.domain = extracted;
+      if (project.name === "My Site" || !project.name) {
+        project.name = formatDomainToProjectName(extracted);
+      }
+    }
+  }
+
   await project.save();
   return toProjectDto(project);
 }

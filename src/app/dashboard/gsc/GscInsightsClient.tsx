@@ -72,7 +72,6 @@ export default function GscInsightsClient() {
 
   const loadStatus = useCallback(async () => {
     setLoading(true);
-    setError("");
     try {
       const res = await fetch("/api/dashboard/gsc?tab=queries");
       const data = await res.json();
@@ -88,7 +87,7 @@ export default function GscInsightsClient() {
         setSiteUrl(data.siteUrl ?? null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load failed");
+      setError((prev) => prev || (err instanceof Error ? err.message : "Load failed"));
     } finally {
       setLoading(false);
     }
@@ -96,7 +95,6 @@ export default function GscInsightsClient() {
 
   const loadData = useCallback(async (nextTab: GscTab = tab) => {
     setLoading(true);
-    setError("");
     try {
       const res = await fetch(`/api/dashboard/gsc?tab=${nextTab}`);
       const data = await res.json();

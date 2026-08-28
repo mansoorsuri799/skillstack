@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   if (error) {
     const hint =
       error === "redirect_uri_mismatch"
-        ? " Google sign-in could not be completed. Please try again."
+        ? " Google sign-in could not be completed. Please ensure Authorized Redirect URIs in Google Cloud Console includes the callback URL."
         : "";
     return NextResponse.redirect(
       `${authUrl}/dashboard/gsc?error=${encodeURIComponent(error + hint)}`,
@@ -45,28 +45,32 @@ export async function GET(request: Request) {
   const { userId, redirectUri } = verified;
 
   try {
+    const project = await getProjectDocument(userId, true);
     const tokens = await exchangeCodeForTokens(code, redirectUri);
-    const refreshToken = tokens.refresh_token;
+    const refreshToken = tokens.refresh_token || project.gscRefreshToken;
     if (!refreshToken) {
       throw new Error(
-        "Google did not return a refresh token. Disconnect any old connection in your Google account and try again.",
+        "Google did not return a refresh token. Please remove SkillStack from your Google Account permissions (myaccount.google.com/connections) and connect again.",
       );
     }
 
     const sites = await listGscSites(tokens.access_token!);
     if (sites.length === 0) {
       throw new Error(
-        "No verified Search Console properties found on this Google account.",
+        "No verified Search Console properties found on this Google account. Please verify your website property in Google Search Console first.",
       );
     }
 
-    const project = await getProjectDocument(userId);
-    const matching = listMatchingGscSites(sites, project.domain);
     const tokenBundle = {
       refreshToken,
       accessToken: tokens.access_token!,
       expiresAt: new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000),
     };
+
+    const hasCustomDomain = project.domain && project.domain !== "example.com";
+    const matching = hasCustomDomain
+      ? listMatchingGscSites(sites, project.domain)
+      : [];
 
     if (matching.length === 1) {
       await saveGscConnection(userId, {
@@ -84,10 +88,22 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${authUrl}/dashboard/gsc?select=1`);
     }
 
-    const preview = sites.slice(0, 6).join(", ");
-    throw new Error(
-      `No Search Console property matches ${project.domain}. Properties on this Google account: ${preview}. Update your project domain in dashboard settings, then connect again.`,
-    );
+    // If no exact match with project.domain or project domain is default example.com:
+    if (sites.length === 1) {
+      // Connect directly to the only available property
+      await saveGscConnection(userId, {
+        ...tokenBundle,
+        siteUrl: sites[0],
+      });
+      return NextResponse.redirect(`${authUrl}/dashboard/gsc?connected=1`);
+    }
+
+    // Multiple properties available: allow user to select the right one
+    await saveGscPendingConnection(userId, {
+      ...tokenBundle,
+      siteOptions: sites,
+    });
+    return NextResponse.redirect(`${authUrl}/dashboard/gsc?select=1`);
   } catch (err) {
     const message = err instanceof Error ? err.message : "GSC connection failed";
     return NextResponse.redirect(

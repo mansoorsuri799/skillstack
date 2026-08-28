@@ -64,6 +64,7 @@ export function getGscConnectUrl(state: string, redirectUri: string) {
     scope: GSC_SCOPE,
     access_type: "offline",
     prompt: "consent",
+    include_granted_scopes: "true",
     state,
   });
 
