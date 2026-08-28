@@ -293,7 +293,7 @@ export default function ChatPage() {
         {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
 
         {/* Chat Stream Messages or Welcome Hero */}
-        <div className="flex-1 space-y-4 py-4 overflow-y-auto">
+        <div className="flex-1 space-y-4 py-4 pb-28 overflow-y-auto">
           {messages.length === 0 ? (
             <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
               <div className="space-y-3">
@@ -340,9 +340,9 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Bottom Input Pill */}
-        <div className="sticky bottom-0 pt-2 pb-4">
-          <div className="relative flex items-center rounded-full border border-line bg-[#161b22] px-5 py-2 transition focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 shadow-xl">
+        {/* Bottom Input Area with Solid Background so text does not overlap behind */}
+        <div className="sticky bottom-0 z-20 bg-bg pt-3 pb-4">
+          <div className="relative flex items-center rounded-full border border-line bg-bg-elevated px-5 py-2.5 transition focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 shadow-2xl">
             <textarea
               ref={textareaRef}
               value={input}
@@ -358,7 +358,7 @@ export default function ChatPage() {
               type="button"
               onClick={() => void handleSend()}
               disabled={loading || !input.trim()}
-              className={`absolute right-2.5 flex h-8 w-8 items-center justify-center rounded-full transition ${
+              className={`absolute right-3 flex h-8 w-8 items-center justify-center rounded-full transition ${
                 input.trim() && !loading
                   ? "bg-accent text-[#010409] hover:bg-accent-deep shadow-md cursor-pointer font-bold scale-100"
                   : "bg-white/5 text-ink-muted/40 cursor-not-allowed opacity-50"
