@@ -77,7 +77,11 @@ export async function POST(request: Request) {
     try {
       await sendVerificationEmail({ to: email, name, token: verificationToken });
     } catch (mailError) {
+      const baseUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const directVerifyUrl = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(verificationToken)}`;
       console.error("Verification email failed:", mailError);
+      console.log(`\n[DEV LINK] Direct Email Verification URL:\n${directVerifyUrl}\n`);
+
       return NextResponse.json(
         {
           error:

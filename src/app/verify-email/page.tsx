@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 function VerifyContent() {
   const params = useSearchParams();
@@ -13,11 +13,12 @@ function VerifyContent() {
   const [message, setMessage] = useState(
     token ? "Verifying your email..." : "Missing verification token.",
   );
+  const requestedRef = useRef(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || requestedRef.current) return;
+    requestedRef.current = true;
 
-    let cancelled = false;
     fetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -25,7 +26,6 @@ function VerifyContent() {
     })
       .then(async (res) => {
         const data = await res.json();
-        if (cancelled) return;
         if (!res.ok) {
           setStatus("error");
           setMessage(data.error || "Verification failed.");
@@ -35,14 +35,9 @@ function VerifyContent() {
         setMessage(data.message || "Email verified.");
       })
       .catch(() => {
-        if (cancelled) return;
         setStatus("error");
         setMessage("Something went wrong. Please try again.");
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [token]);
 
   return (

@@ -8,21 +8,30 @@ const LOGO_FILENAME = "skill-stack-email.png";
 const LOGO_PATH = path.join(process.cwd(), "public/brand", LOGO_FILENAME);
 
 function getTransporter() {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || 587);
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port = Number(process.env.SMTP_PORT || 465);
   const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const pass = process.env.SMTP_PASS?.replace(/\s+/g, "");
 
-  if (!host || !user || !pass) {
-    throw new Error("SMTP_HOST, SMTP_USER, and SMTP_PASS must be set");
+  if (!user || !pass) {
+    throw new Error("SMTP_USER and SMTP_PASS must be set");
   }
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
+  const isGmail = host.toLowerCase().includes("gmail");
+
+  return nodemailer.createTransport(
+    isGmail
+      ? {
+          service: "gmail",
+          auth: { user, pass },
+        }
+      : {
+          host,
+          port,
+          secure: port === 465,
+          auth: { user, pass },
+        },
+  );
 }
 
 function escapeHtml(value: string) {

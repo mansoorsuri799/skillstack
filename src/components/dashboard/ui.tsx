@@ -191,7 +191,7 @@ export function EmptyBlock({
 
 export type DataTableColumn<T> = {
   key: string;
-  header: string;
+  header: ReactNode;
   cell: (row: T) => ReactNode;
   className?: string;
 };

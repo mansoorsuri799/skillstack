@@ -15,12 +15,13 @@ const UserSchema = new Schema(
     emailVerified: { type: Date, default: null },
     verificationToken: { type: String, default: null },
     verificationTokenExpires: { type: Date, default: null },
-    googleId: { type: String, default: null, index: true },
+    googleId: { type: String, default: undefined, index: true, sparse: true },
     image: { type: String, required: false },
 
     /** Public profile — omit until the user chooses a handle (sparse unique). */
     username: {
       type: String,
+      default: undefined,
       unique: true,
       sparse: true,
       lowercase: true,
@@ -48,7 +49,7 @@ const UserSchema = new Schema(
     /** Personal API key for dashboard / MCP automation */
     dashboardApiKey: {
       type: String,
-      default: null,
+      default: undefined,
       unique: true,
       sparse: true,
       select: false,
