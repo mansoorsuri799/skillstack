@@ -270,10 +270,10 @@ export default function OrganicKeywordsPage() {
             description="Ranked keywords from DataForSEO Labs with interactive High/Low sorting and filtering."
           >
             {/* Toolbar: Search, Position Filter, Sort by Dropdown, Export */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-bg-soft/60 px-4 py-3 md:px-5">
-              <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-bg-soft/60 px-3.5 py-3 md:px-5">
+              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                 {/* Search input */}
-                <div className="relative min-w-[180px] flex-1 max-w-xs">
+                <div className="relative w-full sm:w-auto sm:min-w-[180px] flex-1 max-w-xs">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted" />
                   <input
                     type="text"

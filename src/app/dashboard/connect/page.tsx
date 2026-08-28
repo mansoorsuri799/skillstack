@@ -103,14 +103,6 @@ export default function ConnectPage() {
 }`
     : "";
 
-  if (projectLoading || loading) {
-    return (
-      <DashboardShell title="AI & MCP">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   return (
     <DashboardShell
       title="AI & MCP"

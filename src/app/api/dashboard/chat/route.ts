@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
 import { getProjectDocument, getProjectForUser } from "@/lib/dashboard/project";
 import { ProjectChat } from "@/models/ProjectChat";
-import { runSamAgentReply } from "@/lib/chat/sam-agent";
+import { runSuriAgentReply } from "@/lib/chat/suri-agent";
 
 export async function GET(request: Request) {
   const result = await requireUser(request);
@@ -83,8 +83,8 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     });
 
-    // Run SAM Agent reasoning
-    const samReply = await runSamAgentReply(prompt, history, {
+    // Run Suri Agent reasoning
+    const suriReply = await runSuriAgentReply(prompt, history, {
       domain: projectDoc.domain,
       projectName: projectDoc.name,
       gscProject: {
@@ -99,8 +99,8 @@ export async function POST(request: Request) {
     // Append assistant response
     chat.messages.push({
       role: "assistant",
-      content: samReply.answer,
-      sources: samReply.sources,
+      content: suriReply.answer,
+      sources: suriReply.sources,
       createdAt: new Date(),
     });
 
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt,
       },
-      reply: samReply,
+      reply: suriReply,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Chat failed";

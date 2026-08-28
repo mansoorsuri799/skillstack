@@ -3,30 +3,28 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardOnboarding from "@/components/dashboard/DashboardOnboarding";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
-import { LoadingBlock, PageStack } from "@/components/dashboard/ui";
-import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
+import { PageStack } from "@/components/dashboard/ui";
+import { useDashboardProject, DEFAULT_FALLBACK_PROJECT } from "@/components/dashboard/useDashboardProject";
 
 export default function DashboardHomePage() {
-  const { project, dataForSeoConfigured, loading, updateDomain } =
+  const { project, dataForSeoConfigured, updateDomain } =
     useDashboardProject();
 
-  if (loading || !project) {
-    return (
-      <DashboardShell title="Dashboard" description="Your SEO command center">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
+  const activeProject = project || DEFAULT_FALLBACK_PROJECT;
 
   return (
     <DashboardShell
       title="Dashboard"
-      description={`Working on ${project.domain}`}
+      description={
+        activeProject.domain && activeProject.domain !== "example.com"
+          ? `Working on ${activeProject.domain}`
+          : "Your SEO command center"
+      }
     >
       <PageStack>
         <DataForSeoBanner configured={dataForSeoConfigured} />
         <DashboardOnboarding
-          project={project}
+          project={activeProject}
           onSaveDomain={async (domain) => {
             await updateDomain(domain);
           }}

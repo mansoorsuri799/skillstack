@@ -3,124 +3,117 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Activity,
   ArrowRight,
   BarChart3,
-  Bot,
-  BrainCircuit,
   CheckCircle2,
   ChevronRight,
-  Circle,
-  ClipboardCheck,
-  ExternalLink,
-  Flame,
+  CircleDot,
+  Compass,
+  Cpu,
+  FileCode2,
   Globe,
+  Layers,
   LineChart,
-  Link2,
   MessageSquare,
   Search,
   ShieldCheck,
-  Sparkles,
-  Target,
+  Terminal,
   TrendingUp,
   Zap,
 } from "lucide-react";
-import {
-  buttonGhostClass,
-  buttonPrimaryClass,
-  inputClass,
-} from "@/components/dashboard/ui";
+import { buttonPrimaryClass, buttonGhostClass } from "@/components/dashboard/ui";
 import type { DashboardProject } from "@/components/dashboard/useDashboardProject";
-import { loadUserPreferences } from "@/lib/dashboard/user-preferences";
 
 type StepId = "domain" | "gsc" | "audit" | "agent";
 
 const SETUP_STEPS: Array<{
   id: StepId;
-  badge: string;
+  stepNumber: string;
   title: string;
   description: string;
   icon: typeof Globe;
   cta: string;
   href?: string;
-  reward: string;
+  metric: string;
 }> = [
   {
     id: "domain",
-    badge: "Step 1 • Target",
-    title: "Configure Primary Domain",
-    description: "Anchor all automated crawling, backlinks graph, and SERP rankings to your project domain.",
+    stepNumber: "01",
+    title: "Domain Scope",
+    description: "Anchor all crawler operations, backlink topology, and keyword rankings to your primary target domain.",
     icon: Globe,
-    cta: "Save domain",
-    reward: "+25% Setup Complete",
+    cta: "Save Domain",
+    metric: "Target Anchor",
   },
   {
     id: "gsc",
-    badge: "Step 2 • Real-Time Traffic",
-    title: "Connect Google Search Console",
-    description: "Stream verified Google search clicks, impression anomalies, and query rankings automatically.",
+    stepNumber: "02",
+    title: "Search Console Telemetry",
+    description: "Stream verified Google search clicks, impression anomalies, and query rankings directly into your workspace.",
     icon: BarChart3,
     cta: "Connect GSC",
     href: "/dashboard/gsc",
-    reward: "Unlocks Live CTR Tracking",
+    metric: "Verified CTR Stream",
   },
   {
     id: "audit",
-    badge: "Step 3 • AI Diagnostics",
-    title: "Run Deep AI Site Audit",
-    description: "Scan robots.txt, JSON-LD Schemas, Core Web Vitals, and uncover root causes of missing #1 rankings.",
-    icon: ClipboardCheck,
-    cta: "Execute AI Audit",
+    stepNumber: "03",
+    title: "Technical & AEO Diagnostics",
+    description: "Evaluate robots.txt, Schema.org entities, Core Web Vitals, and uncover root causes of ranking volatility.",
+    icon: FileCode2,
+    cta: "Run Diagnostic",
     href: "/dashboard/audit",
-    reward: "Generates 30-Day Recovery Plan",
+    metric: "Crawl & Schema Analysis",
   },
   {
     id: "agent",
-    badge: "Step 4 • Assistant",
-    title: "Launch Suri AI SEO Agent",
-    description: "Ask your AI co-pilot to uncover competitor gaps, striking distance keywords, and next SEO moves.",
-    icon: Bot,
-    cta: "Chat with Suri",
+    stepNumber: "04",
+    title: "Suri SEO Intelligence",
+    description: "Multi-turn assistant equipped with project memory for keyword research, striking-distance queries, and ranking strategy.",
+    icon: MessageSquare,
+    cta: "Open Suri Console",
     href: "/dashboard/chat",
-    reward: "Activates AI SEO Strategy",
+    metric: "Contextual Strategy",
   },
 ];
 
-const CORE_MODULES = [
+const WORKBENCH_MODULES = [
   {
-    title: "Suri SEO Agent",
-    tag: "AI Co-pilot",
-    description: "Multi-turn conversational agent with real project memory for keyword ideas and traffic strategy.",
+    title: "Suri Intelligence Agent",
+    category: "Conversational Copilot",
+    description: "Query project memory, evaluate competitor keyword gaps, and generate actionable SEO steps in real time.",
     href: "/dashboard/chat",
-    icon: MessageSquare,
-    color: "from-accent/20 to-accent/5 text-accent border-accent/30",
-    cta: "Open Chat",
+    icon: Terminal,
+    status: "Ready",
+    actionLabel: "Launch Console",
   },
   {
-    title: "AI Site Audit",
-    tag: "AEO & GEO Health",
-    description: "Deep crawl evaluating Schema.org, robots.txt, Core Web Vitals, and Google algorithm risks.",
+    title: "AI Site Diagnostic",
+    category: "Technical & AEO Health",
+    description: "Automated site crawl verifying Schema.org JSON-LD, robots.txt directives, and algorithmic ranking factors.",
     href: "/dashboard/audit",
-    icon: ClipboardCheck,
-    color: "from-purple-500/20 to-purple-500/5 text-purple-400 border-purple-500/30",
-    cta: "Run Audit",
+    icon: Cpu,
+    status: "Active",
+    actionLabel: "Start Crawl",
   },
   {
-    title: "Search Console Insights",
-    tag: "Google OAuth",
-    description: "Real-time clicks, impressions, average CTR, and high-impression/low-CTR anomaly detection.",
+    title: "Search Console Telemetry",
+    category: "Google Search Data",
+    description: "Real-time query performance, CTR trend analysis, and high-impression striking distance detection.",
     href: "/dashboard/gsc",
-    icon: LineChart,
-    color: "from-blue-500/20 to-blue-500/5 text-blue-400 border-blue-500/30",
-    cta: "View Telemetry",
+    icon: Activity,
+    status: "OAuth 2.0",
+    actionLabel: "View Telemetry",
   },
   {
-    title: "Organic Keyword Explorer",
-    tag: "SERP Intelligence",
-    description: "Search volumes, keyword difficulty, CPC estimates, and top-ranking competitor pages.",
+    title: "Keyword & SERP Explorer",
+    category: "Market Intelligence",
+    description: "Search volumes, CPC metrics, keyword difficulty scores, and top ranking SERP competitor breakdowns.",
     href: "/dashboard/keywords",
-    icon: Search,
-    color: "from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/30",
-    cta: "Research Keywords",
+    icon: Compass,
+    status: "DataForSEO Labs",
+    actionLabel: "Explore Keywords",
   },
 ];
 
@@ -133,8 +126,6 @@ export default function DashboardOnboarding({
 }) {
   const [domainInput, setDomainInput] = useState(project.domain);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<StepId>("domain");
-  const [quickSearch, setQuickSearch] = useState("");
 
   useEffect(() => {
     setDomainInput(project.domain);
@@ -162,201 +153,222 @@ export default function DashboardOnboarding({
     setSaving(true);
     try {
       await onSaveDomain(domainInput.trim());
-      setActiveTab("gsc");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero Command Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-b from-[#161b22]/90 via-[#0d1117] to-[#010409] p-6 md:p-10 shadow-2xl">
-        {/* Subtle decorative background glow */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
-        <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-[#388bfd]/10 blur-3xl" />
-
-        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>SkillStack SEO Command Hub</span>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Platform Workspace Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-bg-elevated/90 p-5 sm:p-7 md:p-8 shadow-sm">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
+              <span className="flex h-2 w-2 rounded-full bg-accent" />
+              <span>Project Workspace</span>
+              <span className="text-white/20">•</span>
+              <span className="text-snow font-medium">{project.name || "Default Project"}</span>
             </div>
-            <h1 className="font-display text-2xl md:text-4xl font-bold tracking-tight text-snow">
+
+            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-snow">
               {hasCustomDomain ? (
                 <>
-                  Optimizing <span className="text-accent">{project.domain}</span>
+                  Project Scope: <span className="font-mono text-accent">{project.domain}</span>
                 </>
               ) : (
-                "Launch Your SEO Command Center"
+                "SEO Operations & Telemetry Console"
               )}
             </h1>
-            <p className="text-sm md:text-base text-ink-muted leading-relaxed">
-              Real-time Google search telemetry, AI audit diagnostics, AEO schema generators, and keyword intelligence unified into one workspace.
+
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
+              Unified workspace for search telemetry, algorithmic site diagnostics, structured AEO entities, and organic keyword intelligence.
             </p>
           </div>
 
-          {/* Live System Status Pill Box */}
-          <div className="flex flex-col gap-2 rounded-2xl border border-line/80 bg-bg/80 p-4 backdrop-blur-md min-w-[260px]">
-            <div className="flex items-center justify-between text-xs text-ink-muted pb-2 border-b border-white/[0.06]">
-              <span className="font-semibold text-snow">Hub Telemetry</span>
-              <span className="flex items-center gap-1.5 text-accent text-[11px] font-medium">
-                <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
-                Live Engine
+          {/* Technical Telemetry Metadata Panel */}
+          <div className="rounded-xl border border-line/80 bg-bg p-3.5 sm:p-4 font-mono text-xs w-full lg:w-72 shrink-0 space-y-2">
+            <div className="flex items-center justify-between border-b border-line/60 pb-2 text-[11px] text-ink-muted">
+              <span className="font-sans font-semibold text-snow">Workspace Status</span>
+              <span className="flex items-center gap-1.5 text-accent font-medium">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                ONLINE
               </span>
             </div>
-            <div className="space-y-2 pt-1 text-xs">
+
+            <div className="space-y-1.5 text-[11px]">
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted">Active Domain</span>
-                <span className="font-mono font-medium text-snow truncate max-w-[130px]">
-                  {hasCustomDomain ? project.domain : "Not set"}
+                <span className="text-ink-muted">DOMAIN</span>
+                <span className="text-snow truncate max-w-[140px]">
+                  {hasCustomDomain ? project.domain : "UNASSIGNED"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted">GSC Status</span>
-                <span className={`font-semibold ${gscConnected ? "text-emerald-400" : "text-amber-400"}`}>
-                  {gscConnected ? "Connected" : "Not linked"}
+                <span className="text-ink-muted">GSC LINK</span>
+                <span className={gscConnected ? "text-emerald-400 font-semibold" : "text-amber-400"}>
+                  {gscConnected ? "CONNECTED" : "UNLINKED"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted">Suri Agent</span>
-                <span className="text-accent font-medium">Ready</span>
+                <span className="text-ink-muted">AGENT</span>
+                <span className="text-snow font-medium">SURI V2.4</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Setup Progress Bar */}
-        <div className="mt-8 pt-6 border-t border-white/[0.06] space-y-3">
+        {/* Pipeline Readiness Progress Bar */}
+        <div className="mt-6 pt-5 border-t border-line/60 space-y-2.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-snow flex items-center gap-2">
+            <span className="font-medium text-snow flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-accent" />
-              Workspace Setup Readiness
+              Workspace Pipeline Status
             </span>
-            <span className="font-bold text-accent tabular-nums">{progressPercent}% Completed</span>
+            <span className="font-mono font-semibold text-accent tabular-nums">
+              {progressPercent}% CONFIGURED
+            </span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/5 p-[1px] border border-white/10">
+
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5 border border-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-accent via-accent-deep to-emerald-400 transition-all duration-700 ease-out shadow-sm"
+              className="h-full rounded-full bg-accent transition-all duration-500 ease-out"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* Interactive 4-Step Action Matrix */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {SETUP_STEPS.map((step, idx) => {
-          const isDone = completedMap[step.id];
-          const Icon = step.icon;
-          return (
-            <div
-              key={step.id}
-              className={`relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${
-                isDone
-                  ? "border-emerald-500/30 bg-emerald-500/[0.03] shadow-sm hover:border-emerald-500/50"
-                  : "border-line bg-bg-elevated/90 hover:border-accent/40 hover:bg-bg-elevated shadow-lg"
-              }`}
-            >
-              <div className="flex items-center justify-between pb-3">
-                <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
-                    isDone
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                      : "border-line bg-bg text-accent"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                </span>
-                {isDone ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
-                    <CheckCircle2 className="h-3 w-3" /> Done
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-ink-muted">
-                    {step.badge}
-                  </span>
-                )}
-              </div>
+      {/* 4-Step Operational Pipeline */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted">
+            Setup & Integration Pipeline
+          </h2>
+          <span className="text-xs text-ink-muted tabular-nums">
+            {completedCount} of {SETUP_STEPS.length} Steps Completed
+          </span>
+        </div>
 
-              <h3 className="font-display text-sm font-semibold text-snow mt-1">{step.title}</h3>
-              <p className="mt-1.5 text-xs text-ink-muted leading-relaxed min-h-[36px]">
-                {step.description}
-              </p>
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+          {SETUP_STEPS.map((step) => {
+            const isDone = completedMap[step.id];
+            const Icon = step.icon;
 
-              <div className="mt-4 pt-3 border-t border-white/[0.04]">
-                {step.id === "domain" && !isDone ? (
-                  <form onSubmit={handleSaveDomain} className="space-y-2">
-                    <input
-                      type="text"
-                      value={domainInput}
-                      onChange={(e) => setDomainInput(e.target.value)}
-                      placeholder="mysite.com"
-                      className="w-full rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none focus:border-accent"
-                      disabled={saving}
-                    />
-                    <button
-                      type="submit"
-                      disabled={saving || !domainInput.trim()}
-                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent py-1.5 text-xs font-semibold text-[#010409] hover:bg-accent-deep transition disabled:opacity-50"
-                    >
-                      {saving ? "Saving..." : "Save Domain"}
-                    </button>
-                  </form>
-                ) : step.href ? (
-                  <Link
-                    href={step.href}
-                    className={`w-full inline-flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                      isDone
-                        ? "bg-white/5 text-snow hover:bg-white/10"
-                        : "bg-accent text-[#010409] hover:bg-accent-deep shadow-md font-bold"
-                    }`}
-                  >
-                    <span>{step.cta}</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                ) : (
-                  <div className="flex items-center justify-between text-[11px] text-emerald-400 font-medium">
-                    <span>{step.reward}</span>
-                    <CheckCircle2 className="h-3.5 w-3.5" />
+            return (
+              <div
+                key={step.id}
+                className={`relative flex flex-col justify-between rounded-xl border p-4 sm:p-5 transition-all ${
+                  isDone
+                    ? "border-line bg-bg-elevated/40"
+                    : "border-line/90 bg-bg-elevated hover:border-accent/40"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-ink-muted">
+                      {step.stepNumber}
+                    </span>
+
+                    {isDone ? (
+                      <span className="inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-400">
+                        <CheckCircle2 className="h-3 w-3" /> CONFIGURED
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-ink-muted">
+                        PENDING
+                      </span>
+                    )}
                   </div>
-                )}
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon className="h-4 w-4 text-accent" />
+                      <h3 className="font-medium text-sm text-snow">{step.title}</h3>
+                    </div>
+                    <p className="text-xs text-ink-muted leading-relaxed min-h-[44px]">
+                      {step.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-line/60">
+                  {step.id === "domain" && !isDone ? (
+                    <form onSubmit={handleSaveDomain} className="space-y-2">
+                      <input
+                        type="text"
+                        value={domainInput}
+                        onChange={(e) => setDomainInput(e.target.value)}
+                        placeholder="yourdomain.com"
+                        className="w-full rounded-md border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none focus:border-accent"
+                        disabled={saving}
+                      />
+                      <button
+                        type="submit"
+                        disabled={saving || !domainInput.trim()}
+                        className="w-full inline-flex items-center justify-center rounded-md bg-accent py-1.5 text-xs font-semibold text-[#010409] hover:bg-accent-deep transition disabled:opacity-50"
+                      >
+                        {saving ? "Saving..." : "Set Domain"}
+                      </button>
+                    </form>
+                  ) : step.href ? (
+                    <Link
+                      href={step.href}
+                      className={`w-full inline-flex items-center justify-between rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                        isDone
+                          ? "border border-line bg-white/5 text-snow hover:bg-white/10"
+                          : "bg-accent text-[#010409] hover:bg-accent-deep font-semibold"
+                      }`}
+                    >
+                      <span>{step.cta}</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : (
+                    <div className="flex items-center justify-between text-[11px] font-mono text-emerald-400">
+                      <span>{step.metric}</span>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Core Power Modules Grid */}
-      <div className="space-y-4 pt-2">
+      {/* Operations Workbench */}
+      <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display text-lg font-bold text-snow">Core SEO & AI Engine Tools</h2>
-            <p className="text-xs text-ink-muted">Launch deep diagnostics, track rankings, or query intelligence.</p>
+            <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted">
+              Active SEO Operations Workbench
+            </h2>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {CORE_MODULES.map((mod, i) => {
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {WORKBENCH_MODULES.map((mod, i) => {
             const ModIcon = mod.icon;
             return (
               <Link
                 key={i}
                 href={mod.href}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-bg-elevated p-5 transition-all hover:border-accent/40 hover:bg-bg-elevated/80 shadow-md"
+                className="group relative flex flex-col justify-between rounded-xl border border-line bg-bg-elevated p-4 sm:p-5 transition hover:border-line/80 hover:bg-white/[0.02]"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className={`flex h-10 w-10 items-center justify-center rounded-xl border bg-gradient-to-br ${mod.color}`}>
-                      <ModIcon className="h-5 w-5" />
-                    </span>
-                    <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5 text-[10px] font-medium text-ink-muted">
-                      {mod.tag}
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-bg text-snow group-hover:text-accent transition-colors">
+                      <ModIcon className="h-4 w-4" />
+                    </div>
+                    <span className="font-mono text-[10px] text-ink-muted/80 uppercase">
+                      {mod.status}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="font-display text-base font-semibold text-snow group-hover:text-accent transition">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-accent/80 block mb-0.5">
+                      {mod.category}
+                    </span>
+                    <h3 className="font-medium text-sm text-snow group-hover:text-accent transition-colors">
                       {mod.title}
                     </h3>
                     <p className="mt-1.5 text-xs text-ink-muted leading-relaxed">
@@ -365,9 +377,9 @@ export default function DashboardOnboarding({
                   </div>
                 </div>
 
-                <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold text-accent pt-3 border-t border-white/[0.04] group-hover:translate-x-1 transition-transform">
-                  <span>{mod.cta}</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
+                <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-xs text-ink-muted group-hover:text-snow transition-colors">
+                  <span className="font-medium">{mod.actionLabel}</span>
+                  <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                 </div>
               </Link>
             );

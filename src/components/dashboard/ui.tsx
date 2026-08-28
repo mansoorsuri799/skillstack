@@ -19,14 +19,14 @@ export function DashboardCard({
   return (
     <section
       className={`overflow-hidden rounded-2xl border border-line bg-bg-elevated shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] ${
-        flush ? "" : "p-5 md:p-6"
+        flush ? "" : "p-4 sm:p-5 md:p-6"
       } ${className}`}
     >
       {title ? (
-        <div className={`${flush ? "border-b border-line px-5 py-4 md:px-6" : "mb-5"}`}>
-          <h2 className="font-display text-base font-semibold text-snow">{title}</h2>
+        <div className={`${flush ? "border-b border-line px-4 py-3.5 sm:px-5 sm:py-4 md:px-6" : "mb-4 sm:mb-5"}`}>
+          <h2 className="font-display text-sm sm:text-base font-semibold text-snow">{title}</h2>
           {description ? (
-            <p className="mt-1 text-sm text-ink-muted">{description}</p>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-ink-muted">{description}</p>
           ) : null}
         </div>
       ) : null}
@@ -51,14 +51,14 @@ export function ResultsPanel({
       className={`overflow-hidden rounded-2xl border border-line bg-bg-elevated shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] ${className}`}
     >
       {title ? (
-        <div className="border-b border-line bg-gradient-to-r from-accent/[0.05] to-transparent px-5 py-4 md:px-6">
-          <h2 className="font-display text-base font-semibold text-snow">{title}</h2>
+        <div className="border-b border-line bg-gradient-to-r from-accent/[0.05] to-transparent px-4 py-3 sm:px-5 sm:py-4 md:px-6">
+          <h2 className="font-display text-sm sm:text-base font-semibold text-snow">{title}</h2>
           {description ? (
-            <p className="mt-0.5 text-sm text-ink-muted">{description}</p>
+            <p className="mt-0.5 text-xs sm:text-sm text-ink-muted">{description}</p>
           ) : null}
         </div>
       ) : null}
-      <div className="p-5 md:p-6">{children}</div>
+      <div className="p-3.5 sm:p-5 md:p-6">{children}</div>
     </section>
   );
 }
@@ -72,7 +72,7 @@ export function MetricGrid({
 }) {
   return (
     <div
-      className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${className}`}
+      className={`grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4 ${className}`}
     >
       {children}
     </div>
@@ -101,39 +101,39 @@ export function MetricTile({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border p-5 transition-all ${
+      className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all ${
         featured
           ? "border-accent/30 bg-gradient-to-br from-accent/[0.08] to-transparent shadow-[0_0_30px_-10px_rgba(45,212,191,0.15)]"
           : "border-line bg-bg-elevated hover:border-line/80"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+        <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-ink-muted">
           {label}
         </p>
         {Icon ? (
           <span
-            className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+            className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl ${
               featured
                 ? "bg-accent/20 text-accent"
                 : "bg-white/5 text-ink-muted"
             }`}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </span>
         ) : null}
       </div>
 
-      <div className="mt-3 flex items-baseline gap-2">
+      <div className="mt-2 sm:mt-3 flex items-baseline gap-2">
         <span
-          className={`font-display text-2xl font-bold tracking-tight md:text-3xl ${
+          className={`font-display text-xl sm:text-2xl md:text-3xl font-bold tracking-tight ${
             featured ? "text-snow" : "text-snow"
           }`}
         >
           {displayValue}
         </span>
         {secondaryText ? (
-          <span className="text-xs text-ink-muted">{secondaryText}</span>
+          <span className="text-xs text-ink-muted truncate">{secondaryText}</span>
         ) : null}
       </div>
 
@@ -246,7 +246,7 @@ export function DataTable<T>({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-line bg-bg/30 px-6 py-12 text-center text-sm text-ink-muted">
+      <div className="rounded-xl border border-line bg-bg/30 px-4 py-10 text-center text-xs sm:text-sm text-ink-muted">
         {emptyMessage}
       </div>
     );
@@ -254,14 +254,14 @@ export function DataTable<T>({
 
   return (
     <div className="overflow-hidden rounded-xl border border-line">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm" style={{ minWidth }}>
+      <div className="overflow-x-auto scrollbar-thin">
+        <table className="w-full text-left text-xs sm:text-sm" style={{ minWidth }}>
           <thead>
             <tr className="border-b border-line bg-bg/80">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted ${col.className ?? ""}`}
+                  className={`px-3.5 py-2.5 sm:px-4 sm:py-3 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted ${col.className ?? ""}`}
                 >
                   {col.header}
                 </th>
@@ -275,7 +275,7 @@ export function DataTable<T>({
                 className="border-b border-line/50 transition hover:bg-white/[0.02] last:border-0"
               >
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-4 py-3.5 ${col.className ?? ""}`}>
+                  <td key={col.key} className={`px-3.5 py-3 sm:px-4 sm:py-3.5 ${col.className ?? ""}`}>
                     {col.cell(row)}
                   </td>
                 ))}
@@ -296,7 +296,7 @@ export function PageStack({
   className?: string;
 }) {
   return (
-    <div className={`mx-auto max-w-6xl space-y-6 ${className}`}>{children}</div>
+    <div className={`mx-auto max-w-6xl space-y-4 sm:space-y-6 ${className}`}>{children}</div>
   );
 }
 

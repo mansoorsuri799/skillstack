@@ -176,9 +176,9 @@ export default function InternalLinksPage() {
             description="Grouped by referring page with UR, metrics, and nested target links exactly like Ahrefs."
           >
             {/* Top Toolbar (Ahrefs header style) */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-bg-soft/70 px-4 py-3 md:px-5">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-sm font-semibold text-snow">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-bg-soft/70 px-3.5 py-3 md:px-5">
+              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+                <span className="text-xs sm:text-sm font-semibold text-snow">
                   {filteredGroups.length} groups of links
                 </span>
 
@@ -194,7 +194,7 @@ export default function InternalLinksPage() {
                   </select>
                 </div>
 
-                <div className="relative min-w-[200px] max-w-xs">
+                <div className="relative w-full sm:w-auto sm:min-w-[200px] max-w-xs flex-1">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted" />
                   <input
                     type="text"

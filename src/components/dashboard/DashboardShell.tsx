@@ -15,18 +15,20 @@ export default function DashboardShell({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-bg-soft md:rounded-tl-2xl md:border-l md:border-t md:border-line">
-      <header className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-4 md:px-6">
-        <DashboardMobileToggle />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-xl font-semibold text-snow">{title}</h1>
-          {description ? (
-            <p className="mt-0.5 text-sm text-ink-muted">{description}</p>
-          ) : null}
+    <div className="flex min-h-0 flex-1 flex-col bg-bg-soft md:rounded-tl-2xl md:border-l md:border-t md:border-line overflow-hidden">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-3.5 py-3 sm:px-6 sm:py-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <DashboardMobileToggle />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-lg font-semibold text-snow truncate sm:text-xl">{title}</h1>
+            {description ? (
+              <p className="mt-0.5 text-xs text-ink-muted truncate sm:text-sm">{description}</p>
+            ) : null}
+          </div>
         </div>
-        {actions ? <div className="shrink-0">{actions}</div> : null}
+        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </header>
-      <main className="flex-1 overflow-y-auto px-4 py-5 md:px-6">{children}</main>
+      <main className="flex-1 overflow-y-auto overscroll-contain px-3.5 py-4 sm:px-6 sm:py-5">{children}</main>
     </div>
   );
 }

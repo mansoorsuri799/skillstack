@@ -7,16 +7,7 @@ import { LoadingBlock, PageStack } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
 
 export default function BacklinksPage() {
-  const { project, dataForSeoConfigured, loading: projectLoading } =
-    useDashboardProject();
-
-  if (projectLoading) {
-    return (
-      <DashboardShell title="Backlinks">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
+  const { project, dataForSeoConfigured } = useDashboardProject();
 
   return (
     <DashboardShell

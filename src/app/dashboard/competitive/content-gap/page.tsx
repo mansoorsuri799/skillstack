@@ -69,14 +69,6 @@ export default function ContentGapPage() {
   const totalVolume =
     data?.keywords.reduce((sum, row) => sum + (row.searchVolume ?? 0), 0) ?? null;
 
-  if (projectLoading) {
-    return (
-      <DashboardShell title="Content gap">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   return (
     <DashboardShell
       title="Content gap"

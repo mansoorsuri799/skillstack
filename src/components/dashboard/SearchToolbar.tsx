@@ -15,13 +15,13 @@ export function SearchPanel({
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-bg-elevated shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]">
-      <div className="border-b border-line bg-gradient-to-r from-accent/[0.06] to-transparent px-5 py-4 md:px-6">
+      <div className="border-b border-line bg-gradient-to-r from-accent/[0.06] to-transparent px-4 py-3 sm:px-5 sm:py-4 md:px-6">
         <h2 className="font-display text-sm font-semibold text-snow">{title}</h2>
         {description ? (
-          <p className="mt-0.5 text-sm text-ink-muted">{description}</p>
+          <p className="mt-0.5 text-xs sm:text-sm text-ink-muted">{description}</p>
         ) : null}
       </div>
-      <div className="p-5 md:p-6">{children}</div>
+      <div className="p-4 sm:p-5 md:p-6">{children}</div>
     </section>
   );
 }
@@ -169,7 +169,7 @@ export function TabBar<T extends string>({
 }) {
   return (
     <div
-      className={`flex gap-1 overflow-x-auto border-b border-line pb-px scrollbar-none ${className}`}
+      className={`flex gap-1 overflow-x-auto border-b border-line pb-px scrollbar-none touch-pan-x ${className}`}
     >
       {tabs.map((tab) => {
         const isActive = active === tab.id;
@@ -178,20 +178,20 @@ export function TabBar<T extends string>({
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className={`relative shrink-0 px-4 py-2.5 text-sm font-medium transition ${
+            className={`relative shrink-0 px-3 py-2 text-xs font-medium transition sm:px-4 sm:py-2.5 sm:text-sm ${
               isActive
                 ? "text-accent"
                 : "text-ink-muted hover:text-snow"
             }`}
           >
             {isActive ? (
-              <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-accent" />
+              <span className="absolute inset-x-1.5 bottom-0 h-0.5 rounded-full bg-accent sm:inset-x-2" />
             ) : null}
-            <span className="flex items-center gap-2">
-              {tab.label}
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <span>{tab.label}</span>
               {tab.count != null ? (
                 <span
-                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                  className={`rounded-full px-1.5 py-0.2 text-[9px] font-semibold sm:text-[10px] sm:py-0.5 ${
                     isActive ? "bg-accent/15 text-accent" : "bg-white/5 text-ink-muted"
                   }`}
                 >

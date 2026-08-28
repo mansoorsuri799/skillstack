@@ -89,14 +89,6 @@ export default function DomainPage() {
     return sortDomainKeywords(overview.topKeywords, sortBy);
   }, [overview, sortBy]);
 
-  if (projectLoading) {
-    return (
-      <DashboardShell title="Domain Overview">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   return (
     <DashboardShell
       title="Domain Overview"

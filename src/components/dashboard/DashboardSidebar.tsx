@@ -83,6 +83,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      prefetch={true}
       data-nav-active={active ? "true" : undefined}
       onClick={onNavigate}
       className={`relative flex items-center gap-2.5 rounded-md py-1.5 text-sm transition-colors ${
@@ -445,6 +446,7 @@ function ChatSidebarList({
     <div className="space-y-3">
       <Link
         href="/dashboard/chat"
+        prefetch={true}
         onClick={onNavigate}
         className="flex w-full items-center gap-2 rounded-lg border border-line/70 bg-white/5 px-3 py-2 text-xs font-semibold text-snow transition hover:border-accent/40 hover:bg-white/10 hover:text-white"
       >
@@ -469,6 +471,7 @@ function ChatSidebarList({
               >
                 <Link
                   href={`/dashboard/chat?id=${c.id}`}
+                  prefetch={true}
                   onClick={onNavigate}
                   className="flex-1 truncate pr-2"
                 >
@@ -535,6 +538,7 @@ function DashboardSidebarNav({
       <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-xs">
         <Link
           href="/dashboard"
+          prefetch={true}
           onClick={onNavigate}
           className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition ${
             !isChat
@@ -547,6 +551,7 @@ function DashboardSidebarNav({
         </Link>
         <Link
           href="/dashboard/chat"
+          prefetch={true}
           onClick={onNavigate}
           className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition ${
             isChat
@@ -611,7 +616,7 @@ function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <aside className="flex h-full w-60 shrink-0 flex-col border-r border-line bg-bg-soft">
+      <aside className="flex h-full w-full shrink-0 flex-col border-r border-line bg-bg-soft md:w-60">
         <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-4">
           <Logo size="sm" href="/dashboard" />
           {onNavigate ? (
@@ -719,14 +724,14 @@ export default function DashboardSidebar() {
         <SidebarPanel />
       </div>
       {open ? (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 flex md:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
             onClick={closeMenu}
             aria-label="Close overlay"
           />
-          <div className="relative h-full w-60">
+          <div className="relative z-10 h-full w-72 max-w-[85vw] shadow-2xl transition-transform animate-in slide-in-from-left duration-200">
             <SidebarPanel onNavigate={closeMenu} />
           </div>
         </div>
@@ -742,10 +747,10 @@ export function DashboardMobileToggle() {
     <button
       type="button"
       onClick={openMenu}
-      className="rounded-md border border-line p-2 text-ink md:hidden"
-      aria-label="Open menu"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-bg-elevated text-snow hover:border-accent/40 hover:bg-white/5 active:scale-95 transition md:hidden"
+      aria-label="Open navigation menu"
     >
-      <Menu className="h-5 w-5" />
+      <Menu className="h-4 w-4" />
     </button>
   );
 }

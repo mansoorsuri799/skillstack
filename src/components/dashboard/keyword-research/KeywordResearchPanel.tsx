@@ -902,7 +902,7 @@ export function KeywordResearchPanel({
                   <SlidersHorizontal className="h-4 w-4" /> Filters
                 </button>
                 {showTableFilters ? (
-                  <div className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-64 rounded-xl border border-line bg-bg-elevated p-4 shadow-2xl">
+                  <div className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-64 max-w-[calc(100vw-32px)] rounded-xl border border-line bg-bg-elevated p-4 shadow-2xl">
                     <label className="block text-xs font-medium text-ink-muted">
                       Min volume
                       <input

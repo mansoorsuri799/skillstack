@@ -105,6 +105,3 @@ export async function runSuriAgentReply(
     };
   }
 }
-
-// Backward compatibility alias
-export const runSamAgentReply = runSuriAgentReply;

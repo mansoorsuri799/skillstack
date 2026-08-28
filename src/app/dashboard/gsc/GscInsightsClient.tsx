@@ -163,14 +163,6 @@ export default function GscInsightsClient() {
     }
   }
 
-  if (projectLoading) {
-    return (
-      <DashboardShell title="GSC Insights">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   const showConnect =
     !project?.gscConnected && !connected && pendingSites.length === 0;
   const showPropertyPicker = pendingSites.length > 0;

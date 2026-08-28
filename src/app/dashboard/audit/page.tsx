@@ -19,7 +19,6 @@ import {
   Search,
   Shield,
   ShieldAlert,
-  Sparkles,
   TrendingUp,
   Zap,
 } from "lucide-react";
@@ -179,7 +178,7 @@ export default function SiteAuditPage() {
                 onClick={() => void runAudit()}
                 className={buttonPrimaryClass}
               >
-                <Sparkles className="h-4 w-4" /> Run AI Audit for {domainInput || "your domain"}
+                <Search className="h-4 w-4" /> Run Deep Audit for {domainInput || "your domain"}
               </button>
             }
           />
@@ -188,64 +187,64 @@ export default function SiteAuditPage() {
         {report && !loading ? (
           <>
             {/* Top Score Cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/[0.12] to-transparent p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/[0.12] to-transparent p-3.5 sm:p-5">
+                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
                   Overall Health Score
                 </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="font-display text-4xl font-bold text-snow">
+                <div className="mt-1.5 sm:mt-2 flex items-baseline gap-1.5 sm:gap-2">
+                  <span className="font-display text-2xl sm:text-4xl font-bold text-snow">
                     {report.overallScore}
                   </span>
-                  <span className="text-sm font-medium text-ink-muted">/ 100</span>
+                  <span className="text-xs sm:text-sm font-medium text-ink-muted">/ 100</span>
                 </div>
-                <p className="mt-2 text-xs text-ink-muted">
-                  {report.overallScore >= 75 ? "Healthy foundation" : "Requires high-priority fixes"}
+                <p className="mt-1 sm:mt-2 text-[11px] sm:text-xs text-ink-muted truncate">
+                  {report.overallScore >= 75 ? "Healthy foundation" : "High-priority fixes"}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-line bg-bg-elevated p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+              <div className="rounded-2xl border border-line bg-bg-elevated p-3.5 sm:p-5">
+                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                   AEO & GEO Readiness
                 </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="font-display text-3xl font-bold text-snow">
+                <div className="mt-1.5 sm:mt-2 flex items-baseline gap-2">
+                  <span className="font-display text-2xl sm:text-3xl font-bold text-snow">
                     {report.aeoGeoScore}%
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-ink-muted">AI search & citation visibility</p>
+                <p className="mt-1 sm:mt-2 text-[11px] sm:text-xs text-ink-muted truncate">AI search visibility</p>
               </div>
 
-              <div className="rounded-2xl border border-line bg-bg-elevated p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+              <div className="rounded-2xl border border-line bg-bg-elevated p-3.5 sm:p-5">
+                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                   SEO & Crawl Health
                 </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="font-display text-3xl font-bold text-snow">
+                <div className="mt-1.5 sm:mt-2 flex items-baseline gap-2">
+                  <span className="font-display text-2xl sm:text-3xl font-bold text-snow">
                     {report.seoHealthScore}%
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-ink-muted">Indexation & on-page signals</p>
+                <p className="mt-1 sm:mt-2 text-[11px] sm:text-xs text-ink-muted truncate">Indexation & signals</p>
               </div>
 
-              <div className="rounded-2xl border border-line bg-bg-elevated p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+              <div className="rounded-2xl border border-line bg-bg-elevated p-3.5 sm:p-5">
+                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                   Security Grade
                 </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="font-display text-3xl font-bold text-snow">
+                <div className="mt-1.5 sm:mt-2 flex items-baseline gap-2">
+                  <span className="font-display text-2xl sm:text-3xl font-bold text-snow">
                     {report.technicalSecurityScore >= 90 ? "A+" : report.technicalSecurityScore >= 75 ? "B" : "C-"}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-ink-muted">HTTP headers & transport security</p>
+                <p className="mt-1 sm:mt-2 text-[11px] sm:text-xs text-ink-muted truncate">HTTP headers & SSL</p>
               </div>
             </div>
 
-            {/* AI Executive Summary Banner */}
-            <div className="rounded-2xl border border-accent/20 bg-accent/[0.04] p-5 md:p-6 space-y-3">
-              <div className="flex items-center gap-2 text-accent font-semibold text-sm">
-                <Sparkles className="h-4 w-4" />
-                AI Executive Summary & Diagnosis for {report.domain}
+            {/* Executive Summary Banner */}
+            <div className="rounded-2xl border border-line bg-bg-elevated p-5 md:p-6 space-y-3">
+              <div className="flex items-center gap-2 text-accent font-mono text-xs uppercase tracking-wider">
+                <BrainCircuit className="h-4 w-4" />
+                Diagnostic Summary & Root Causes for {report.domain}
               </div>
               <h3 className="font-display text-lg font-semibold text-snow">
                 {report.executiveSummary.headline}

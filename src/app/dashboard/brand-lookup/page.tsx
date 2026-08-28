@@ -72,14 +72,6 @@ export default function BrandLookupPage() {
     }
   }
 
-  if (projectLoading) {
-    return (
-      <DashboardShell title="Brand Lookup">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   const limitReached = Boolean(usage && !usage.unlimited && usage.remaining === 0);
 
   const lookupForm =

@@ -68,10 +68,18 @@ export function ToolbarMenu({
     function updatePosition() {
       if (!buttonRef.current) return;
       const rect = buttonRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const defaultMenuWidth = hasRichOptions ? 280 : 160;
+      const calculatedWidth = menuMinWidth
+        ? parseInt(menuMinWidth, 10) * 16 || defaultMenuWidth
+        : defaultMenuWidth;
+      const finalMenuWidth = Math.min(viewportWidth - 24, Math.max(rect.width, calculatedWidth));
+      const left = Math.max(12, Math.min(rect.left, viewportWidth - finalMenuWidth - 12));
+
       setMenuPosition({
         top: rect.bottom + 6,
-        left: rect.left,
-        width: rect.width,
+        left,
+        width: Math.min(rect.width, viewportWidth - 24),
       });
     }
 
@@ -111,6 +119,7 @@ export function ToolbarMenu({
           left: menuPosition.left,
           width: menuPosition.width,
           minWidth: menuMinWidth ?? (hasRichOptions ? "17.5rem" : minWidth),
+          maxWidth: "calc(100vw - 24px)",
           zIndex: 120,
         }}
         className="max-h-80 overflow-hidden rounded-xl border border-line bg-bg-elevated shadow-2xl"

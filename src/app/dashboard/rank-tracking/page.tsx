@@ -245,14 +245,6 @@ export default function RankTrackingPage() {
     }
   }
 
-  if (projectLoading) {
-    return (
-      <DashboardShell title="Rank Tracking">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   const activeDetail = detail && selectedId ? detail : null;
 
   return (
@@ -284,23 +276,23 @@ export default function RankTrackingPage() {
               flush
               className="overflow-hidden"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 md:px-6">
-                <p className="text-sm text-ink-muted">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line px-4 py-3 sm:px-5 sm:py-4 md:px-6">
+                <p className="text-xs sm:text-sm text-ink-muted">
                   Add a domain to discover keywords it ranks for and start tracking.
                 </p>
                 {domains.length > 0 ? (
-                  <button type="button" onClick={() => setAddOpen(true)} className={buttonPrimaryClass}>
+                  <button type="button" onClick={() => setAddOpen(true)} className={`${buttonPrimaryClass} !py-1.5 !px-3 text-xs`}>
                     <Plus className="h-4 w-4" /> Add Domain
                   </button>
                 ) : null}
               </div>
 
               {loading ? (
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <LoadingBlock label="Loading tracked domains..." />
                 </div>
               ) : domains.length === 0 ? (
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <EmptyBlock
                     icon={TrendingUp}
                     title="No tracked domains yet"
@@ -315,7 +307,7 @@ export default function RankTrackingPage() {
               ) : (
                 <ul className="divide-y divide-line/60">
                   {domains.map((row) => (
-                    <li key={row.id} className="flex items-center gap-3 px-5 py-4 md:px-6">
+                    <li key={row.id} className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4 md:px-6">
                       <button
                         type="button"
                         onClick={() => setSelectedId(row.id)}

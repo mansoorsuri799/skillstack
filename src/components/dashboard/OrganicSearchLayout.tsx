@@ -28,7 +28,7 @@ export function OrganicSearchLayout({
   loading,
   error,
   dataForSeoConfigured,
-  projectLoading,
+  projectLoading: _projectLoading,
   onAnalyze,
   showLocation = true,
   showScope = true,
@@ -46,20 +46,12 @@ export function OrganicSearchLayout({
   loading: boolean;
   error: string;
   dataForSeoConfigured: boolean;
-  projectLoading: boolean;
+  projectLoading?: boolean;
   onAnalyze: () => void;
   showLocation?: boolean;
   showScope?: boolean;
   children: ReactNode;
 }) {
-  if (projectLoading) {
-    return (
-      <DashboardShell title={title}>
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   return (
     <DashboardShell title={title} description={description}>
       <PageStack>

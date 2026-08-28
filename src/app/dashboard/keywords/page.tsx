@@ -182,14 +182,6 @@ export default function KeywordsPage() {
     setMessage(`Saved "${row.keyword}"`);
   }
 
-  if (projectLoading || !sessionReady) {
-    return (
-      <DashboardShell title="Keyword Research">
-        <LoadingBlock />
-      </DashboardShell>
-    );
-  }
-
   return (
     <DashboardShell
       title="Keyword Research"
