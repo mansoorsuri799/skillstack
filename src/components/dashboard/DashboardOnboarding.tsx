@@ -2,19 +2,27 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
   BarChart3,
   Bot,
-  Check,
-  ChevronLeft,
+  BrainCircuit,
+  CheckCircle2,
   ChevronRight,
+  Circle,
   ClipboardCheck,
+  ExternalLink,
+  Flame,
   Globe,
+  LineChart,
   Link2,
+  MessageSquare,
+  Search,
+  ShieldCheck,
   Sparkles,
   Target,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
 import {
   buttonGhostClass,
@@ -24,125 +32,97 @@ import {
 import type { DashboardProject } from "@/components/dashboard/useDashboardProject";
 import { loadUserPreferences } from "@/lib/dashboard/user-preferences";
 
-type StepId = "domain" | "mcp" | "gsc" | "competitor";
+type StepId = "domain" | "gsc" | "audit" | "agent";
 
-const STEPS: Array<{
+const SETUP_STEPS: Array<{
   id: StepId;
-  label: string;
+  badge: string;
   title: string;
-  body: string;
+  description: string;
+  icon: typeof Globe;
   cta: string;
   href?: string;
-  icon: typeof Globe;
+  reward: string;
 }> = [
   {
     id: "domain",
-    label: "Domain",
-    title: "What site are you working on?",
-    body: "Set your project domain so backlinks, audits, and rank tracking target the right site.",
-    cta: "Save domain",
+    badge: "Step 1 • Target",
+    title: "Configure Primary Domain",
+    description: "Anchor all automated crawling, backlinks graph, and SERP rankings to your project domain.",
     icon: Globe,
-  },
-  {
-    id: "mcp",
-    label: "AI agent",
-    title: "Connect your AI agent",
-    body: "Generate an API key so Claude, Cursor, or Codex can run keyword research, audits, and rank checks.",
-    cta: "Set up AI & MCP",
-    href: "/dashboard/connect",
-    icon: Bot,
+    cta: "Save domain",
+    reward: "+25% Setup Complete",
   },
   {
     id: "gsc",
-    label: "Search Console",
-    title: "Connect Search Console",
-    body: "Pull real queries, clicks, and landing-page performance straight from Google.",
+    badge: "Step 2 • Real-Time Traffic",
+    title: "Connect Google Search Console",
+    description: "Stream verified Google search clicks, impression anomalies, and query rankings automatically.",
+    icon: BarChart3,
     cta: "Connect GSC",
     href: "/dashboard/gsc",
-    icon: BarChart3,
+    reward: "Unlocks Live CTR Tracking",
   },
   {
-    id: "competitor",
-    label: "Competitor",
-    title: "Size up a competitor",
-    body: "Research any domain to see what they rank for, who links to them, and where traffic comes from.",
-    cta: "Open domain lookup",
-    href: "/dashboard/domain",
-    icon: Target,
+    id: "audit",
+    badge: "Step 3 • AI Diagnostics",
+    title: "Run Deep AI Site Audit",
+    description: "Scan robots.txt, JSON-LD Schemas, Core Web Vitals, and uncover root causes of missing #1 rankings.",
+    icon: ClipboardCheck,
+    cta: "Execute AI Audit",
+    href: "/dashboard/audit",
+    reward: "Generates 30-Day Recovery Plan",
+  },
+  {
+    id: "agent",
+    badge: "Step 4 • Assistant",
+    title: "Launch Suri AI SEO Agent",
+    description: "Ask your AI co-pilot to uncover competitor gaps, striking distance keywords, and next SEO moves.",
+    icon: Bot,
+    cta: "Chat with Suri",
+    href: "/dashboard/chat",
+    reward: "Activates AI SEO Strategy",
   },
 ];
 
-const QUICK_ACTIONS = [
+const CORE_MODULES = [
   {
-    title: "Google Search Console",
-    description: "Real queries & clicks from Google",
-    href: "/dashboard/gsc",
-    icon: BarChart3,
-    cta: "Connect with Google",
-    status: (p: DashboardProject) =>
-      p.gscConnected ? ("connected" as const) : ("pending" as const),
-    primary: true,
+    title: "Suri SEO Agent",
+    tag: "AI Co-pilot",
+    description: "Multi-turn conversational agent with real project memory for keyword ideas and traffic strategy.",
+    href: "/dashboard/chat",
+    icon: MessageSquare,
+    color: "from-accent/20 to-accent/5 text-accent border-accent/30",
+    cta: "Open Chat",
   },
   {
-    title: "Site Audit",
-    description: "Lighthouse crawl for SEO issues",
+    title: "AI Site Audit",
+    tag: "AEO & GEO Health",
+    description: "Deep crawl evaluating Schema.org, robots.txt, Core Web Vitals, and Google algorithm risks.",
     href: "/dashboard/audit",
     icon: ClipboardCheck,
-    cta: "Run an audit",
-    status: () => "ready" as const,
-    primary: true,
+    color: "from-purple-500/20 to-purple-500/5 text-purple-400 border-purple-500/30",
+    cta: "Run Audit",
   },
   {
-    title: "Backlink pulse",
-    description: "Referring domains & link profile",
-    href: "/dashboard/backlinks",
-    icon: Link2,
-    cta: "View backlinks",
-    status: () => "ready" as const,
-    primary: false,
+    title: "Search Console Insights",
+    tag: "Google OAuth",
+    description: "Real-time clicks, impressions, average CTR, and high-impression/low-CTR anomaly detection.",
+    href: "/dashboard/gsc",
+    icon: LineChart,
+    color: "from-blue-500/20 to-blue-500/5 text-blue-400 border-blue-500/30",
+    cta: "View Telemetry",
   },
   {
-    title: "AI & MCP",
-    description: "Automate SEO from your editor",
-    href: "/dashboard/connect",
-    icon: Bot,
-    cta: "Set up MCP",
-    status: (p: DashboardProject) =>
-      p.mcpConnected ? ("connected" as const) : ("pending" as const),
-    primary: false,
+    title: "Organic Keyword Explorer",
+    tag: "SERP Intelligence",
+    description: "Search volumes, keyword difficulty, CPC estimates, and top-ranking competitor pages.",
+    href: "/dashboard/keywords",
+    icon: Search,
+    color: "from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/30",
+    cta: "Research Keywords",
   },
-] as const;
-
-function stepComplete(
-  id: StepId,
-  project: DashboardProject,
-  competitorDone: boolean,
-) {
-  if (id === "domain") return project.domain !== "example.com";
-  if (id === "mcp") return project.mcpConnected;
-  if (id === "gsc") return project.gscConnected;
-  if (id === "competitor") return competitorDone;
-  return false;
-}
-
-function StatusPill({ status }: { status: "connected" | "pending" | "ready" }) {
-  const styles = {
-    connected: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-    pending: "border-amber-500/30 bg-amber-500/10 text-amber-200",
-    ready: "border-line bg-white/5 text-ink-muted",
-  }[status];
-  const label =
-    status === "connected" ? "Connected" : status === "pending" ? "Not connected" : "Ready";
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${styles}`}
-    >
-      {status === "connected" ? <Check className="h-3 w-3" /> : null}
-      {label}
-    </span>
-  );
-}
+];
 
 export default function DashboardOnboarding({
   project,
@@ -151,369 +131,247 @@ export default function DashboardOnboarding({
   project: DashboardProject;
   onSaveDomain: (domain: string) => Promise<void>;
 }) {
-  const [stepIndex, setStepIndex] = useState(0);
-  const [domain, setDomain] = useState(project.domain);
+  const [domainInput, setDomainInput] = useState(project.domain);
   const [saving, setSaving] = useState(false);
-  const [competitorDone, setCompetitorDone] = useState(false);
-  const [setupDismissed, setSetupDismissed] = useState(false);
+  const [activeTab, setActiveTab] = useState<StepId>("domain");
+  const [quickSearch, setQuickSearch] = useState("");
 
   useEffect(() => {
-    setDomain(project.domain);
+    setDomainInput(project.domain);
   }, [project.domain]);
 
-  useEffect(() => {
-    setCompetitorDone(false);
-    void loadUserPreferences().then((prefs) => {
-      if (prefs?.onboardingCompetitorDone) {
-        setCompetitorDone(true);
-        return;
-      }
-      if (localStorage.getItem("ss-competitor-done") === "1") {
-        setCompetitorDone(true);
-        void fetch("/api/dashboard/preferences", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ onboardingCompetitorDone: true }),
-        });
-      }
-    });
-  }, []);
+  const hasCustomDomain = project.domain && project.domain !== "example.com";
+  const gscConnected = Boolean(project.gscConnected);
 
-  const doneCount = STEPS.filter((s) =>
-    stepComplete(s.id, project, competitorDone),
-  ).length;
-  const progress = Math.round((doneCount / STEPS.length) * 100);
-  const allComplete = doneCount === STEPS.length;
+  const completedMap: Record<StepId, boolean> = useMemo(
+    () => ({
+      domain: Boolean(hasCustomDomain),
+      gsc: gscConnected,
+      audit: Boolean(hasCustomDomain),
+      agent: true,
+    }),
+    [hasCustomDomain, gscConnected],
+  );
 
-  const nextIncomplete = useMemo(() => {
-    const idx = STEPS.findIndex(
-      (s) => !stepComplete(s.id, project, competitorDone),
-    );
-    return idx === -1 ? 0 : idx;
-  }, [project, competitorDone]);
+  const completedCount = Object.values(completedMap).filter(Boolean).length;
+  const progressPercent = Math.round((completedCount / SETUP_STEPS.length) * 100);
 
-  useEffect(() => {
-    if (!allComplete) setStepIndex(nextIncomplete);
-  }, [nextIncomplete, allComplete]);
-
-  const current = STEPS[Math.min(stepIndex, STEPS.length - 1)]!;
-  const StepIcon = current.icon;
-
-  async function saveDomain() {
+  async function handleSaveDomain(e: React.FormEvent) {
+    e.preventDefault();
+    if (!domainInput.trim()) return;
     setSaving(true);
     try {
-      await onSaveDomain(domain);
-      setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+      await onSaveDomain(domainInput.trim());
+      setActiveTab("gsc");
     } finally {
       setSaving(false);
     }
   }
 
-  function markCompetitorDone() {
-    localStorage.setItem("ss-competitor-done", "1");
-    setCompetitorDone(true);
-    void fetch("/api/dashboard/preferences", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ onboardingCompetitorDone: true }),
-    });
-  }
-
   return (
     <div className="space-y-8">
-      {allComplete && setupDismissed ? (
-        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-semibold text-snow">Setup complete</p>
-              <p className="text-sm text-ink-muted">
-                Your workspace is ready for {project.domain}.
-              </p>
+      {/* Hero Command Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-b from-[#161b22]/90 via-[#0d1117] to-[#010409] p-6 md:p-10 shadow-2xl">
+        {/* Subtle decorative background glow */}
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-[#388bfd]/10 blur-3xl" />
+
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>SkillStack SEO Command Hub</span>
             </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSetupDismissed(false)}
-            className={buttonGhostClass}
-          >
-            Show setup guide
-          </button>
-        </div>
-      ) : (
-        <section className="overflow-hidden rounded-2xl border border-line bg-bg-elevated shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]">
-          {/* Progress header */}
-          <div className="relative border-b border-line bg-gradient-to-br from-accent/[0.07] via-transparent to-transparent px-5 py-5 md:px-8 md:py-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
-                  Workspace setup
-                </p>
-                <h2 className="mt-1.5 font-display text-xl font-semibold text-snow md:text-2xl">
-                  {allComplete ? "You're all set" : "Finish setting up your SEO hub"}
-                </h2>
-                <p className="mt-1 text-sm text-ink-muted">
-                  {allComplete
-                    ? "Every integration is connected. Jump into any tool below."
-                    : `${STEPS.length - doneCount} step${STEPS.length - doneCount === 1 ? "" : "s"} left — about 2 minutes.`}
-                </p>
-              </div>
-              <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                <span className="font-display text-3xl font-semibold tabular-nums text-accent">
-                  {doneCount}
-                  <span className="text-lg text-ink-muted">/{STEPS.length}</span>
-                </span>
-                {allComplete ? (
-                  <button
-                    type="button"
-                    onClick={() => setSetupDismissed(true)}
-                    className={buttonGhostClass}
-                  >
-                    Dismiss
-                  </button>
-                ) : null}
-              </div>
-            </div>
-            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-line">
-              <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-accent to-accent-deep"
-                initial={false}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-              />
-            </div>
-          </div>
-
-          {/* Step rail */}
-          <div className="scrollbar-none flex overflow-x-auto border-b border-line">
-            {STEPS.map((step, i) => {
-              const done = stepComplete(step.id, project, competitorDone);
-              const active = i === stepIndex;
-              const Icon = step.icon;
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => setStepIndex(i)}
-                  className={`group relative flex min-w-[7.5rem] flex-1 flex-col items-start gap-2 border-r border-line px-4 py-4 text-left transition last:border-r-0 md:min-w-0 md:px-5 ${
-                    active
-                      ? "bg-white/[0.03]"
-                      : "hover:bg-white/[0.02]"
-                  }`}
-                >
-                  {active ? (
-                    <span className="absolute inset-x-0 top-0 h-0.5 bg-accent" />
-                  ) : null}
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                      done
-                        ? "bg-accent text-bg"
-                        : active
-                          ? "bg-accent/15 text-accent"
-                          : "bg-bg text-ink-muted group-hover:text-ink"
-                    }`}
-                  >
-                    {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                  </span>
-                  <span
-                    className={`text-xs font-medium ${
-                      active ? "text-snow" : done ? "text-ink" : "text-ink-muted"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active step panel */}
-          <div className="px-5 py-6 md:px-8 md:py-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={current.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col gap-6 lg:flex-row lg:items-start"
-              >
-                <div className="hidden shrink-0 lg:flex">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/20 bg-accent/10">
-                    <StepIcon className="h-7 w-7 text-accent" />
-                  </div>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-md bg-bg px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink-muted">
-                      Step {stepIndex + 1}
-                    </span>
-                    {stepComplete(current.id, project, competitorDone) ? (
-                      <StatusPill status="connected" />
-                    ) : null}
-                  </div>
-                  <h3 className="mt-3 font-display text-lg font-semibold text-snow md:text-xl">
-                    {current.title}
-                  </h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
-                    {current.body}
-                  </p>
-
-                  <div className="mt-6">
-                    {current.id === "domain" ? (
-                      <form
-                        className="flex max-w-xl flex-col gap-3 sm:flex-row"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          void saveDomain();
-                        }}
-                      >
-                        <div className="relative min-w-0 flex-1">
-                          <Globe className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-                          <input
-                            className={`${inputClass} pl-9`}
-                            value={domain}
-                            onChange={(e) => setDomain(e.target.value)}
-                            placeholder="yourdomain.com"
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          disabled={saving}
-                          className={buttonPrimaryClass}
-                        >
-                          {saving ? "Saving..." : current.cta}
-                        </button>
-                      </form>
-                    ) : current.href ? (
-                      <Link
-                        href={current.href}
-                        className={buttonPrimaryClass}
-                        onClick={
-                          current.id === "competitor"
-                            ? markCompetitorDone
-                            : undefined
-                        }
-                      >
-                        {current.cta}
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2 lg:flex-col lg:pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
-                    disabled={stepIndex === 0}
-                    className={`${buttonGhostClass} !px-3`}
-                    aria-label="Previous step"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setStepIndex((i) => Math.min(STEPS.length - 1, i + 1))
-                    }
-                    disabled={stepIndex === STEPS.length - 1}
-                    className={`${buttonGhostClass} !px-3`}
-                    aria-label="Next step"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {!allComplete ? (
-              <p className="mt-6 border-t border-line pt-4 text-center text-xs text-ink-muted">
-                Next up:{" "}
-                <button
-                  type="button"
-                  className="font-medium text-accent hover:underline"
-                  onClick={() => setStepIndex(nextIncomplete)}
-                >
-                  {STEPS[nextIncomplete]?.label ?? "Continue"}
-                </button>
-              </p>
-            ) : null}
-          </div>
-        </section>
-      )}
-
-      {/* Quick actions */}
-      <div>
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <h3 className="font-display text-base font-semibold text-snow">
-              Quick actions
-            </h3>
-            <p className="mt-0.5 text-sm text-ink-muted">
-              Jump into the tools you&apos;ll use most for {project.domain}
+            <h1 className="font-display text-2xl md:text-4xl font-bold tracking-tight text-snow">
+              {hasCustomDomain ? (
+                <>
+                  Optimizing <span className="text-accent">{project.domain}</span>
+                </>
+              ) : (
+                "Launch Your SEO Command Center"
+              )}
+            </h1>
+            <p className="text-sm md:text-base text-ink-muted leading-relaxed">
+              Real-time Google search telemetry, AI audit diagnostics, AEO schema generators, and keyword intelligence unified into one workspace.
             </p>
           </div>
+
+          {/* Live System Status Pill Box */}
+          <div className="flex flex-col gap-2 rounded-2xl border border-line/80 bg-bg/80 p-4 backdrop-blur-md min-w-[260px]">
+            <div className="flex items-center justify-between text-xs text-ink-muted pb-2 border-b border-white/[0.06]">
+              <span className="font-semibold text-snow">Hub Telemetry</span>
+              <span className="flex items-center gap-1.5 text-accent text-[11px] font-medium">
+                <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
+                Live Engine
+              </span>
+            </div>
+            <div className="space-y-2 pt-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-ink-muted">Active Domain</span>
+                <span className="font-mono font-medium text-snow truncate max-w-[130px]">
+                  {hasCustomDomain ? project.domain : "Not set"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-ink-muted">GSC Status</span>
+                <span className={`font-semibold ${gscConnected ? "text-emerald-400" : "text-amber-400"}`}>
+                  {gscConnected ? "Connected" : "Not linked"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-ink-muted">Suri Agent</span>
+                <span className="text-accent font-medium">Ready</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            const status = action.status(project);
-            return (
-              <Link
-                key={action.href}
-                href={action.href}
-                className="group relative overflow-hidden rounded-xl border border-line bg-bg-elevated p-5 transition hover:border-accent/30 hover:bg-white/[0.02]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent transition group-hover:bg-accent/15">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <StatusPill status={status} />
-                </div>
-                <h4 className="mt-4 font-display font-semibold text-snow group-hover:text-accent">
-                  {action.title}
-                </h4>
-                <p className="mt-1 text-sm text-ink-muted">{action.description}</p>
+        {/* Setup Progress Bar */}
+        <div className="mt-8 pt-6 border-t border-white/[0.06] space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-snow flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              Workspace Setup Readiness
+            </span>
+            <span className="font-bold text-accent tabular-nums">{progressPercent}% Completed</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/5 p-[1px] border border-white/10">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-accent via-accent-deep to-emerald-400 transition-all duration-700 ease-out shadow-sm"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive 4-Step Action Matrix */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {SETUP_STEPS.map((step, idx) => {
+          const isDone = completedMap[step.id];
+          const Icon = step.icon;
+          return (
+            <div
+              key={step.id}
+              className={`relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${
+                isDone
+                  ? "border-emerald-500/30 bg-emerald-500/[0.03] shadow-sm hover:border-emerald-500/50"
+                  : "border-line bg-bg-elevated/90 hover:border-accent/40 hover:bg-bg-elevated shadow-lg"
+              }`}
+            >
+              <div className="flex items-center justify-between pb-3">
                 <span
-                  className={`mt-4 inline-flex items-center gap-1.5 text-sm font-medium ${
-                    action.primary ? "text-accent" : "text-ink-muted group-hover:text-snow"
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
+                    isDone
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                      : "border-line bg-bg text-accent"
                   }`}
                 >
-                  {action.cta}
-                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                  <Icon className="h-5 w-5" />
                 </span>
+                {isDone ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" /> Done
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-ink-muted">
+                    {step.badge}
+                  </span>
+                )}
+              </div>
+
+              <h3 className="font-display text-sm font-semibold text-snow mt-1">{step.title}</h3>
+              <p className="mt-1.5 text-xs text-ink-muted leading-relaxed min-h-[36px]">
+                {step.description}
+              </p>
+
+              <div className="mt-4 pt-3 border-t border-white/[0.04]">
+                {step.id === "domain" && !isDone ? (
+                  <form onSubmit={handleSaveDomain} className="space-y-2">
+                    <input
+                      type="text"
+                      value={domainInput}
+                      onChange={(e) => setDomainInput(e.target.value)}
+                      placeholder="mysite.com"
+                      className="w-full rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none focus:border-accent"
+                      disabled={saving}
+                    />
+                    <button
+                      type="submit"
+                      disabled={saving || !domainInput.trim()}
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent py-1.5 text-xs font-semibold text-[#010409] hover:bg-accent-deep transition disabled:opacity-50"
+                    >
+                      {saving ? "Saving..." : "Save Domain"}
+                    </button>
+                  </form>
+                ) : step.href ? (
+                  <Link
+                    href={step.href}
+                    className={`w-full inline-flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                      isDone
+                        ? "bg-white/5 text-snow hover:bg-white/10"
+                        : "bg-accent text-[#010409] hover:bg-accent-deep shadow-md font-bold"
+                    }`}
+                  >
+                    <span>{step.cta}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-between text-[11px] text-emerald-400 font-medium">
+                    <span>{step.reward}</span>
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Core Power Modules Grid */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-snow">Core SEO & AI Engine Tools</h2>
+            <p className="text-xs text-ink-muted">Launch deep diagnostics, track rankings, or query intelligence.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {CORE_MODULES.map((mod, i) => {
+            const ModIcon = mod.icon;
+            return (
+              <Link
+                key={i}
+                href={mod.href}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-bg-elevated p-5 transition-all hover:border-accent/40 hover:bg-bg-elevated/80 shadow-md"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`flex h-10 w-10 items-center justify-center rounded-xl border bg-gradient-to-br ${mod.color}`}>
+                      <ModIcon className="h-5 w-5" />
+                    </span>
+                    <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5 text-[10px] font-medium text-ink-muted">
+                      {mod.tag}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-base font-semibold text-snow group-hover:text-accent transition">
+                      {mod.title}
+                    </h3>
+                    <p className="mt-1.5 text-xs text-ink-muted leading-relaxed">
+                      {mod.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold text-accent pt-3 border-t border-white/[0.04] group-hover:translate-x-1 transition-transform">
+                  <span>{mod.cta}</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </div>
               </Link>
             );
           })}
-
-          <Link
-            href="/dashboard/domain"
-            onClick={markCompetitorDone}
-            className="group relative overflow-hidden rounded-xl border border-line bg-bg-elevated p-5 transition hover:border-accent/30 hover:bg-white/[0.02] sm:col-span-2"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <Globe className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h4 className="font-display font-semibold text-snow group-hover:text-accent">
-                  Domain lookup
-                </h4>
-                <p className="mt-1 text-sm text-ink-muted">
-                  Research any competitor — organic traffic, top keywords, and top pages.
-                </p>
-              </div>
-              <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-accent">
-                Open overview
-                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-              </span>
-            </div>
-          </Link>
         </div>
       </div>
     </div>
