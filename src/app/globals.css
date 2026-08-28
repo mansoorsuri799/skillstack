@@ -77,3 +77,18 @@ body {
     animation: none;
   }
 }
+
+/* Skeleton shimmer sweep animation */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-sweep 2s infinite ease-in-out;
+}
+

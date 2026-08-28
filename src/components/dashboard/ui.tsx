@@ -151,11 +151,51 @@ export function DashboardAlert({
   );
 }
 
-export function LoadingBlock({ label = "Loading..." }: { label?: string }) {
+export function Skeleton({
+  className = "",
+  rounded = "rounded-2xl",
+}: {
+  className?: string;
+  rounded?: string;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line py-16 text-sm text-ink-muted">
-      <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-accent/30 border-t-accent" />
-      {label}
+    <div
+      className={`relative overflow-hidden bg-[#161b22]/75 border border-white/[0.05] ${rounded} ${className}`}
+    >
+      <div className="pointer-events-none absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
+    </div>
+  );
+}
+
+export function LoadingBlock({
+  label,
+  className = "",
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-4 py-2 w-full animate-in fade-in duration-200 ${className}`}>
+      {label ? (
+        <div className="flex items-center gap-2.5 px-1 py-1 text-xs text-ink-muted">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+          </span>
+          <span className="font-medium text-snow/90">{label}</span>
+        </div>
+      ) : (
+        <Skeleton className="h-4 w-36 rounded-full" />
+      )}
+
+      {/* Top wide container (matching user screenshot) */}
+      <Skeleton className="h-32 md:h-36 w-full rounded-2xl" />
+
+      {/* Bottom 2-column cards (matching user screenshot) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Skeleton className="h-36 md:h-40 w-full rounded-2xl" />
+        <Skeleton className="h-36 md:h-40 w-full rounded-2xl" />
+      </div>
     </div>
   );
 }
