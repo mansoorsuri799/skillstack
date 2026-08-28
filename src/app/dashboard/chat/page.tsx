@@ -340,9 +340,9 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Bottom Input Pill matching SkillStack palette */}
-        <div className="sticky bottom-0 pt-2 pb-4 bg-gradient-to-t from-bg via-bg to-transparent">
-          <div className="relative flex items-center rounded-2xl border border-line bg-[#0d1117]/95 px-4 py-2 shadow-2xl transition focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/20 backdrop-blur-sm">
+        {/* Bottom Input Pill */}
+        <div className="sticky bottom-0 pt-2 pb-4">
+          <div className="relative flex items-center rounded-full border border-line bg-[#161b22] px-5 py-2 transition focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 shadow-xl">
             <textarea
               ref={textareaRef}
               value={input}
@@ -351,14 +351,14 @@ export default function ChatPage() {
               placeholder="Ask Suri to research, analyze, or track anything..."
               rows={1}
               disabled={loading}
-              className="flex-1 max-h-32 min-h-[38px] resize-none bg-transparent py-2 pr-10 text-sm text-snow placeholder:text-ink-muted/50 focus:outline-none leading-relaxed"
+              className="flex-1 max-h-32 min-h-[36px] resize-none bg-transparent py-1.5 pr-12 text-sm text-snow placeholder:text-ink-muted/60 focus:outline-none leading-relaxed"
             />
 
             <button
               type="button"
               onClick={() => void handleSend()}
               disabled={loading || !input.trim()}
-              className={`absolute right-3 flex h-8 w-8 items-center justify-center rounded-full transition ${
+              className={`absolute right-2.5 flex h-8 w-8 items-center justify-center rounded-full transition ${
                 input.trim() && !loading
                   ? "bg-accent text-[#010409] hover:bg-accent-deep shadow-md cursor-pointer font-bold scale-100"
                   : "bg-white/5 text-ink-muted/40 cursor-not-allowed opacity-50"
