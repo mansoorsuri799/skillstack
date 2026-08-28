@@ -340,8 +340,8 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Bottom Input Area with Solid Background so text does not overlap behind */}
-        <div className="sticky bottom-0 z-20 bg-bg pt-3 pb-4">
+        {/* Bottom Input Area matching page background */}
+        <div className="sticky bottom-0 z-20 bg-bg-soft pt-3 pb-4">
           <div className="relative flex items-center rounded-full border border-line bg-bg-elevated px-5 py-2.5 transition focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 shadow-2xl">
             <textarea
               ref={textareaRef}

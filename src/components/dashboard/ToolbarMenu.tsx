@@ -69,17 +69,17 @@ export function ToolbarMenu({
       if (!buttonRef.current) return;
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
-      const defaultMenuWidth = hasRichOptions ? 280 : 160;
+      const defaultMenuWidth = hasRichOptions ? 280 : 180;
       const calculatedWidth = menuMinWidth
         ? parseInt(menuMinWidth, 10) * 16 || defaultMenuWidth
         : defaultMenuWidth;
-      const finalMenuWidth = Math.min(viewportWidth - 24, Math.max(rect.width, calculatedWidth));
+      const finalMenuWidth = Math.min(viewportWidth - 24, Math.max(rect.width, calculatedWidth, defaultMenuWidth));
       const left = Math.max(12, Math.min(rect.left, viewportWidth - finalMenuWidth - 12));
 
       setMenuPosition({
         top: rect.bottom + 6,
         left,
-        width: Math.min(rect.width, viewportWidth - 24),
+        width: finalMenuWidth,
       });
     }
 

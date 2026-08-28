@@ -10,7 +10,6 @@ import {
   Download,
   ExternalLink,
   Globe,
-  Info,
   Search,
   SlidersHorizontal,
   Table2,
@@ -782,17 +781,14 @@ export function KeywordResearchPanel({
           </div>
         </form>
 
-        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-ink-muted">
+        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-ink-muted select-none">
           <input
             type="checkbox"
             checked={clickstreamEnabled}
             onChange={(e) => onClickstreamChange(e.target.checked)}
             className="rounded border-line bg-bg text-accent focus:ring-accent/30"
           />
-          <span>Clickstream-refined volumes</span>
-          <span title="Uses DataForSEO clickstream data for more accurate search volumes.">
-            <Info className="h-3.5 w-3.5 opacity-60" />
-          </span>
+          <span>Clickstream-refined search volume (accurate real-world data)</span>
         </label>
 
         {recent.length > 0 ? (
