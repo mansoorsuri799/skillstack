@@ -51,11 +51,6 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
       { href: "/dashboard/domain", label: "Domain Overview", icon: Globe },
       { href: "/dashboard/backlinks", label: "Backlinks", icon: Link2 },
       { href: "/dashboard/brand-lookup", label: "Brand Lookup", icon: Sparkles },
-      {
-        href: "/dashboard/prompt-explorer",
-        label: "Prompt Explorer",
-        icon: MessageSquare,
-      },
     ],
   },
   {

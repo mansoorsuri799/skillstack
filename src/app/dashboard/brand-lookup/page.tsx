@@ -5,6 +5,7 @@ import { ExternalLink, Link2, Target } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { AiToolLimitNotice } from "@/components/dashboard/AiToolLimitNotice";
 import { BrandLookupUnlock } from "@/components/dashboard/BrandLookupUnlock";
+import { TopUpgradeBanner } from "@/components/dashboard/PaidFeatureUnlockCard";
 import { SearchToolbar } from "@/components/dashboard/SearchToolbar";
 import {
   DashboardAlert,
@@ -115,6 +116,7 @@ export default function BrandLookupPage() {
       description="See how AI search cites any brand name or domain."
     >
       <PageStack className="max-w-5xl">
+        <TopUpgradeBanner />
         <BrandLookupUnlock footer={lookupForm} />
 
         {loading ? <LoadingBlock label="Querying AI search data..." /> : null}

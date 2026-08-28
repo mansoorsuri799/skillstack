@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
   Check,
   ChevronDown,
   ExternalLink,
   Globe,
+  HelpCircle,
+  LayoutGrid,
   LogOut,
   Menu,
+  MessageSquare,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -19,6 +22,7 @@ import {
 } from "lucide-react";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -376,6 +380,120 @@ function NavGroupSection({
   );
 }
 
+function formatChatTime(dateInput: string | Date) {
+  const d = new Date(dateInput);
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "0m";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
+type ChatListItem = {
+  id: string;
+  title: string;
+  messageCount: number;
+  updatedAt: string;
+};
+
+function ChatSidebarList({
+  onNavigate,
+}: {
+  onNavigate?: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeChatId = searchParams.get("id");
+  const [chats, setChats] = useState<ChatListItem[]>([]);
+
+  const loadChats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dashboard/chat");
+      if (!res.ok) return;
+      const data = await res.json();
+      setChats(data.chats || []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadChats();
+    const handler = () => void loadChats();
+    window.addEventListener("refresh-chats", handler);
+    return () => window.removeEventListener("refresh-chats", handler);
+  }, [loadChats]);
+
+  async function deleteChat(e: React.MouseEvent, id: string) {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      await fetch(`/api/dashboard/chat/${id}`, { method: "DELETE" });
+      setChats((prev) => prev.filter((c) => c.id !== id));
+      if (activeChatId === id) {
+        router.push("/dashboard/chat");
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <Link
+        href="/dashboard/chat"
+        onClick={onNavigate}
+        className="flex w-full items-center gap-2 rounded-lg border border-line/70 bg-white/5 px-3 py-2 text-xs font-semibold text-snow transition hover:border-accent/40 hover:bg-white/10 hover:text-white"
+      >
+        <Plus className="h-3.5 w-3.5 text-accent" />
+        New chat
+      </Link>
+
+      <div className="space-y-0.5">
+        {chats.length === 0 ? (
+          <p className="px-2.5 py-2 text-xs text-ink-muted/60">No chat history.</p>
+        ) : (
+          chats.map((c) => {
+            const isActive = activeChatId === c.id;
+            return (
+              <div
+                key={c.id}
+                className={`group relative flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition ${
+                  isActive
+                    ? "bg-white/10 font-medium text-snow shadow-sm"
+                    : "text-ink-muted hover:bg-white/5 hover:text-ink"
+                }`}
+              >
+                <Link
+                  href={`/dashboard/chat?id=${c.id}`}
+                  onClick={onNavigate}
+                  className="flex-1 truncate pr-2"
+                >
+                  {c.title || "New chat"}
+                </Link>
+                <span className="text-[10px] text-ink-muted/70 group-hover:hidden">
+                  {formatChatTime(c.updatedAt)}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => void deleteChat(e, c.id)}
+                  className="hidden rounded p-0.5 text-ink-muted hover:text-red-400 group-hover:block"
+                  title="Delete chat"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DashboardSidebarNav({
   onNavigate,
   onOpenNewModal,
@@ -402,6 +520,8 @@ function DashboardSidebarNav({
     });
   }, [pathname]);
 
+  const isChat = pathname.startsWith("/dashboard/chat");
+
   return (
     <nav ref={navRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-3">
       <ProjectsSidebarSection
@@ -411,11 +531,54 @@ function DashboardSidebarNav({
         onOpenDeleteModal={onOpenDeleteModal}
       />
 
+      {/* Browse / Chat Mode Switcher Tabs */}
+      <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-xs">
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition ${
+            !isChat
+              ? "bg-white/10 text-snow shadow-sm"
+              : "text-ink-muted hover:text-snow"
+          }`}
+        >
+          <LayoutGrid className="h-3.5 w-3.5" />
+          Browse
+        </Link>
+        <Link
+          href="/dashboard/chat"
+          onClick={onNavigate}
+          className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition ${
+            isChat
+              ? "bg-white/10 text-snow shadow-sm"
+              : "text-ink-muted hover:text-snow"
+          }`}
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+          Chat
+        </Link>
+      </div>
+
       <div className="my-3 border-t border-line/60" />
 
-      {dashboardNavGroups.map((group) => (
-        <NavGroupSection key={group.label} group={group} onNavigate={onNavigate} />
-      ))}
+      {isChat ? (
+        <ChatSidebarList onNavigate={onNavigate} />
+      ) : (
+        dashboardNavGroups.map((group) => (
+          <NavGroupSection key={group.label} group={group} onNavigate={onNavigate} />
+        ))
+      )}
+
+      <div className="mt-4 pt-3 border-t border-line/60">
+        <Link
+          href="/contact"
+          onClick={onNavigate}
+          className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-xs text-ink-muted transition hover:bg-white/5 hover:text-snow"
+        >
+          <HelpCircle className="h-4 w-4 shrink-0 text-ink-muted" />
+          <span>Help & Community</span>
+        </Link>
+      </div>
     </nav>
   );
 }
