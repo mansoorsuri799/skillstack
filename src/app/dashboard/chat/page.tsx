@@ -348,7 +348,7 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Suri to research, analyze, or track anything..."
+              placeholder="Ask Suri..."
               rows={1}
               disabled={loading}
               className="flex-1 max-h-32 min-h-[36px] resize-none bg-transparent py-1.5 pr-12 text-sm text-snow placeholder:text-ink-muted/60 focus:outline-none leading-relaxed"
