@@ -270,11 +270,7 @@ export default function RankTrackingPage() {
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh all
           </button>
-        ) : (
-          <button type="button" onClick={() => setAddOpen(true)} className={buttonPrimaryClass}>
-            <Plus className="h-4 w-4" /> Add Domain
-          </button>
-        )
+        ) : null
       }
     >
       <PageStack>
@@ -288,13 +284,15 @@ export default function RankTrackingPage() {
               flush
               className="overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-line px-5 py-4 md:px-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 md:px-6">
                 <p className="text-sm text-ink-muted">
                   Add a domain to discover keywords it ranks for and start tracking.
                 </p>
-                <button type="button" onClick={() => setAddOpen(true)} className={buttonPrimaryClass}>
-                  <Plus className="h-4 w-4" /> Add Domain
-                </button>
+                {domains.length > 0 ? (
+                  <button type="button" onClick={() => setAddOpen(true)} className={buttonPrimaryClass}>
+                    <Plus className="h-4 w-4" /> Add Domain
+                  </button>
+                ) : null}
               </div>
 
               {loading ? (
