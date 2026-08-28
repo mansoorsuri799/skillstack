@@ -35,10 +35,10 @@ const columns = [
   {
     heading: "Pricing",
     links: [
-      { href: "/pricing", label: "All packages" },
-      { href: "/pricing#keyword", label: "Keyword package" },
-      { href: "/pricing#growth", label: "Growth package" },
-      { href: "/pricing#fullstack", label: "Full stack package" },
+      { href: "/pricing", label: "SkillStack Pro ($20)" },
+      { href: "/dashboard", label: "SEO Dashboard" },
+      { href: "/dashboard/keywords", label: "Keyword Research" },
+      { href: "/dashboard/backlinks", label: "Backlinks Dashboard" },
     ],
   },
   {
