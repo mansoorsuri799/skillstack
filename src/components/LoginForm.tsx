@@ -43,20 +43,12 @@ function LoginFormInner() {
         return;
       }
 
-      const result = await signIn("credentials", {
+      await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        callbackUrl,
+        redirectTo: callbackUrl,
       });
-
-      if (result?.error) {
-        setError("Could not start a session. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      router.push(callbackUrl);
-      router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
