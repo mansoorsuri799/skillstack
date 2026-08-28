@@ -33,7 +33,8 @@ export default function Header() {
   });
 
   const showAuth = status === "authenticated" && Boolean(session?.user);
-  const showGuest = status === "unauthenticated";
+  // Default to showing guest links immediately (even during initial loading) to eliminate layout flicker
+  const showGuest = !showAuth;
 
   return (
     <header

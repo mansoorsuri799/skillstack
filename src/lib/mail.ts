@@ -91,8 +91,9 @@ function logoAttachment() {
 
 /** Hosted PNG first (Gmail-friendly); CID is a secondary src for some desktop clients. */
 function logoImgTag() {
-  const hosted = logoHostedUrl();
-  return `<img src="${hosted}" width="28" height="28" alt="SkillStack" style="display:block;border:0;outline:none;text-decoration:none;width:28px;height:28px;border-radius:4px;" />`;
+  // Use absolute production URL first, with embedded CID as fallback
+  const hosted = "https://skillstack.com.pk/brand/skill-stack-email.png";
+  return `<img src="${hosted}" src-cid="cid:${LOGO_CID}" width="28" height="28" alt="SkillStack" style="display:block;border:0;outline:none;text-decoration:none;width:28px;height:28px;border-radius:4px;" />`;
 }
 
 function buildVerificationHtml(name: string, verifyUrl: string) {
