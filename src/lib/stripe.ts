@@ -1,12 +1,18 @@
 import Stripe from "stripe";
 
-export function getStripe() {
+let stripeClient: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (stripeClient) return stripeClient;
+
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) {
-    throw new Error("STRIPE_SECRET_KEY is not set");
+    throw new Error("STRIPE_SECRET_KEY is not configured in environment variables.");
   }
-  return new Stripe(key, {
-    apiVersion: "2026-06-24.dahlia",
+
+  stripeClient = new Stripe(key, {
     typescript: true,
   });
+
+  return stripeClient;
 }

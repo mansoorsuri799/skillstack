@@ -7,7 +7,7 @@ export const LEGAL_NAME = "SkillStack Private Limited";
 export const SITE_EMAIL = "hello@skillstack.com.pk";
 /** Opens Gmail compose addressed to SITE_EMAIL */
 export const SITE_EMAIL_HREF = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(SITE_EMAIL)}`;
-/** Public business phone (PayFast / contact requirement). */
+/** Public business phone (contact / support requirement). */
 export const SITE_PHONE =
   process.env.NEXT_PUBLIC_SITE_PHONE?.trim() || "+92 343 9443799";
 export const SITE_PHONE_HREF = `tel:${SITE_PHONE.replace(/[^\d+]/g, "")}`;

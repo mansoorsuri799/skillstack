@@ -185,10 +185,6 @@ function ProjectRowItem({
       </button>
 
       <div className="flex shrink-0 items-center gap-1">
-        {isActive ? (
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" title="Active project" />
-        ) : null}
-
         <button
           ref={buttonRef}
           type="button"

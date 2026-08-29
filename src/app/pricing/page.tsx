@@ -66,7 +66,7 @@ export default function PricingPage() {
           <>
             Get complete access to all SEO tools, keyword research, live backlinks
             analysis, site audits, rank tracking, and AI search intelligence for just $20 USD.
-            Pay in Pakistan via PayFast (JazzCash / Easypaisa / local cards). Need custom enterprise
+            Instant checkout via Stripe (Cards, Apple Pay, Google Pay). Need custom enterprise
             requirements?{" "}
             <Link href="/contact" className="text-accent hover:underline">
               Contact us

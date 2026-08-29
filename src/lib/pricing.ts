@@ -5,10 +5,7 @@ export type Plan = {
   name: string;
   tagline: string;
   priceUsd: number;
-  /** Optional fixed PKR price; otherwise derived from USD × rate */
-  pricePkr?: number;
   featured?: boolean;
-  /** Matches contact form topic where useful */
   topic: string;
   features: string[];
 };
@@ -48,24 +45,4 @@ export function getPlan(id: string): Plan | undefined {
     return plans[0];
   }
   return plans[0];
-}
-
-/** Fallback USD→PKR when env rate is unset (approx.; set PAYFAST_USD_TO_PKR in prod). */
-export const DEFAULT_USD_TO_PKR = 280;
-
-export function usdToPkrRate() {
-  const raw =
-    process.env.PAYFAST_USD_TO_PKR ||
-    process.env.NEXT_PUBLIC_PAYFAST_USD_TO_PKR ||
-    String(DEFAULT_USD_TO_PKR);
-  const rate = Number(raw);
-  return Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_USD_TO_PKR;
-}
-
-/** PKR amount for PayFast (JazzCash / Easypaisa / local cards). */
-export function planPricePkr(plan: Plan) {
-  if (typeof plan.pricePkr === "number" && plan.pricePkr > 0) {
-    return Math.round(plan.pricePkr);
-  }
-  return Math.round(plan.priceUsd * usdToPkrRate());
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Check, Sparkles } from "lucide-react";
+import { Check, ShieldCheck, Sparkles } from "lucide-react";
 import CheckoutButton from "./CheckoutButton";
 import FadeIn from "./FadeIn";
 import { plans } from "@/lib/pricing";
@@ -53,10 +53,11 @@ export default function PricingGrid() {
                   <span className="font-display text-5xl font-bold tracking-tight text-snow">
                     ${plan.priceUsd}
                   </span>
-                  <span className="text-sm font-medium text-ink-muted">USD · one-time</span>
+                  <span className="text-sm font-medium text-ink-muted">USD · lifetime access</span>
                 </div>
-                <p className="mt-1 text-xs text-ink-muted">
-                  Charged in PKR via PayFast at checkout
+                <p className="mt-1 text-xs text-accent/90 flex items-center md:justify-end gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-accent inline" />
+                  Secured by Stripe Checkout
                 </p>
               </div>
             </div>
@@ -83,7 +84,7 @@ export default function PricingGrid() {
             <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
               <div className="text-center sm:text-left">
                 <p className="text-xs text-ink-muted">
-                  Instant access to all SEO tools, reports & AI workflows upon sign in.
+                  Instant access to all SEO tools, reports & AI workflows upon purchase.
                 </p>
               </div>
               <div className="w-full sm:w-auto">
@@ -99,8 +100,7 @@ export default function PricingGrid() {
 
         <FadeIn className="mt-10 border border-white/10 bg-[#161b22]/80 px-6 py-5 text-sm leading-relaxed text-ink-muted md:px-8 rounded-xl">
           Checkout runs securely through{" "}
-          <span className="text-snow font-medium">PayFast</span> (JazzCash, Easypaisa, local
-          cards). Need custom agency white-labeling or bespoke enterprise audits? Use our{" "}
+          <span className="text-snow font-medium">Stripe</span> (Credit & Debit Cards, Apple Pay, Google Pay). Need custom agency white-labeling or bespoke enterprise audits? Use our{" "}
           <Link href="/contact" className="text-accent hover:underline">
             contact form
           </Link>{" "}

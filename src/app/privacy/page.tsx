@@ -23,11 +23,11 @@ const sections = [
   },
   {
     title: "How we use information",
-    body: "We use your data to create and secure accounts, send verification and service emails, reply to project briefs, process payments via PayFast, improve the product, and meet legal obligations.",
+    body: "We use your data to create and secure accounts, send verification and service emails, reply to project briefs, process payments via Stripe, improve the product, and meet legal obligations.",
   },
   {
     title: "Sharing",
-    body: "We share data with processors that help us operate: MongoDB (database), PayFast (payments), Google (OAuth / email delivery when configured), and hosting (for example Vercel). We do not sell your personal information.",
+    body: "We share data with processors that help us operate: MongoDB (database), Stripe (payments), Google (OAuth / email delivery when configured), and hosting (for example Vercel). We do not sell your personal information.",
   },
   {
     title: "Public profiles",

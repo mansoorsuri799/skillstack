@@ -1,136 +1,92 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPlan } from "@/lib/pricing";
-import {
-  createPayfastHostedCheckout,
-  payfastConfigured,
-} from "@/lib/payments/payfast";
 import { getStripe } from "@/lib/stripe";
-
-type Provider = "payfast" | "stripe";
 
 function siteBaseUrl() {
   return (
     process.env.AUTH_URL ||
     process.env.NEXTAUTH_URL ||
-    "http://localhost:3000"
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
   );
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const planId = typeof body.planId === "string" ? body.planId : "";
-    const provider = (typeof body.provider === "string"
-      ? body.provider
-      : "payfast") as Provider;
-    const mobile = typeof body.mobile === "string" ? body.mobile.trim() : "";
+    const body = await request.json().catch(() => ({}));
+    const planId = typeof body.planId === "string" ? body.planId : "pro";
 
     const plan = getPlan(planId);
     if (!plan) {
-      return NextResponse.json({ error: "Invalid plan." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid plan selected." }, { status: 400 });
     }
 
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json(
-        { error: "Sign in required to purchase a package." },
+        { error: "Please sign in or register before checking out." },
         { status: 401 },
       );
     }
 
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        {
+          error:
+            "SkillStack is currently in testing mode — all dashboard features are 100% free to use for now! Stripe checkout will be live soon.",
+        },
+        { status: 503 },
+      );
+    }
+
+    const stripe = getStripe();
     const baseUrl = siteBaseUrl();
     const email = session.user.email;
     const userId = session.user.id || "";
 
-    if (provider === "payfast") {
-      if (!payfastConfigured()) {
-        return NextResponse.json(
-          {
-            error:
-              "Checkout is not configured yet. Add PayFast keys, or contact us.",
-          },
-          { status: 503 },
-        );
-      }
-      if (!mobile || mobile.replace(/\D/g, "").length < 10) {
-        return NextResponse.json(
-          {
-            error:
-              "Enter a valid Pakistan mobile number for JazzCash / Easypaisa.",
-          },
-          { status: 400 },
-        );
-      }
-      const hosted = await createPayfastHostedCheckout({
-        planId: plan.id,
-        email,
-        mobile,
-        userId,
-        baseUrl,
-      });
-      return NextResponse.json({
-        provider,
-        action: hosted.action,
-        fields: hosted.fields,
-        orderId: hosted.orderId,
-        amountPkr: hosted.amountPkr,
-      });
-    }
-
-    // Reserved for a future US entity Stripe account
-    if (provider === "stripe") {
-      if (!process.env.STRIPE_SECRET_KEY) {
-        return NextResponse.json(
-          { error: "Stripe is not configured." },
-          { status: 503 },
-        );
-      }
-      const stripe = getStripe();
-      const checkout = await stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["card"],
-        customer_email: email,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: "usd",
-              unit_amount: plan.priceUsd * 100,
-              product_data: {
-                name: `SkillStack · ${plan.name}`,
-                description: plan.tagline,
-              },
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: email,
+      client_reference_id: userId || undefined,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: Math.round(plan.priceUsd * 100),
+            product_data: {
+              name: `SkillStack · ${plan.name}`,
+              description: plan.tagline,
+              images: [`${baseUrl}/opengraph-image.png`],
             },
           },
-        ],
-        metadata: {
-          planId: plan.id,
-          planName: plan.name,
-          userId,
         },
-        success_url: `${baseUrl}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/pricing/cancel`,
-      });
-      if (!checkout.url) {
-        return NextResponse.json(
-          { error: "Could not create Checkout session." },
-          { status: 500 },
-        );
-      }
-      return NextResponse.json({ provider, url: checkout.url });
+      ],
+      metadata: {
+        userId,
+        planId: plan.id,
+        planName: plan.name,
+        userEmail: email,
+      },
+      allow_promotion_codes: true,
+      billing_address_collection: "auto",
+      success_url: `${baseUrl}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing/cancel`,
+    });
+
+    if (!checkoutSession.url) {
+      return NextResponse.json(
+        { error: "Could not create Stripe checkout session." },
+        { status: 500 },
+      );
     }
 
-    return NextResponse.json(
-      { error: "Unknown payment provider." },
-      { status: 400 },
-    );
-  } catch (error) {
-    console.error("Checkout error:", error);
+    return NextResponse.json({ url: checkoutSession.url });
+  } catch (err) {
+    console.error("[Checkout Route Error]:", err);
     const message =
-      error instanceof Error
-        ? error.message
-        : "Payment could not be started. Try again or contact us.";
+      err instanceof Error ? err.message : "Failed to initialize Stripe checkout.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
