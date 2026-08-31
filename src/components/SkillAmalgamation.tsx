@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const layers = [
@@ -58,7 +57,6 @@ function useCompactStack(breakpoint = 640) {
 }
 
 export default function SkillAmalgamation() {
-  const reduceMotion = useReducedMotion();
   const compact = useCompactStack();
   const metrics = compact ? MOBILE : DESKTOP;
   const [hovered, setHovered] = useState<number | null>(null);
@@ -82,7 +80,7 @@ export default function SkillAmalgamation() {
   return (
     <div
       ref={rootRef}
-      className="relative mx-auto w-full max-w-md touch-pan-y"
+      className="relative mx-auto w-full max-w-sm touch-pan-y md:ml-auto md:mr-0 lg:max-w-md"
       style={{ perspective: "900px", height }}
       onPointerMove={(e) => resolveHover(e.clientX, e.clientY)}
       onPointerDown={(e) => resolveHover(e.clientX, e.clientY)}
@@ -101,62 +99,28 @@ export default function SkillAmalgamation() {
           const isHovered = hovered === i;
 
           let yOffset = 0;
-          if (hovered !== null && !reduceMotion) {
+          if (hovered !== null) {
             if (i < hovered) yOffset = compact ? 14 : 22;
             else if (i > hovered) yOffset = compact ? -14 : -22;
             else yOffset = compact ? -12 : -18;
           }
 
-          const idleActive = !reduceMotion && hovered === null;
-          const bob = compact ? 6 : 10;
-          const animate = idleActive
-            ? {
-                y: [yRest, yRest - bob, yRest, yRest - bob * 0.6, yRest],
-                opacity: 1,
-                scale: [1, 1.02, 1, 1, 1],
-                rotateX: 0,
-              }
-            : {
-                y: yRest + yOffset,
-                opacity: 1,
-                scale: isHovered && !reduceMotion ? (compact ? 1.04 : 1.06) : 1,
-                rotateX: isHovered && !reduceMotion ? -STACK_TILT : 0,
-              };
+          const currentY = yRest + yOffset;
+          const currentScale = isHovered ? (compact ? 1.04 : 1.06) : 1;
+          const currentRotateX = isHovered ? -STACK_TILT : 0;
 
           return (
-            <motion.div
+            <div
               key={layer.label}
-              className={`pointer-events-none absolute left-1/2 w-[94%] max-w-[340px] -translate-x-1/2 rounded-md border bg-gradient-to-br px-3.5 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:w-[88%] sm:px-5 sm:py-4 ${layer.tone} ${
-                isHovered ? "border-accent/50" : layer.border
+              className={`pointer-events-none absolute right-0 w-[96%] max-w-[360px] rounded-md border bg-gradient-to-br px-3.5 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] transition-all duration-300 ease-out sm:px-5 sm:py-4 ${layer.tone} ${
+                isHovered ? "border-accent/50 z-40" : layer.border
               }`}
               style={{
                 zIndex: isHovered ? 40 : i + 1,
                 transformStyle: "preserve-3d",
                 transformOrigin: "center bottom",
+                transform: `translate3d(0, ${currentY}px, 0) scale(${currentScale}) rotateX(${currentRotateX}deg)`,
               }}
-              initial={
-                reduceMotion
-                  ? { y: yRest, opacity: 1, scale: 1, rotateX: 0 }
-                  : { y: yRest + 48, opacity: 0, scale: 0.94, rotateX: 0 }
-              }
-              animate={animate}
-              transition={
-                idleActive
-                  ? {
-                      duration: 4.8,
-                      delay: i * 0.14,
-                      repeat: Infinity,
-                      repeatDelay: 1.4,
-                      ease: [0.22, 1, 0.36, 1],
-                      times: [0, 0.28, 0.42, 0.62, 1],
-                    }
-                  : {
-                      type: "spring",
-                      stiffness: 360,
-                      damping: 26,
-                      mass: 0.55,
-                    }
-              }
             >
               <div className="flex items-center justify-between gap-2">
                 <span
@@ -169,7 +133,7 @@ export default function SkillAmalgamation() {
                 </span>
               </div>
               <div className="mt-1.5 h-px w-full bg-gradient-to-r from-accent/40 to-transparent sm:mt-2" />
-            </motion.div>
+            </div>
           );
         })}
 
@@ -181,19 +145,17 @@ export default function SkillAmalgamation() {
             <div
               key={`hit-${layer.label}`}
               data-stack-hit={i}
-              className="absolute left-1/2 w-[90%] max-w-[340px] -translate-x-1/2"
+              className="absolute right-0 w-[96%] max-w-[360px] cursor-pointer"
               style={{
                 top: 0,
-                height: GAP,
-                transform: `translateY(${yRest}px)`,
-                zIndex: 50,
+                transform: `translate3d(0, ${yRest}px, 0)`,
+                height: i === 0 ? 72 : GAP + 8,
+                zIndex: 50 + i,
               }}
             />
           );
         })}
       </div>
-
-      <div className="pointer-events-none absolute bottom-1 left-1/2 h-8 w-44 -translate-x-1/2 rounded-[100%] bg-accent/15 blur-2xl sm:bottom-2 sm:h-10 sm:w-52" />
     </div>
   );
 }

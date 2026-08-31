@@ -265,7 +265,10 @@ function ProjectsSidebarSection({
           className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted/70 hover:text-ink"
         >
           <span>Projects</span>
-          <span className="rounded-full bg-white/5 px-1.5 py-0.2 text-[10px] tabular-nums text-ink-muted">
+          <span
+            suppressHydrationWarning
+            className="rounded-full bg-white/5 px-1.5 py-0.2 text-[10px] tabular-nums text-ink-muted"
+          >
             {projects.length}
           </span>
           <ChevronDown
@@ -588,6 +591,7 @@ function DashboardSidebarNav({
 }
 
 function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [accountOpen, setAccountOpen] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -654,6 +658,8 @@ function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
           <div className="relative">
             <button
               type="button"
+              onMouseEnter={() => router.prefetch("/profile")}
+              onTouchStart={() => router.prefetch("/profile")}
               onClick={() => setAccountOpen((v) => !v)}
               className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-snow hover:bg-white/5"
             >
@@ -669,6 +675,7 @@ function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
               <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg border border-line bg-bg-elevated py-1 shadow-xl">
                 <Link
                   href="/profile"
+                  prefetch={true}
                   className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
                   onClick={() => setAccountOpen(false)}
                 >

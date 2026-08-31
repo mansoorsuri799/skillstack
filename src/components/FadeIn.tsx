@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export default function FadeIn({
   children,
@@ -12,21 +11,38 @@ export default function FadeIn({
   className?: string;
   delay?: number;
 }) {
-  const reduceMotion = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <motion.div
-      className={className}
-      initial={reduceMotion ? false : { opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{
-        duration: 0.6,
-        delay,
-        ease: [0.22, 1, 0.36, 1],
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out ${
+        visible
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-6"
+      } ${className}`}
+      style={{
+        transitionDelay: delay ? `${delay}s` : undefined,
       }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

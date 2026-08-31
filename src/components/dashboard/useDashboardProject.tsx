@@ -78,12 +78,10 @@ export function DashboardProjectProvider({
 }: {
   children: ReactNode;
 }) {
-  const [project, setProject] = useState<DashboardProject | null>(() => {
-    return readCachedProject() || DEFAULT_FALLBACK_PROJECT;
-  });
-  const [projects, setProjects] = useState<DashboardProject[]>(() => {
-    return readCachedProjects();
-  });
+  const [project, setProject] = useState<DashboardProject | null>(
+    DEFAULT_FALLBACK_PROJECT
+  );
+  const [projects, setProjects] = useState<DashboardProject[]>([]);
   const [dataForSeoConfigured, setDataForSeoConfigured] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -115,6 +113,15 @@ export function DashboardProjectProvider({
   }, []);
 
   useEffect(() => {
+    // Hydrate cached project state safely on client mount
+    const cachedP = readCachedProject();
+    if (cachedP) {
+      setProject(cachedP);
+    }
+    const cachedList = readCachedProjects();
+    if (cachedList && cachedList.length > 0) {
+      setProjects(cachedList);
+    }
     void refresh();
   }, [refresh]);
 

@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { Check, ShieldCheck, Sparkles } from "lucide-react";
 import CheckoutButton from "./CheckoutButton";
 import FadeIn from "./FadeIn";
 import { plans } from "@/lib/pricing";
 
 export default function PricingGrid() {
-  const reduceMotion = useReducedMotion();
   const plan = plans[0];
 
   if (!plan) return null;
@@ -21,14 +19,7 @@ export default function PricingGrid() {
       />
       <div className="relative mx-auto max-w-4xl">
         <FadeIn delay={0}>
-          <motion.article
-            whileHover={
-              reduceMotion
-                ? undefined
-                : { y: -4, transition: { type: "spring", stiffness: 320, damping: 24 } }
-            }
-            className="relative overflow-hidden rounded-2xl border border-accent/40 bg-[#0d1117] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)] md:p-10"
-          >
+          <article className="relative overflow-hidden rounded-2xl border border-accent/40 bg-[#0d1117] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)] transition-transform duration-300 hover:-translate-y-1 md:p-10">
             <div
               aria-hidden
               className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
@@ -48,63 +39,53 @@ export default function PricingGrid() {
                 </p>
               </div>
 
-              <div className="shrink-0 md:text-right">
-                <div className="flex items-baseline gap-1.5 md:justify-end">
-                  <span className="font-display text-5xl font-bold tracking-tight text-snow">
+              <div className="flex flex-col md:items-end">
+                <div className="flex items-baseline gap-1">
+                  <span className="font-display text-4xl font-extrabold text-snow md:text-5xl">
                     ${plan.priceUsd}
                   </span>
-                  <span className="text-sm font-medium text-ink-muted">USD · lifetime access</span>
+                  <span className="text-sm font-medium text-ink-muted">/month</span>
                 </div>
-                <p className="mt-1 text-xs text-accent/90 flex items-center md:justify-end gap-1">
-                  <ShieldCheck className="h-3.5 w-3.5 text-accent inline" />
-                  Secured by Stripe Checkout
-                </p>
+                <span className="mt-1 text-xs text-ink-muted">Cancel anytime</span>
               </div>
             </div>
 
-            <div className="mt-8">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                What&apos;s included in your dashboard access:
-              </p>
-              <ul className="mt-5 grid gap-3.5 sm:grid-cols-2">
-                {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] p-3 text-sm leading-snug text-snow/90"
-                  >
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent">
-                      <Check className="h-3 w-3 stroke-[3]" />
-                    </span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
-              <div className="text-center sm:text-left">
-                <p className="text-xs text-ink-muted">
-                  Instant access to all SEO tools, reports & AI workflows upon purchase.
-                </p>
+            <div className="mt-8 grid gap-8 md:grid-cols-2">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-4">
+                  What&apos;s Included
+                </h3>
+                <ul className="space-y-3">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-ink">
+                      <Check className="h-4 w-4 shrink-0 text-accent mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="w-full sm:w-auto">
-                <CheckoutButton
-                  planId={plan.id}
-                  featured={true}
-                  label={`Get ${plan.name} — $${plan.priceUsd}`}
-                />
+
+              <div className="flex flex-col justify-between rounded-xl border border-line bg-bg/50 p-6">
+                <div>
+                  <h3 className="text-base font-semibold text-snow">
+                    Get Instant Access
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                    Unlock all core SEO modules, backlink analytics, rank tracking, internal links architecture, and AI-powered auditing tools.
+                  </p>
+                </div>
+
+                <div className="mt-6">
+                  <CheckoutButton planId={plan.id} />
+
+                  <p className="mt-3 text-center text-xs text-ink-muted flex items-center justify-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-accent" />
+                    <span>Secured by Stripe Checkout · 30-Day Money-Back Guarantee</span>
+                  </p>
+                </div>
               </div>
             </div>
-          </motion.article>
-        </FadeIn>
-
-        <FadeIn className="mt-10 border border-white/10 bg-[#161b22]/80 px-6 py-5 text-sm leading-relaxed text-ink-muted md:px-8 rounded-xl">
-          Checkout runs securely through{" "}
-          <span className="text-snow font-medium">Stripe</span> (Credit & Debit Cards, Apple Pay, Google Pay). Need custom agency white-labeling or bespoke enterprise audits? Use our{" "}
-          <Link href="/contact" className="text-accent hover:underline">
-            contact form
-          </Link>{" "}
-          for a consultation.
+          </article>
         </FadeIn>
       </div>
     </div>

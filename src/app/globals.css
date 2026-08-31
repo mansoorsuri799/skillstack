@@ -72,8 +72,30 @@ body {
 .hero-item-3 { animation-delay: 240ms; }
 .hero-item-4 { animation-delay: 360ms; }
 
+@keyframes jumping-dot {
+  0% {
+    left: -12%;
+    opacity: 0;
+    transform: scale(0.35) translateY(0);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.jumping-dot-anim {
+  animation: jumping-dot 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.3s;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hero-item {
+  .hero-item,
+  .jumping-dot-anim {
     animation: none;
   }
 }
@@ -91,4 +113,3 @@ body {
 .animate-shimmer {
   animation: shimmer-sweep 2s infinite ease-in-out;
 }
-

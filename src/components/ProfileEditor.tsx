@@ -56,6 +56,18 @@ function fileToAvatarDataUrl(file: File): Promise<string> {
   });
 }
 
+const CACHE_PROFILE_KEY = "ss-user-profile-cache";
+
+function readCachedProfile(): { profile: PublicProfile; email: string } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(CACHE_PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function ProfileEditor() {
   const { update: updateSession } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -86,6 +98,28 @@ export default function ProfileEditor() {
   });
   const formRef = useRef(form);
   formRef.current = form;
+
+  useEffect(() => {
+    const cached = readCachedProfile();
+    if (cached) {
+      setEmail(cached.email || "");
+      setForm({
+        name: cached.profile.name || "",
+        username: cached.profile.username || "",
+        headline: cached.profile.headline || "",
+        bio: cached.profile.bio || "",
+        skills: cached.profile.skills || [],
+        location: cached.profile.location || "",
+        company: cached.profile.company || "",
+        website: cached.profile.website || "",
+        linkedin: cached.profile.linkedin || "",
+        xProfile: cached.profile.xProfile || "",
+        availableForWork: cached.profile.availableForWork ?? false,
+        image: cached.profile.image || null,
+      });
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +153,14 @@ export default function ProfileEditor() {
           image: p.image,
         });
         loadedRef.current = true;
+        try {
+          sessionStorage.setItem(
+            CACHE_PROFILE_KEY,
+            JSON.stringify({ profile: p, email: data.email || "" }),
+          );
+        } catch {
+          // Ignore
+        }
       } catch {
         if (!cancelled) setError("Could not load profile.");
       } finally {

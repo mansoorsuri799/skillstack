@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -16,7 +15,6 @@ const links = [
 ];
 
 export default function Header() {
-  const { scrollY } = useScroll();
   const [solid, setSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session, status } = useSession();
@@ -28,9 +26,13 @@ export default function Header() {
     };
   }, [menuOpen]);
 
-  useMotionValueEvent(scrollY, "change", (y) => {
-    setSolid(y > 48);
-  });
+  useEffect(() => {
+    const onScroll = () => {
+      setSolid(window.scrollY > 48);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const showAuth = status === "authenticated" && Boolean(session?.user);
   const showGuest = status === "unauthenticated";
@@ -52,6 +54,7 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
+              prefetch={true}
               className="text-sm text-white/55 transition-colors hover:text-white"
             >
               {link.label}
@@ -68,12 +71,14 @@ export default function Header() {
             <>
               <Link
                 href="/dashboard"
+                prefetch={true}
                 className="hidden rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-[#010409] hover:bg-accent-deep sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
               >
                 Dashboard
               </Link>
               <Link
                 href="/profile"
+                prefetch={true}
                 className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
               >
                 Profile
@@ -92,12 +97,14 @@ export default function Header() {
             <>
               <Link
                 href="/login"
+                prefetch={true}
                 className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
               >
                 Log in
               </Link>
               <Link
                 href="/register"
+                prefetch={true}
                 className="hidden rounded-md bg-white px-3 py-1.5 text-xs font-medium text-[#010409] hover:bg-white/90 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
               >
                 Register
@@ -129,12 +136,9 @@ export default function Header() {
       </div>
 
       {menuOpen ? (
-        <motion.nav
+        <nav
           id="mobile-nav"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-x-0 top-full max-h-[calc(100svh-4rem)] overflow-y-auto border-b border-white/10 bg-[#0d1117] px-4 pb-6 pt-2 sm:max-h-[calc(100svh-4.5rem)] md:hidden"
+          className="absolute inset-x-0 top-full max-h-[calc(100svh-4rem)] overflow-y-auto border-b border-white/10 bg-[#0d1117] px-4 pb-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-200 sm:max-h-[calc(100svh-4.5rem)] md:hidden"
           aria-label="Mobile"
         >
           <ul className="flex flex-col">
@@ -199,7 +203,7 @@ export default function Header() {
               </>
             ) : null}
           </div>
-        </motion.nav>
+        </nav>
       ) : null}
     </header>
   );
