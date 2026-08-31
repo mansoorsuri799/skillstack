@@ -78,12 +78,15 @@ function NavLink({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const active = exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <Link
       href={href}
       prefetch={true}
+      onMouseEnter={() => router.prefetch(href)}
+      onTouchStart={() => router.prefetch(href)}
       data-nav-active={active ? "true" : undefined}
       onClick={onNavigate}
       className={`relative flex items-center gap-2.5 rounded-md py-1.5 text-sm transition-colors ${

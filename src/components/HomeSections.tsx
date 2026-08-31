@@ -1,11 +1,25 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import FadeIn from "./FadeIn";
-import FaqSection from "./FaqSection";
-import ProcessPath from "./ProcessPath";
-import ReasonsMarquee from "./ReasonsMarquee";
-import Seo2026Path from "./Seo2026Path";
-import ServicesScrollStack from "./ServicesScrollStack";
-import Testimonials from "./Testimonials";
+
+const ServicesScrollStack = dynamic(() => import("./ServicesScrollStack"), {
+  loading: () => <div className="min-h-[400px]" />,
+});
+const ReasonsMarquee = dynamic(() => import("./ReasonsMarquee"), {
+  loading: () => <div className="min-h-[100px]" />,
+});
+const Seo2026Path = dynamic(() => import("./Seo2026Path"), {
+  loading: () => <div className="min-h-[300px]" />,
+});
+const ProcessPath = dynamic(() => import("./ProcessPath"), {
+  loading: () => <div className="min-h-[300px]" />,
+});
+const Testimonials = dynamic(() => import("./Testimonials"), {
+  loading: () => <div className="min-h-[300px]" />,
+});
+const FaqSection = dynamic(() => import("./FaqSection"), {
+  loading: () => <div className="min-h-[300px]" />,
+});
 
 export default function HomeSections() {
   return (

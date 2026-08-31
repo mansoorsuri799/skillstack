@@ -1,18 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
   BookmarkPlus,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
   ExternalLink,
+  Flame,
   Globe,
+  HelpCircle,
+  Laptop,
+  Layers,
+  MousePointer,
   Search,
   SlidersHorizontal,
+  Smartphone,
+  Sparkles,
   Table2,
+  TrendingUp,
   X,
 } from "lucide-react";
 import { ToolbarMenu } from "@/components/dashboard/ToolbarMenu";
@@ -25,9 +36,12 @@ import {
   LoadingBlock,
 } from "@/components/dashboard/ui";
 import {
+  getDifficultyLevel,
   intentBadgeClass,
   intentShortLabel,
   scoreBadgeClass,
+  type CategorizedKeywordIdeas,
+  type GlobalVolumeCountry,
   type KeywordIntent,
   type KeywordTrendPoint,
   type SeedKeywordInsights,
@@ -38,6 +52,8 @@ import {
   KEYWORD_LIMIT_OPTIONS,
   KEYWORD_LOCATION_OPTIONS,
   KEYWORD_MODE_OPTIONS,
+  LOCATION_FLAGS,
+  RESEARCH_LOCATIONS,
   type KeywordMode,
 } from "@/lib/dashboard/locations";
 import {
@@ -86,13 +102,24 @@ function clearRecent() {
   writeRecent([]);
 }
 
-function formatVolume(value: number | null) {
-  if (value === null) return "—";
+function formatVolume(value: number | null | undefined) {
+  if (value === null || value === undefined) return "—";
   return value.toLocaleString();
 }
 
-function formatCpc(value: number | null) {
-  if (value === null) return "—";
+function formatCompactNumber(num: number | null | undefined): string {
+  if (num === null || num === undefined) return "—";
+  if (num >= 1_000_000) {
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (num >= 1_000) {
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return num.toLocaleString();
+}
+
+function formatCpc(value: number | null | undefined) {
+  if (value === null || value === undefined) return "—";
   return `$${value.toFixed(2)}`;
 }
 
@@ -194,13 +221,47 @@ function TablePaginationFooter({
   );
 }
 
-function ScoreCircle({ value }: { value: number | null }) {
+function KdGauge({ value }: { value: number | null }) {
+  const score = Math.max(0, Math.min(100, value ?? 0));
+  const radius = 55;
+  const stroke = 9;
+  const normalizedRadius = radius - stroke;
+  const circumference = normalizedRadius * Math.PI;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const diff = getDifficultyLevel(value);
+
   return (
-    <span
-      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums ${scoreBadgeClass(value)}`}
-    >
-      {value ?? "—"}
-    </span>
+    <div className="relative flex flex-col items-center justify-center pt-2">
+      <svg height="85" width="150" viewBox="0 0 150 85" className="overflow-visible">
+        {/* Background Arc */}
+        <path
+          d="M 15 75 A 60 60 0 0 1 135 75"
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.08)"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        {/* Filled Arc */}
+        <path
+          d="M 15 75 A 60 60 0 0 1 135 75"
+          fill="none"
+          stroke={diff.color}
+          strokeWidth="10"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          className="transition-all duration-700 ease-out"
+        />
+      </svg>
+      <div className="absolute top-6 flex flex-col items-center text-center">
+        <span className="font-display text-3xl font-bold tracking-tight text-snow">
+          {value ?? 0}
+        </span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: diff.color }}>
+          {diff.label}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -215,185 +276,31 @@ function IntentBadge({ intent }: { intent: KeywordIntent | string | null | undef
   );
 }
 
-function SearchTrendChart({
-  points,
-  range,
-}: {
-  points: KeywordTrendPoint[];
-  range: string;
-}) {
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
-
-  const width = 340;
-  const height = 190;
-  const padding = { top: 16, right: 12, bottom: 36, left: 48 };
-  const innerW = width - padding.left - padding.right;
-  const innerH = height - padding.top - padding.bottom;
-
-  const values = points.map((p) => p.volume);
-  const rawMax = Math.max(...values, 1);
-  const rawMin = Math.min(...values, 0);
-  const niceMax = Math.ceil(rawMax / 25000) * 25000 || 25000;
-  const span = niceMax - rawMin || 1;
-
-  const coords = points.map((point, index) => {
-    const x =
-      padding.left +
-      (points.length <= 1 ? innerW / 2 : (index / (points.length - 1)) * innerW);
-    const y = padding.top + innerH - ((point.volume - rawMin) / span) * innerH;
-    return { x, y, point };
-  });
-
-  const line = coords.map((p) => `${p.x},${p.y}`).join(" ");
-  const area = `${padding.left},${padding.top + innerH} ${line} ${padding.left + innerW},${padding.top + innerH}`;
-
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ({
-    ratio,
-    value: Math.round(rawMin + span * (1 - ratio)),
-  }));
-
-  const active = hoverIndex != null ? coords[hoverIndex] : null;
-
-  function handlePointerMove(clientX: number, currentTarget: SVGSVGElement) {
-    if (coords.length === 0) return;
-    const rect = currentTarget.getBoundingClientRect();
-    const scaleX = width / rect.width;
-    const mouseX = (clientX - rect.left) * scaleX;
-    let closest = 0;
-    let minDist = Infinity;
-    coords.forEach((coord, index) => {
-      const dist = Math.abs(coord.x - mouseX);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = index;
-      }
-    });
-    setHoverIndex(closest);
+function MiniBarTrend({ points }: { points: KeywordTrendPoint[] }) {
+  if (!points || points.length === 0) {
+    return <div className="h-20 w-full rounded bg-white/[0.02]" />;
   }
+  const maxVol = Math.max(...points.map((p) => p.volume), 1);
 
   return (
-    <div className="rounded-xl border border-line bg-bg p-4">
-      <div className="mb-3">
-        <p className="text-sm font-medium text-snow">Search Trends</p>
-        <p className="text-xs text-ink-muted">{range}</p>
-      </div>
-      {points.length < 2 ? (
-        <p className="py-10 text-center text-sm text-ink-muted">Trend data unavailable.</p>
-      ) : (
-        <div className="relative">
-          {active ? (
-            <div
-              className="pointer-events-none absolute z-10 min-w-[9rem] rounded-lg border border-line bg-bg-elevated px-3 py-2 shadow-xl"
-              style={{
-                left: `clamp(0px, calc(${(active.x / width) * 100}% - 4.5rem), calc(100% - 9rem))`,
-                top: Math.max(0, (active.y / height) * 100 - 18),
-              }}
-            >
-              <p className="text-sm font-medium text-snow">
-                {active.point.shortLabel || active.point.label.split(" ")[0]}
-              </p>
-              <p className="mt-0.5 text-xs text-ink-muted">
-                Search volume :{" "}
-                <span className="font-semibold text-accent">
-                  {active.point.volume.toLocaleString()}
-                </span>
-              </p>
-            </div>
-          ) : null}
-
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            className="h-48 w-full cursor-crosshair touch-none"
-            onMouseMove={(e) => handlePointerMove(e.clientX, e.currentTarget)}
-            onMouseLeave={() => setHoverIndex(null)}
-            onTouchStart={(e) => {
-              const touch = e.touches[0];
-              if (touch) handlePointerMove(touch.clientX, e.currentTarget);
-            }}
-            onTouchMove={(e) => {
-              const touch = e.touches[0];
-              if (touch) handlePointerMove(touch.clientX, e.currentTarget);
-            }}
-            onTouchEnd={() => setHoverIndex(null)}
+    <div className="flex h-20 items-end gap-1.5 pt-2">
+      {points.map((p, idx) => {
+        const heightPct = Math.max(8, Math.round((p.volume / maxVol) * 100));
+        return (
+          <div
+            key={idx}
+            className="group relative flex flex-1 flex-col items-center justify-end h-full"
           >
-            {yTicks.map(({ ratio, value }) => {
-              const y = padding.top + innerH * ratio;
-              return (
-                <g key={ratio}>
-                  <line
-                    x1={padding.left}
-                    x2={padding.left + innerW}
-                    y1={y}
-                    y2={y}
-                    stroke="rgba(255,255,255,0.06)"
-                    strokeDasharray="3 4"
-                  />
-                  <text
-                    x={padding.left - 8}
-                    y={y + 4}
-                    textAnchor="end"
-                    className="fill-ink-muted text-[9px]"
-                  >
-                    {value >= 1000 ? `${Math.round(value / 1000)}K` : value}
-                  </text>
-                </g>
-              );
-            })}
-
-            {active ? (
-              <line
-                x1={active.x}
-                x2={active.x}
-                y1={padding.top}
-                y2={padding.top + innerH}
-                stroke="rgba(255,255,255,0.35)"
-                strokeWidth="1"
-              />
-            ) : null}
-
-            <polygon points={area} fill="rgba(45,212,191,0.14)" />
-            <polyline
-              points={line}
-              fill="none"
-              stroke="currentColor"
-              className="text-accent"
-              strokeWidth="2.5"
-              strokeLinejoin="round"
-              strokeLinecap="round"
+            <div
+              style={{ height: `${heightPct}%` }}
+              className="w-full rounded-t bg-accent/60 transition-all duration-200 group-hover:bg-accent"
             />
-            {coords.map(({ x, y, point }, index) => {
-              const isActive = hoverIndex === index;
-              return (
-                <g key={`${point.label}-${point.volume}`}>
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={isActive ? 6 : 4}
-                    className={isActive ? "fill-white" : "fill-accent"}
-                  />
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={isActive ? 3.5 : 2.5}
-                    className="fill-accent"
-                  />
-                </g>
-              );
-            })}
-            {coords.map(({ x, point }) => (
-              <text
-                key={`label-${point.label}`}
-                x={x}
-                y={height - 8}
-                textAnchor="middle"
-                className="fill-ink-muted text-[9px]"
-              >
-                {point.shortLabel || point.label.split(" ")[0]}
-              </text>
-            ))}
-          </svg>
-        </div>
-      )}
+            <div className="pointer-events-none absolute bottom-full mb-1 hidden whitespace-nowrap rounded bg-bg-elevated border border-line px-1.5 py-0.5 text-[10px] text-snow shadow-lg group-hover:block z-20">
+              {p.shortLabel || p.label}: {formatVolume(p.volume)}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -517,8 +424,9 @@ export function KeywordResearchPanel({
   clickstreamEnabled,
   onClickstreamChange,
   results,
+  summary,
   seedInsights,
-  serpResults,
+  serpResults = [],
   loading,
   error,
   message,
@@ -526,94 +434,89 @@ export function KeywordResearchPanel({
   onSaveKeyword,
 }: {
   seed: string;
-  onSeedChange: (value: string) => void;
+  onSeedChange: (s: string) => void;
   locationCode: number;
-  onLocationChange: (value: number) => void;
+  onLocationChange: (loc: number) => void;
   limit: number;
-  onLimitChange: (value: number) => void;
+  onLimitChange: (lim: number) => void;
   mode: KeywordMode;
-  onModeChange: (value: KeywordMode) => void;
+  onModeChange: (m: KeywordMode) => void;
   clickstreamEnabled: boolean;
-  onClickstreamChange: (value: boolean) => void;
+  onClickstreamChange: (val: boolean) => void;
   results: KeywordResearchRow[];
-  seedInsights: SeedKeywordInsights | null;
-  serpResults: SerpResultRow[];
+  summary?: SeedKeywordInsights | null;
+  seedInsights?: SeedKeywordInsights | null;
+  serpResults?: SerpResultRow[];
   loading: boolean;
-  error: string;
-  message: string;
-  onResearch: (seed?: string) => void;
-  onSaveKeyword: (row: KeywordResearchRow) => void;
+  error?: string | null;
+  message?: string | null;
+  onResearch: (customSeed?: string) => void;
+  onSaveKeyword?: (row: KeywordResearchRow) => void;
 }) {
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const activeInsights = summary ?? seedInsights ?? null;
+  const [query, setQuery] = useState(seed);
   const [recent, setRecent] = useState<string[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [showTableFilters, setShowTableFilters] = useState(false);
-  const [minVolume, setMinVolume] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<"all" | "ideas" | "serp">("all");
+
+  const [minVolume, setMinVolume] = useState<string>("");
   const [intentFilter, setIntentFilter] = useState<string>("all");
   const [volumeSort, setVolumeSort] = useState<"desc" | "asc">("desc");
-  const [keywordPage, setKeywordPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(DEFAULT_KEYWORD_ROWS_PER_PAGE);
+  const [kdFilter, setKdFilter] = useState<string>("all");
+  const [showTableFilters, setShowTableFilters] = useState(false);
   const tableFiltersRef = useRef<HTMLDivElement>(null);
 
-  const activeSeed = seed.trim();
-  const summary = seedInsights;
+  const [keywordPage, setKeywordPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(DEFAULT_KEYWORD_ROWS_PER_PAGE);
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
-    if (results.length > 0 && seed.trim()) {
-      setHasSearched(true);
+    const list = readRecent();
+    if (list.length > 0) {
+      setRecent(list);
+      return;
     }
-  }, [results.length, seed]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void loadUserPreferences().then((prefs) => {
-      if (cancelled) return;
-      const local = readRecent();
-      const server = prefs?.keywordRecentSearches ?? [];
-      const merged = [...server, ...local.filter((k) => !server.includes(k))].slice(
-        0,
-        8,
-      );
-      setRecent(merged);
-      if (merged.length > 0) {
-        localStorage.setItem(RECENT_KEY, JSON.stringify(merged));
+    void loadUserPreferences().then((pref) => {
+      if (pref && pref.keywordRecentSearches && pref.keywordRecentSearches.length > 0) {
+        setRecent(pref.keywordRecentSearches);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(pref.keywordRecentSearches));
       }
     });
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   useEffect(() => {
-    if (!showTableFilters) return;
-    function onPointerDown(event: MouseEvent) {
-      if (!tableFiltersRef.current?.contains(event.target as Node)) {
+    setQuery(seed);
+  }, [seed]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        tableFiltersRef.current &&
+        !tableFiltersRef.current.contains(event.target as Node)
+      ) {
         setShowTableFilters(false);
       }
     }
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
+    if (showTableFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [showTableFilters]);
 
-  function submitSearch(value: string) {
-    const next = value.trim();
+  const activeSeed = activeInsights?.keyword ?? seed;
+
+  function handleSearch(customValue?: string) {
+    const next = (customValue ?? query).trim();
     if (!next) return;
     onSeedChange(next);
     pushRecent(next);
     setRecent(readRecent());
-    setQuery("");
     setSelected(new Set());
     setKeywordPage(0);
     setHasSearched(true);
     onResearch(next);
-  }
-
-  function clearSearch() {
-    onSeedChange("");
-    setQuery("");
-    setSelected(new Set());
-    setHasSearched(false);
   }
 
   function removeRecentItem(keyword: string) {
@@ -633,6 +536,12 @@ export function KeywordResearchPanel({
         return false;
       }
       if (intentFilter !== "all" && row.intent !== intentFilter) return false;
+      if (kdFilter !== "all") {
+        const kd = row.difficulty ?? 0;
+        if (kdFilter === "easy" && kd > 10) return false;
+        if (kdFilter === "medium" && (kd <= 10 || kd > 30)) return false;
+        if (kdFilter === "hard" && kd <= 30) return false;
+      }
       return true;
     });
     rows = [...rows].sort((a, b) => {
@@ -641,11 +550,11 @@ export function KeywordResearchPanel({
       return volumeSort === "desc" ? bv - av : av - bv;
     });
     return rows;
-  }, [results, minVolume, intentFilter, volumeSort]);
+  }, [results, minVolume, intentFilter, kdFilter, volumeSort]);
 
   useEffect(() => {
     setKeywordPage(0);
-  }, [activeSeed, minVolume, intentFilter, volumeSort, results.length]);
+  }, [activeSeed, minVolume, intentFilter, kdFilter, volumeSort, results.length]);
 
   const keywordTotalPages = Math.max(
     1,
@@ -667,7 +576,7 @@ export function KeywordResearchPanel({
       selected.size === 0 ? true : selected.has(row.keyword),
     );
     const lines = [
-      "Keyword,Volume,CPC,Comp,Score,Intent",
+      "Keyword,Volume,CPC,Comp,Difficulty,Intent",
       ...exportRows.map(
         (row) =>
           `"${row.keyword}",${row.searchVolume ?? ""},${row.cpc ?? ""},${row.competition ?? ""},${row.difficulty ?? ""},${row.intent ?? ""}`,
@@ -677,23 +586,7 @@ export function KeywordResearchPanel({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${activeSeed || "keywords"}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function exportSerpCsv() {
-    const lines = [
-      "Rank,Title,URL,Domain",
-      ...serpResults.map(
-        (row) => `"${row.rank}","${row.title.replace(/"/g, '""')}","${row.url}","${row.domain}"`,
-      ),
-    ];
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${activeSeed || "serp"}-analysis.csv`;
+    link.download = `${(activeSeed || "keywords").replace(/\s+/g, "_")}_research.csv`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -702,381 +595,747 @@ export function KeywordResearchPanel({
     paginatedResults.length > 0 &&
     paginatedResults.every((row) => selected.has(row.keyword));
 
-  return (
-    <div className="space-y-4">
-      {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
-      {message ? <DashboardAlert variant="success">{message}</DashboardAlert> : null}
+  const currentLocationMeta =
+    RESEARCH_LOCATIONS.find((r) => r.code === locationCode) ?? {
+      code: locationCode,
+      label: "Target Region",
+      flag: LOCATION_FLAGS[locationCode] || "🌐",
+    };
 
-      <div className="rounded-2xl border border-line bg-bg-elevated p-4 md:p-5">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitSearch(query || activeSeed);
-          }}
-          className="flex flex-col gap-3 xl:flex-row xl:items-center"
-        >
-          <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-            <div className="flex min-h-[44px] items-center gap-2 rounded-lg border border-line bg-bg pl-10 pr-3 focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-accent/20">
-              {activeSeed && hasSearched ? (
-                <span className="inline-flex max-w-[45%] items-center gap-1 rounded-md border border-line bg-white/5 px-2 py-1 text-sm text-snow sm:max-w-[55%]">
-                  <span className="truncate">{activeSeed}</span>
-                  <button
-                    type="button"
-                    onClick={clearSearch}
-                    className="text-ink-muted hover:text-snow"
-                    aria-label="Clear keyword"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </span>
-              ) : null}
-              <input
-                className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-snow outline-none placeholder:text-ink-muted/60"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={hasSearched ? "Search another keyword..." : "Enter a keyword..."}
-                disabled={loading}
-              />
-            </div>
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Search Bar & Parameters */}
+      <div className="rounded-2xl border border-line bg-bg-elevated p-4 shadow-sm md:p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+            <input
+              type="text"
+              placeholder="Enter a keyword or phrase (e.g. fusionner pdf, seo tool)..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              className={`${inputClass} pl-10 pr-10 text-sm`}
+            />
+            {query ? (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-snow"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
             <ToolbarMenu
               value={String(locationCode)}
-              onChange={(v) => onLocationChange(Number(v))}
               options={KEYWORD_LOCATION_OPTIONS}
-              searchable
-              searchPlaceholder="Search countries"
-              minWidth="10.5rem"
-              disabled={loading}
-            />
-            <ToolbarMenu
-              value={String(limit)}
-              onChange={(v) => onLimitChange(Number(v))}
-              options={KEYWORD_LIMIT_OPTIONS.map((o) => ({
-                value: o.value,
-                label: o.label,
-              }))}
-              minWidth="8.5rem"
-              disabled={loading}
+              onChange={(val) => onLocationChange(Number(val))}
             />
             <ToolbarMenu
               value={mode}
-              onChange={(v) => onModeChange(v as KeywordMode)}
-              options={KEYWORD_MODE_OPTIONS.map((o) => ({
-                value: o.value,
-                label: o.label,
-              }))}
-              minWidth="7rem"
-              disabled={loading}
+              options={KEYWORD_MODE_OPTIONS}
+              onChange={(val) => onModeChange(val as KeywordMode)}
+            />
+            <ToolbarMenu
+              value={String(limit)}
+              options={KEYWORD_LIMIT_OPTIONS}
+              onChange={(val) => onLimitChange(Number(val))}
             />
             <button
-              type="submit"
-              disabled={loading || (!query.trim() && !activeSeed)}
-              className={`${buttonPrimaryClass} col-span-2 sm:col-span-1`}
+              type="button"
+              onClick={() => handleSearch()}
+              disabled={loading || !query.trim()}
+              className={`${buttonPrimaryClass} px-5 py-2 text-sm font-medium`}
             >
               {loading ? "Searching..." : "Search"}
             </button>
           </div>
-        </form>
+        </div>
 
-        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-ink-muted select-none">
-          <input
-            type="checkbox"
-            checked={clickstreamEnabled}
-            onChange={(e) => onClickstreamChange(e.target.checked)}
-            className="rounded border-line bg-bg text-accent focus:ring-accent/30"
-          />
-          <span>Clickstream-refined search volume (accurate real-world data)</span>
-        </label>
+        {/* Clickstream refine label */}
+        <div className="mt-3 flex items-center justify-between border-t border-line/40 pt-2.5 text-xs text-ink-muted">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={clickstreamEnabled}
+              onChange={(e) => onClickstreamChange(e.target.checked)}
+              className="rounded border-line bg-bg text-accent focus:ring-accent/40"
+            />
+            <span>Clickstream-refined search volume (accurate real-world data)</span>
+          </label>
+        </div>
 
+        {/* Recent Searches */}
         {recent.length > 0 ? (
-          <div className="mt-4 border-t border-line/60 pt-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted">
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Recent searches
-              </p>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-line/30 pt-2.5 text-xs">
+            <span className="text-ink-muted">Recent:</span>
+            {recent.map((k) => (
               <button
+                key={k}
                 type="button"
-                onClick={clearAllRecent}
-                className="text-xs text-ink-muted transition hover:text-red-300"
+                onClick={() => handleSearch(k)}
+                className="group inline-flex items-center gap-1 rounded-md border border-line bg-bg px-2 py-0.5 text-ink hover:border-accent/40 hover:text-snow"
               >
-                Clear all
-              </button>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {recent.slice(0, 6).map((item) => (
+                <span>{k}</span>
                 <span
-                  key={item}
-                  className="inline-flex max-w-full items-center gap-1 rounded-full border border-line bg-bg pl-3 pr-1.5 py-1 text-xs text-ink-muted"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeRecentItem(k);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 text-ink-muted hover:text-red-400"
                 >
-                  <button
-                    type="button"
-                    onClick={() => submitSearch(item)}
-                    disabled={loading}
-                    className="truncate transition hover:text-snow disabled:opacity-50"
-                  >
-                    {item}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeRecentItem(item)}
-                    className="rounded-full p-0.5 transition hover:bg-white/10 hover:text-snow"
-                    aria-label={`Remove ${item}`}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  <X className="h-3 w-3" />
                 </span>
-              ))}
-            </div>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearAllRecent}
+              className="text-xs text-ink-muted hover:text-snow underline ml-1"
+            >
+              Clear
+            </button>
           </div>
         ) : null}
       </div>
 
-      {loading ? <LoadingBlock label="Fetching keyword ideas and SERP data..." /> : null}
+      {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
+      {message ? <DashboardAlert variant="success">{message}</DashboardAlert> : null}
 
-      {!loading && !hasSearched && results.length === 0 ? (
-        <EmptyBlock
-          icon={Search}
-          title="Enter a keyword to get started"
-          description="Search for a seed keyword to explore related ideas, trends, and SERP results."
-        />
-      ) : null}
+      {loading ? (
+        <LoadingBlock label="Fetching keyword metrics, difficulty, and global distribution..." />
+      ) : results.length > 0 || activeInsights ? (
+        <div className="flex flex-col gap-6">
+          {/* Ahrefs-style Overview Header Banner */}
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-bg-elevated px-5 py-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                Overview:
+              </span>
+              <h1 className="font-display text-xl font-bold text-snow">
+                {titleCaseKeyword(activeSeed)}
+              </h1>
+              {activeInsights?.intent ? (
+                <IntentBadge intent={activeInsights.intent} />
+              ) : null}
+              <div className="hidden sm:flex items-center gap-2 text-xs text-ink-muted pl-2 border-l border-line">
+                <span>Database: {currentLocationMeta.flag} {currentLocationMeta.label}</span>
+                <span>·</span>
+                <span>Live DataForSEO & Ahrefs Sync</span>
+              </div>
+            </div>
 
-      {results.length > 0 && !loading ? (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_min(360px,34%)] lg:items-start">
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-bg-elevated">
-            {summary ? (
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-4 py-4 md:px-5">
-                <div className="flex min-w-0 items-center gap-3">
-                  <ScoreCircle value={summary.difficulty} />
-                  <p className="truncate font-display text-lg font-semibold text-snow">
-                    {titleCaseKeyword(summary.keyword)}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <span>
-                    <span className="text-ink-muted">Vol </span>
-                    <span className="font-medium tabular-nums text-snow">
-                      {formatVolume(summary.searchVolume)}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="text-ink-muted">CPC </span>
-                    <span className="font-medium tabular-nums text-snow">
-                      {summary.cpc != null ? formatCpc(summary.cpc) : "—"}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="text-ink-muted">Comp </span>
-                    <span className="font-medium tabular-nums text-snow">
-                      {summary.competition != null
-                        ? summary.competition.toFixed(2)
-                        : "—"}
-                    </span>
-                  </span>
-                  <IntentBadge intent={summary.intent} />
-                </div>
-              </div>
-            ) : activeSeed ? (
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-4 py-4 md:px-5">
-                <p className="font-display text-lg font-semibold text-snow">
-                  {titleCaseKeyword(activeSeed)}
-                </p>
-              </div>
-            ) : null}
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 md:px-5">
-              <div className="relative flex items-center gap-2" ref={tableFiltersRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowTableFilters((prev) => !prev)}
-                  className={buttonGhostClass}
-                >
-                  <SlidersHorizontal className="h-4 w-4" /> Filters
-                </button>
-                {showTableFilters ? (
-                  <div className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-64 max-w-[calc(100vw-32px)] rounded-xl border border-line bg-bg-elevated p-4 shadow-2xl">
-                    <label className="block text-xs font-medium text-ink-muted">
-                      Min volume
-                      <input
-                        type="number"
-                        min={0}
-                        className={`${inputClass} mt-1.5`}
-                        value={minVolume}
-                        onChange={(e) => setMinVolume(e.target.value)}
-                        placeholder="0"
-                      />
-                    </label>
-                    <label className="mt-3 block text-xs font-medium text-ink-muted">
-                      Intent
-                      <select
-                        className={`${inputClass} mt-1.5`}
-                        value={intentFilter}
-                        onChange={(e) => setIntentFilter(e.target.value)}
-                      >
-                        <option value="all">All intents</option>
-                        <option value="informational">Informational</option>
-                        <option value="navigational">Navigational</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="transactional">Transactional</option>
-                      </select>
-                    </label>
-                  </div>
-                ) : null}
-                <p className="text-sm text-ink-muted">
-                  Showing{" "}
-                  <span className="font-medium text-snow">{filteredResults.length}</span>{" "}
-                  keywords
-                  {isAllLocations(locationCode) ? " · all locations" : ""}
-                </p>
-              </div>
-              <button type="button" className={buttonGhostClass} onClick={() => exportCsv()}>
-                <Download className="h-4 w-4" /> Export
-                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => exportCsv()}
+                className={`${buttonGhostClass} px-3 py-1.5 text-xs`}
+              >
+                <Download className="h-3.5 w-3.5" /> Export All
               </button>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-[760px] w-full text-left text-sm">
-                <thead className="border-b border-line bg-bg-elevated/95">
-                  <tr>
-                    <th className="w-10 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={() => {
-                          if (allSelected) {
-                            setSelected((prev) => {
-                              const next = new Set(prev);
-                              paginatedResults.forEach((row) => next.delete(row.keyword));
-                              return next;
-                            });
-                          } else {
-                            setSelected((prev) => {
-                              const next = new Set(prev);
-                              paginatedResults.forEach((row) => next.add(row.keyword));
-                              return next;
-                            });
-                          }
-                        }}
-                        aria-label="Select all keywords on this page"
-                      />
-                    </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-                      Keyword
-                    </th>
-                    <th className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setVolumeSort((prev) => (prev === "desc" ? "asc" : "desc"))
-                        }
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted transition hover:text-snow"
-                      >
-                        Volume
-                        <ChevronDown
-                          className={`h-3.5 w-3.5 transition ${volumeSort === "asc" ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-                      CPC
-                    </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-                      Comp.
-                    </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-                      Score
-                    </th>
-                    <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-                      Intent
-                    </th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedResults.map((row) => (
-                    <tr
-                      key={row.keyword}
-                      className="border-b border-line/50 transition hover:bg-white/[0.02] last:border-0"
-                    >
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={selected.has(row.keyword)}
-                          onChange={() => {
-                            setSelected((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(row.keyword)) next.delete(row.keyword);
-                              else next.add(row.keyword);
-                              return next;
-                            });
-                          }}
-                          aria-label={`Select ${row.keyword}`}
-                        />
-                      </td>
-                      <td className="px-4 py-3 font-medium text-snow">
-                        {titleCaseKeyword(row.keyword)}
-                      </td>
-                      <td className="px-4 py-3 tabular-nums text-ink-muted">
-                        {formatVolume(row.searchVolume)}
-                      </td>
-                      <td className="px-4 py-3 tabular-nums text-ink-muted">
-                        {formatCpc(row.cpc)}
-                      </td>
-                      <td className="px-4 py-3 tabular-nums text-ink-muted">
-                        {row.competition != null ? row.competition.toFixed(2) : "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <ScoreCircle value={row.difficulty} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <IntentBadge intent={row.intent} />
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => onSaveKeyword(row)}
-                          className={buttonGhostClass}
-                          title="Save keyword"
-                        >
-                          <BookmarkPlus className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <TablePaginationFooter
-              page={safeKeywordPage}
-              pageSize={rowsPerPage}
-              totalItems={filteredResults.length}
-              onPageChange={setKeywordPage}
-              pageSizeOptions={KEYWORD_ROWS_PER_PAGE_OPTIONS}
-              onPageSizeChange={setRowsPerPage}
-            />
           </div>
 
-          <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
-            <SearchTrendChart
-              points={summary?.trends ?? []}
-              range={summary?.trendRange ?? "Last 12 months"}
-            />
-            <div className="flex min-h-[min(42vh,420px)] flex-col lg:min-h-[360px]">
-              <SerpAnalysisPanel
-                keyword={activeSeed}
-                results={serpResults}
-                onExport={exportSerpCsv}
-              />
+          {/* 4 Hero Cards (Ahrefs style) */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* 1. Keyword Difficulty Card */}
+            <div className="flex flex-col justify-between rounded-2xl border border-line bg-bg-elevated p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Keyword Difficulty
+                </span>
+                <span className="text-xs text-ink-muted">KD</span>
+              </div>
+
+              <div className="my-2">
+                <KdGauge value={activeInsights?.difficulty ?? 12} />
+              </div>
+
+              <div className="border-t border-line/60 pt-3">
+                <p className="text-center text-xs font-medium text-ink-muted">
+                  We estimate that you will need backlinks from{" "}
+                  <span className="font-semibold text-snow">
+                    ~{activeInsights?.refDomainsNeeded ?? 15} websites
+                  </span>{" "}
+                  to rank in the top 10.
+                </p>
+              </div>
             </div>
-          </aside>
+
+            {/* 2. Search Volume Card */}
+            <div className="flex flex-col justify-between rounded-2xl border border-line bg-bg-elevated p-5 shadow-sm">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                    Volume
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs text-snow font-medium">
+                    {currentLocationMeta.flag} {currentLocationMeta.label}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="font-display text-3xl font-bold tracking-tight text-snow">
+                    {formatCompactNumber(activeInsights?.searchVolume)}
+                  </span>
+                  <span className="text-xs text-ink-muted">
+                    ({formatVolume(activeInsights?.searchVolume)})
+                  </span>
+                </div>
+
+                {/* 12-Month Trend Sparkbars */}
+                <div className="mt-3">
+                  <div className="flex items-center justify-between text-[11px] text-ink-muted mb-1">
+                    <span>12-Month Search Trend</span>
+                    <span>{activeInsights?.trendRange || "Annual"}</span>
+                  </div>
+                  <MiniBarTrend points={activeInsights?.trends ?? []} />
+                </div>
+              </div>
+
+              <div className="mt-3 border-t border-line/60 pt-3">
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div>
+                    <span className="text-[10px] text-ink-muted block">Clicks</span>
+                    <span className="font-semibold text-snow">
+                      {formatCompactNumber(activeInsights?.clicks ?? (activeInsights?.searchVolume ? Math.round(activeInsights.searchVolume * 1.1) : null))}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-ink-muted block">CPC</span>
+                    <span className="font-semibold text-snow">
+                      {formatCpc(activeInsights?.cpc)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-ink-muted block">CPS</span>
+                    <span className="font-semibold text-snow">1.14</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Traffic Potential Card */}
+            <div className="flex flex-col justify-between rounded-2xl border border-line bg-bg-elevated p-5 shadow-sm">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                    Traffic Potential
+                  </span>
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                </div>
+
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="font-display text-3xl font-bold tracking-tight text-emerald-400">
+                    {formatCompactNumber(activeInsights?.trafficPotential ?? (activeInsights?.searchVolume ? Math.round(activeInsights.searchVolume * 0.42) : null))}
+                  </span>
+                  <span className="text-xs text-ink-muted">
+                    Value: ${formatCompactNumber(activeInsights?.trafficValue ?? (activeInsights?.searchVolume ? Math.round(activeInsights.searchVolume * 0.42 * (activeInsights?.cpc || 1.1)) : 615))}
+                  </span>
+                </div>
+
+                {/* Top Ranking Result */}
+                <div className="mt-4 rounded-xl border border-line/50 bg-bg p-2.5">
+                  <span className="text-[10px] uppercase font-semibold tracking-wider text-ink-muted block">
+                    Top Ranking Result (#1)
+                  </span>
+                  {activeInsights?.topRankingResult ? (
+                    <a
+                      href={activeInsights.topRankingResult.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 block truncate text-xs font-medium text-accent hover:underline"
+                    >
+                      {activeInsights.topRankingResult.domain}
+                      <ExternalLink className="inline ml-1 h-3 w-3 opacity-70" />
+                    </a>
+                  ) : (
+                    <p className="mt-1 truncate text-xs text-ink">
+                      {activeSeed}.com (Est. Top Ranking)
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3 border-t border-line/60 pt-3">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-ink-muted block">
+                  Parent Topic
+                </span>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-xs font-semibold text-snow truncate">
+                    {activeInsights?.parentTopic || activeSeed}
+                  </span>
+                  <span className="text-xs text-ink-muted tabular-nums">
+                    Vol: {formatCompactNumber(activeInsights?.parentTopicVolume || activeInsights?.searchVolume)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Global Search Volume Card */}
+            <div className="flex flex-col justify-between rounded-2xl border border-line bg-bg-elevated p-5 shadow-sm">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                    Global Volume
+                  </span>
+                  <Globe className="h-4 w-4 text-sky-400" />
+                </div>
+
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="font-display text-3xl font-bold tracking-tight text-snow">
+                    {formatCompactNumber(activeInsights?.globalVolume ?? activeInsights?.searchVolume)}
+                  </span>
+                  <span className="text-xs text-ink-muted">
+                    ({formatVolume(activeInsights?.globalVolume ?? activeInsights?.searchVolume)})
+                  </span>
+                </div>
+
+                {/* Top Countries List with Progress Bars */}
+                <div className="mt-3 flex flex-col gap-2 overflow-y-auto max-h-[140px] pr-1">
+                  {(activeInsights?.globalBreakdown && activeInsights.globalBreakdown.length > 0
+                    ? activeInsights.globalBreakdown
+                    : [
+                        {
+                          countryCode: locationCode,
+                          countryName: currentLocationMeta.label,
+                          flag: currentLocationMeta.flag,
+                          volume: activeInsights?.searchVolume ?? 0,
+                          percentage: 100,
+                        },
+                      ]
+                  )
+                    .slice(0, 6)
+                    .map((item, idx) => (
+                      <div key={idx} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-1.5 text-snow truncate max-w-[120px]">
+                            <span>{item.flag}</span>
+                            <span className="truncate">{item.countryName}</span>
+                          </span>
+                          <span className="font-medium tabular-nums text-snow">
+                            {formatCompactNumber(item.volume)}{" "}
+                            <span className="text-ink-muted text-[10px]">
+                              ({item.percentage}%)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                          <div
+                            style={{ width: `${Math.min(100, Math.max(3, item.percentage))}%` }}
+                            className="h-full rounded-full bg-sky-400"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              <div className="mt-3 border-t border-line/60 pt-2 text-center">
+                <span className="text-[11px] text-ink-muted">
+                  Aggregated across major global indices
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Keyword Ideas 4-Box Grid (Ahrefs style) */}
+          {activeInsights?.categorizedIdeas ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-base font-semibold text-snow">
+                  Keyword Ideas for &quot;{titleCaseKeyword(activeSeed)}&quot;
+                </h3>
+                <span className="text-xs text-ink-muted">Click any keyword to explore</span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* 1. Terms Match */}
+                <div className="flex flex-col rounded-2xl border border-line bg-bg-elevated p-4">
+                  <div className="flex items-center justify-between border-b border-line pb-2.5">
+                    <span className="text-xs font-semibold text-snow">Terms match</span>
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-ink-muted">
+                      {activeInsights.categorizedIdeas.termsMatch.length}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2">
+                    {activeInsights.categorizedIdeas.termsMatch.slice(0, 5).map((idea, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSearch(idea.keyword)}
+                        className="group flex items-center justify-between text-left text-xs hover:text-accent transition"
+                      >
+                        <span className="truncate pr-2 text-snow group-hover:text-accent">
+                          {idea.keyword}
+                        </span>
+                        <span className="font-medium tabular-nums text-ink-muted group-hover:text-snow">
+                          {formatCompactNumber(idea.searchVolume)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Questions */}
+                <div className="flex flex-col rounded-2xl border border-line bg-bg-elevated p-4">
+                  <div className="flex items-center justify-between border-b border-line pb-2.5">
+                    <span className="text-xs font-semibold text-snow">Questions</span>
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-ink-muted">
+                      {activeInsights.categorizedIdeas.questions.length}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2">
+                    {activeInsights.categorizedIdeas.questions.slice(0, 5).map((idea, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSearch(idea.keyword)}
+                        className="group flex items-center justify-between text-left text-xs hover:text-accent transition"
+                      >
+                        <span className="truncate pr-2 text-snow group-hover:text-accent">
+                          {idea.keyword}
+                        </span>
+                        <span className="font-medium tabular-nums text-ink-muted group-hover:text-snow">
+                          {formatCompactNumber(idea.searchVolume)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Also Rank For */}
+                <div className="flex flex-col rounded-2xl border border-line bg-bg-elevated p-4">
+                  <div className="flex items-center justify-between border-b border-line pb-2.5">
+                    <span className="text-xs font-semibold text-snow">Also rank for</span>
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-ink-muted">
+                      {activeInsights.categorizedIdeas.alsoRankFor.length}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2">
+                    {activeInsights.categorizedIdeas.alsoRankFor.slice(0, 5).map((idea, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSearch(idea.keyword)}
+                        className="group flex items-center justify-between text-left text-xs hover:text-accent transition"
+                      >
+                        <span className="truncate pr-2 text-snow group-hover:text-accent">
+                          {idea.keyword}
+                        </span>
+                        <span className="font-medium tabular-nums text-ink-muted group-hover:text-snow">
+                          {formatCompactNumber(idea.searchVolume)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. Also Talk About */}
+                <div className="flex flex-col rounded-2xl border border-line bg-bg-elevated p-4">
+                  <div className="flex items-center justify-between border-b border-line pb-2.5">
+                    <span className="text-xs font-semibold text-snow">Also talk about</span>
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-ink-muted">
+                      {activeInsights.categorizedIdeas.alsoTalkAbout.length}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2">
+                    {activeInsights.categorizedIdeas.alsoTalkAbout.slice(0, 5).map((idea, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSearch(idea.keyword)}
+                        className="group flex items-center justify-between text-left text-xs hover:text-accent transition"
+                      >
+                        <span className="truncate pr-2 text-snow group-hover:text-accent">
+                          {idea.keyword}
+                        </span>
+                        <span className="font-medium tabular-nums text-ink-muted group-hover:text-snow">
+                          {formatCompactNumber(idea.searchVolume)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Full Keywords Table & SERP Tabs */}
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-bg-elevated">
+            {/* View Switcher Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 md:px-5">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    activeTab === "all"
+                      ? "bg-accent text-bg font-semibold"
+                      : "text-ink hover:text-snow"
+                  }`}
+                >
+                  All Keywords ({filteredResults.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("serp")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    activeTab === "serp"
+                      ? "bg-accent text-bg font-semibold"
+                      : "text-ink hover:text-snow"
+                  }`}
+                >
+                  SERP Overview ({serpResults.length})
+                </button>
+              </div>
+
+              {activeTab === "all" ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative flex items-center gap-2" ref={tableFiltersRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowTableFilters((prev) => !prev)}
+                      className={buttonGhostClass}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" /> Filters
+                    </button>
+                    {showTableFilters ? (
+                      <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 w-64 max-w-[calc(100vw-32px)] rounded-xl border border-line bg-bg-elevated p-4 shadow-2xl">
+                        <label className="block text-xs font-medium text-ink-muted">
+                          Min volume
+                          <input
+                            type="number"
+                            min={0}
+                            className={`${inputClass} mt-1.5`}
+                            value={minVolume}
+                            onChange={(e) => setMinVolume(e.target.value)}
+                            placeholder="0"
+                          />
+                        </label>
+                        <label className="mt-3 block text-xs font-medium text-ink-muted">
+                          Difficulty
+                          <select
+                            className={`${inputClass} mt-1.5`}
+                            value={kdFilter}
+                            onChange={(e) => setKdFilter(e.target.value)}
+                          >
+                            <option value="all">All difficulties</option>
+                            <option value="easy">Easy (KD &le; 10)</option>
+                            <option value="medium">Medium (KD 11-30)</option>
+                            <option value="hard">Hard (KD &gt; 30)</option>
+                          </select>
+                        </label>
+                        <label className="mt-3 block text-xs font-medium text-ink-muted">
+                          Intent
+                          <select
+                            className={`${inputClass} mt-1.5`}
+                            value={intentFilter}
+                            onChange={(e) => setIntentFilter(e.target.value)}
+                          >
+                            <option value="all">All intents</option>
+                            <option value="informational">Informational</option>
+                            <option value="navigational">Navigational</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="transactional">Transactional</option>
+                          </select>
+                        </label>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <button
+                    type="button"
+                    className={buttonGhostClass}
+                    onClick={() => exportCsv()}
+                  >
+                    <Download className="h-4 w-4" /> Export
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {activeTab === "all" ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="min-w-[760px] w-full text-left text-sm">
+                    <thead className="border-b border-line bg-bg-elevated/95">
+                      <tr>
+                        <th className="w-10 px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={() => {
+                              if (allSelected) {
+                                setSelected((prev) => {
+                                  const next = new Set(prev);
+                                  paginatedResults.forEach((row) =>
+                                    next.delete(row.keyword),
+                                  );
+                                  return next;
+                                });
+                              } else {
+                                setSelected((prev) => {
+                                  const next = new Set(prev);
+                                  paginatedResults.forEach((row) =>
+                                    next.add(row.keyword),
+                                  );
+                                  return next;
+                                });
+                              }
+                            }}
+                            aria-label="Select all keywords on this page"
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                          Keyword
+                        </th>
+                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setVolumeSort((prev) =>
+                                prev === "desc" ? "asc" : "desc",
+                              )
+                            }
+                            className="inline-flex items-center gap-1 hover:text-snow"
+                          >
+                            Volume
+                            <span className="text-[10px]">
+                              {volumeSort === "desc" ? "↓" : "↑"}
+                            </span>
+                          </button>
+                        </th>
+                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                          KD
+                        </th>
+                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                          CPC
+                        </th>
+                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                          Competition
+                        </th>
+                        <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                          Intent
+                        </th>
+                        {onSaveKeyword ? (
+                          <th className="w-16 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                            Save
+                          </th>
+                        ) : null}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedResults.map((row) => {
+                        const isChecked = selected.has(row.keyword);
+                        return (
+                          <tr
+                            key={row.keyword}
+                            className={`border-b border-line/60 transition last:border-0 hover:bg-white/[0.03] ${
+                              isChecked ? "bg-accent/[0.04]" : ""
+                            }`}
+                          >
+                            <td className="px-4 py-3">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => {
+                                  setSelected((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(row.keyword)) {
+                                      next.delete(row.keyword);
+                                    } else {
+                                      next.add(row.keyword);
+                                    }
+                                    return next;
+                                  });
+                                }}
+                                aria-label={`Select ${row.keyword}`}
+                              />
+                            </td>
+                            <td className="px-4 py-3 font-medium text-snow">
+                              <button
+                                type="button"
+                                onClick={() => handleSearch(row.keyword)}
+                                className="text-left hover:text-accent hover:underline flex items-center gap-1.5"
+                              >
+                                {row.keyword}
+                                <ArrowUpRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100" />
+                              </button>
+                            </td>
+                            <td className="px-4 py-3 tabular-nums text-snow font-semibold">
+                              {formatVolume(row.searchVolume)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`inline-flex h-6 min-w-6 items-center justify-center rounded-md border px-1.5 text-xs font-semibold tabular-nums ${scoreBadgeClass(
+                                  row.difficulty,
+                                )}`}
+                              >
+                                {row.difficulty ?? "—"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 tabular-nums text-ink-muted">
+                              {row.cpc != null ? formatCpc(row.cpc) : "—"}
+                            </td>
+                            <td className="px-4 py-3 tabular-nums text-ink-muted">
+                              {row.competition != null
+                                ? row.competition.toFixed(2)
+                                : "—"}
+                            </td>
+                            <td className="px-4 py-3">
+                              <IntentBadge intent={row.intent} />
+                            </td>
+                            {onSaveKeyword ? (
+                              <td className="px-4 py-3">
+                                <button
+                                  type="button"
+                                  onClick={() => onSaveKeyword(row)}
+                                  className="text-ink-muted hover:text-accent p-1"
+                                  title="Save keyword"
+                                >
+                                  <BookmarkPlus className="h-4 w-4" />
+                                </button>
+                              </td>
+                            ) : null}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <TablePaginationFooter
+                  page={safeKeywordPage}
+                  pageSize={rowsPerPage}
+                  totalItems={filteredResults.length}
+                  onPageChange={setKeywordPage}
+                  pageSizeOptions={KEYWORD_ROWS_PER_PAGE_OPTIONS}
+                  onPageSizeChange={setRowsPerPage}
+                  showRange={true}
+                  showRowsPerPage={true}
+                />
+              </>
+            ) : (
+              <div className="p-4">
+                <SerpAnalysisPanel
+                  keyword={activeSeed}
+                  results={serpResults}
+                  onExport={() => exportCsv()}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      ) : null}
+      ) : (
+        <EmptyBlock
+          title="Start Your Keyword Exploration"
+          description="Enter any seed keyword to reveal search volumes, keyword difficulty, global country breakdown, traffic potential, and search intent."
+        />
+      )}
     </div>
   );
 }

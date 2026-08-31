@@ -362,6 +362,20 @@ function FlagBadge({ label }: { label: string }) {
   );
 }
 
+const backlinksMemoryCache = new Map<
+  string,
+  {
+    overview: BacklinksOverview;
+    backlinks?: BacklinkTableRow[];
+    referring?: ReferringDomainRow[];
+    pages?: TopPageRow[];
+  }
+>();
+
+function getBacklinksCacheKey(domain: string, scope: string) {
+  return `ss_bl_${domain.toLowerCase()}_${scope}`;
+}
+
 export function BacklinksDashboard({
   initialDomain = "",
   dataForSeoConfigured,
@@ -373,11 +387,17 @@ export function BacklinksDashboard({
   const [scope, setScope] = useState<DomainScope>("subdomains");
   const [tab, setTab] = useState<BacklinksTab>("backlinks");
   const [linkMode, setLinkMode] = useState<LinkMode>("one_per_domain");
-  const [overview, setOverview] = useState<BacklinksOverview | null>(null);
-  const [backlinkRows, setBacklinkRows] = useState<BacklinkTableRow[]>([]);
-  const [referringRows, setReferringRows] = useState<ReferringDomainRow[]>([]);
-  const [topPages, setTopPages] = useState<TopPageRow[]>([]);
-  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set());
+  const cachedInitial = initialDomain ? backlinksMemoryCache.get(getBacklinksCacheKey(initialDomain, "subdomains")) : undefined;
+  const [overview, setOverview] = useState<BacklinksOverview | null>(() => cachedInitial?.overview ?? null);
+  const [backlinkRows, setBacklinkRows] = useState<BacklinkTableRow[]>(() => cachedInitial?.backlinks ?? []);
+  const [referringRows, setReferringRows] = useState<ReferringDomainRow[]>(() => cachedInitial?.referring ?? []);
+  const [topPages, setTopPages] = useState<TopPageRow[]>(() => cachedInitial?.pages ?? []);
+  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(() => {
+    const set = new Set<string>();
+    if (cachedInitial?.overview) set.add("overview");
+    if (cachedInitial?.backlinks) set.add(`backlinks:one_per_domain`);
+    return set;
+  });
   const [loadingOverview, setLoadingOverview] = useState(false);
   const [loadingTab, setLoadingTab] = useState(false);
   const [error, setError] = useState("");
@@ -386,8 +406,17 @@ export function BacklinksDashboard({
   const [rowsPerPage, setRowsPerPage] = useState<number>(DEFAULT_ROWS_PER_PAGE);
 
   useEffect(() => {
-    if (initialDomain) setDomain(initialDomain);
-  }, [initialDomain]);
+    if (initialDomain) {
+      setDomain(initialDomain);
+      const cached = backlinksMemoryCache.get(getBacklinksCacheKey(initialDomain, scope));
+      if (cached) {
+        setOverview(cached.overview);
+        if (cached.backlinks) setBacklinkRows(cached.backlinks);
+        if (cached.referring) setReferringRows(cached.referring);
+        if (cached.pages) setTopPages(cached.pages);
+      }
+    }
+  }, [initialDomain, scope]);
 
   useEffect(() => {
     setRecent(readRecent());
@@ -407,9 +436,24 @@ export function BacklinksDashboard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      if (nextTab === "backlinks") setBacklinkRows(data.rows ?? []);
-      if (nextTab === "referring") setReferringRows(data.rows ?? []);
-      if (nextTab === "pages") setTopPages(data.rows ?? []);
+      const rows = data.rows ?? [];
+      const blKey = getBacklinksCacheKey(domain, scope);
+      const existing = backlinksMemoryCache.get(blKey) || { overview: overview! };
+
+      if (nextTab === "backlinks") {
+        setBacklinkRows(rows);
+        existing.backlinks = rows;
+      }
+      if (nextTab === "referring") {
+        setReferringRows(rows);
+        existing.referring = rows;
+      }
+      if (nextTab === "pages") {
+        setTopPages(rows);
+        existing.pages = rows;
+      }
+      backlinksMemoryCache.set(blKey, existing);
+
       const cacheKey = nextTab === "backlinks" ? `backlinks:${mode}` : nextTab;
       setLoadedTabs((prev) => new Set(prev).add(cacheKey));
     } catch (err) {
@@ -423,13 +467,24 @@ export function BacklinksDashboard({
     const nextDomain = domain.trim();
     if (!nextDomain) return;
 
+    const blKey = getBacklinksCacheKey(nextDomain, scope);
+    const cached = backlinksMemoryCache.get(blKey);
+    if (cached) {
+      setOverview(cached.overview);
+      if (cached.backlinks) setBacklinkRows(cached.backlinks);
+      if (cached.referring) setReferringRows(cached.referring);
+      if (cached.pages) setTopPages(cached.pages);
+    }
+
     setLoadingOverview(true);
     setError("");
-    setOverview(null);
-    setBacklinkRows([]);
-    setReferringRows([]);
-    setTopPages([]);
-    setLoadedTabs(new Set());
+    if (!cached) {
+      setOverview(null);
+      setBacklinkRows([]);
+      setReferringRows([]);
+      setTopPages([]);
+      setLoadedTabs(new Set());
+    }
     setPage(0);
     setTab("backlinks");
 
@@ -442,7 +497,11 @@ export function BacklinksDashboard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      setOverview(data.overview ?? null);
+      const nextOverview = data.overview ?? null;
+      setOverview(nextOverview);
+      if (nextOverview) {
+        backlinksMemoryCache.set(blKey, { overview: nextOverview });
+      }
       pushRecent(nextDomain);
       setRecent(readRecent());
       setLoadedTabs(new Set(["overview"]));

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
@@ -124,6 +125,7 @@ export default function DashboardOnboarding({
   project: DashboardProject;
   onSaveDomain: (domain: string) => Promise<void>;
 }) {
+  const router = useRouter();
   const [domainInput, setDomainInput] = useState(project.domain);
   const [saving, setSaving] = useState(false);
 
@@ -174,15 +176,15 @@ export default function DashboardOnboarding({
             <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-snow">
               {hasCustomDomain ? (
                 <>
-                  Project Scope: <span className="font-mono text-accent">{project.domain}</span>
+                  Project Overview: <span className="font-mono text-accent">{project.domain}</span>
                 </>
               ) : (
-                "SEO Operations & Telemetry Console"
+                "SEO Overview & Performance Dashboard"
               )}
             </h1>
 
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              Unified workspace for search telemetry, algorithmic site diagnostics, structured AEO entities, and organic keyword intelligence.
+              All-in-one control center for keyword rankings, site audits, backlinks analysis, and AI SEO recommendations.
             </p>
           </div>
 
@@ -313,6 +315,9 @@ export default function DashboardOnboarding({
                   ) : step.href ? (
                     <Link
                       href={step.href}
+                      prefetch={true}
+                      onMouseEnter={() => step.href && router.prefetch(step.href)}
+                      onTouchStart={() => step.href && router.prefetch(step.href)}
                       className={`w-full inline-flex items-center justify-between rounded-md px-3 py-1.5 text-xs font-medium transition ${
                         isDone
                           ? "border border-line bg-white/5 text-snow hover:bg-white/10"
@@ -335,12 +340,12 @@ export default function DashboardOnboarding({
         </div>
       </div>
 
-      {/* Operations Workbench */}
+      {/* SEO Tools & Features */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted">
-              Active SEO Operations Workbench
+              SEO Tools & Quick Launch
             </h2>
           </div>
         </div>
@@ -352,6 +357,9 @@ export default function DashboardOnboarding({
               <Link
                 key={i}
                 href={mod.href}
+                prefetch={true}
+                onMouseEnter={() => router.prefetch(mod.href)}
+                onTouchStart={() => router.prefetch(mod.href)}
                 className="group relative flex flex-col justify-between rounded-xl border border-line bg-bg-elevated p-4 sm:p-5 transition hover:border-line/80 hover:bg-white/[0.02]"
               >
                 <div className="space-y-3">
