@@ -50,7 +50,7 @@ const SETUP_STEPS: Array<{
   {
     id: "gsc",
     stepNumber: "02",
-    title: "Search Console Telemetry",
+    title: "Search Console Insights",
     description: "Stream verified Google search clicks, impression anomalies, and query rankings directly into your workspace.",
     icon: BarChart3,
     cta: "Connect GSC",
@@ -99,13 +99,13 @@ const WORKBENCH_MODULES = [
     actionLabel: "Start Crawl",
   },
   {
-    title: "Search Console Telemetry",
+    title: "Search Console Insights",
     category: "Google Search Data",
     description: "Real-time query performance, CTR trend analysis, and high-impression striking distance detection.",
     href: "/dashboard/gsc",
     icon: Activity,
     status: "OAuth 2.0",
-    actionLabel: "View Telemetry",
+    actionLabel: "View Insights",
   },
   {
     title: "Keyword & SERP Explorer",

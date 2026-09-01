@@ -510,7 +510,7 @@ export default function SiteAuditPage() {
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-semibold text-snow flex items-center gap-2">
                             <LineChart className="h-4 w-4 text-accent" />
-                            Google Search Console Telemetry Connected ({report.gscData.siteUrl})
+                            Google Search Console Insights Connected ({report.gscData.siteUrl})
                           </h4>
                           <span className="rounded bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 font-bold">LIVE SYNC</span>
                         </div>
