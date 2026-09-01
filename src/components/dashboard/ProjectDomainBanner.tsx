@@ -71,3 +71,14 @@ export function DataForSeoBanner({ configured }: { configured: boolean }) {
     </DashboardAlert>
   );
 }
+
+export function FirecrawlBanner({ configured }: { configured: boolean }) {
+  if (configured) return null;
+  return (
+    <DashboardAlert>
+      Add <code className="rounded bg-black/30 px-1">FIRECRAWL_API_KEY</code> to{" "}
+      <code className="rounded bg-black/30 px-1">.env.local</code> to load live Google
+      first-page results for competitors, keyword SERP, and brand lookup.
+    </DashboardAlert>
+  );
+}

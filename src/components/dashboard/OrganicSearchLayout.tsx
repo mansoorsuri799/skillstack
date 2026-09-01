@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
-import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
+import { DataForSeoBanner, FirecrawlBanner } from "@/components/dashboard/ProjectDomainBanner";
 import {
   SearchPanel,
   SearchToolbar,
@@ -28,6 +28,7 @@ export function OrganicSearchLayout({
   loading,
   error,
   dataForSeoConfigured,
+  firecrawlConfigured,
   projectLoading: _projectLoading,
   onAnalyze,
   showLocation = true,
@@ -46,6 +47,7 @@ export function OrganicSearchLayout({
   loading: boolean;
   error: string;
   dataForSeoConfigured: boolean;
+  firecrawlConfigured?: boolean;
   projectLoading?: boolean;
   onAnalyze: () => void;
   showLocation?: boolean;
@@ -56,6 +58,9 @@ export function OrganicSearchLayout({
     <DashboardShell title={title} description={description}>
       <PageStack>
         <DataForSeoBanner configured={dataForSeoConfigured} />
+        {firecrawlConfigured !== undefined ? (
+          <FirecrawlBanner configured={firecrawlConfigured} />
+        ) : null}
         {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
 
         <SearchPanel title="Domain" description={searchDescription}>

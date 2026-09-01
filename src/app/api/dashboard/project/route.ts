@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
+import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import {
   getProjectForUser,
   updateProjectDomain,
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     project,
     dataForSeoConfigured: isDataForSeoConfigured(),
+    firecrawlConfigured: isFirecrawlConfigured(),
   });
 }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { GitCompare, Search, Target } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
-import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
+import { DataForSeoBanner, FirecrawlBanner } from "@/components/dashboard/ProjectDomainBanner";
 import { SearchPanel, ToolbarSelect } from "@/components/dashboard/SearchToolbar";
 import {
   buttonPrimaryClass,
@@ -22,13 +22,28 @@ import { useDashboardProject } from "@/components/dashboard/useDashboardProject"
 import { RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
 import type { ContentGapResult } from "@/lib/dataforseo/competitive-analysis";
 
+type LiveSerpListing = {
+  position: number;
+  domain: string;
+  title: string;
+  url: string;
+};
+
+type ContentGapPageData = ContentGapResult & {
+  liveSerp?: {
+    keyword: string;
+    location: string;
+    listings: LiveSerpListing[];
+  } | null;
+};
+
 export default function ContentGapPage() {
-  const { project, dataForSeoConfigured, loading: projectLoading } =
+  const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [yourDomain, setYourDomain] = useState("");
   const [competitor, setCompetitor] = useState("");
   const [locationCode, setLocationCode] = useState(2840);
-  const [data, setData] = useState<ContentGapResult | null>(null);
+  const [data, setData] = useState<ContentGapPageData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -58,7 +73,7 @@ export default function ContentGapPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      setData(json.data as ContentGapResult);
+      setData(json.data as ContentGapPageData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
@@ -76,6 +91,7 @@ export default function ContentGapPage() {
     >
       <PageStack>
         <DataForSeoBanner configured={dataForSeoConfigured} />
+        <FirecrawlBanner configured={firecrawlConfigured} />
         {error ? <DashboardAlert variant="error">{error}</DashboardAlert> : null}
 
         <SearchPanel
@@ -154,6 +170,34 @@ export default function ContentGapPage() {
                 icon={Target}
               />
             </MetricGrid>
+
+            {data.liveSerp?.listings.length ? (
+              <ResultsPanel
+                title={`Live first page vs ${data.competitorDomain}`}
+                description={`Google first page for “${data.liveSerp.keyword}” · ${data.liveSerp.location}. Your site is excluded.`}
+              >
+                <ul className="divide-y divide-line/60">
+                  {data.liveSerp.listings.map((row) => (
+                    <li key={`${row.position}-${row.domain}`} className="flex items-start gap-3 px-1 py-3">
+                      <span className="w-8 shrink-0 text-xs font-semibold tabular-nums text-ink-muted">
+                        #{row.position}
+                      </span>
+                      <div className="min-w-0">
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-accent hover:underline"
+                        >
+                          {row.domain}
+                        </a>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-ink-muted">{row.title}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </ResultsPanel>
+            ) : null}
 
             <ResultsPanel
               title={`Content gap vs ${data.competitorDomain}`}

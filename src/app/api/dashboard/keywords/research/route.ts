@@ -6,11 +6,46 @@ import {
   fetchSerpResults,
   type CategorizedKeywordIdeas,
   type KeywordIntent,
+  type SerpResultRow,
 } from "@/lib/dataforseo/keyword-research";
 import { researchKeywords } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import { isAllLocations } from "@/lib/dashboard/locations";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
+import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
+import { FIRST_PAGE_SIZE, searchLiveSerp } from "@/lib/firecrawl/live-serp";
+
+async function loadKeywordSerp(
+  seed: string,
+  locationCode: number,
+  languageCode: string,
+): Promise<{ rows: SerpResultRow[]; source: "firecrawl" | "dataforseo" }> {
+  if (isFirecrawlConfigured()) {
+    try {
+      const live = await searchLiveSerp(seed, {
+        locationCode,
+        mode: "serp",
+        limit: FIRST_PAGE_SIZE,
+      });
+      return {
+        source: "firecrawl",
+        rows: live.listings.map((row) => ({
+          rank: row.position,
+          title: row.title,
+          url: row.url,
+          domain: row.host,
+        })),
+      };
+    } catch {
+      // Fall back to DataForSEO when live search is unavailable.
+    }
+  }
+
+  const rows = await fetchSerpResults(seed, locationCode, languageCode, FIRST_PAGE_SIZE).catch(
+    () => [],
+  );
+  return { rows, source: "dataforseo" };
+}
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -41,7 +76,7 @@ export async function POST(request: Request) {
       ? project.locationCode || 2840
       : locationCode;
 
-    const [results, seedInsights, serpResults] = await Promise.all([
+    const [results, seedInsights, serp] = await Promise.all([
       researchKeywords(
         seed,
         locationCode,
@@ -56,8 +91,9 @@ export async function POST(request: Request) {
         languageCode,
         useClickstream,
       ).catch(() => null),
-      fetchSerpResults(seed, insightLocation, languageCode, 40).catch(() => []),
+      loadKeywordSerp(seed, insightLocation, languageCode),
     ]);
+    const serpResults = serp.rows;
 
     const intentMap = await fetchKeywordIntents(
       results.map((row) => row.keyword),
@@ -178,6 +214,7 @@ export async function POST(request: Request) {
       results: enriched,
       seedInsights: insights,
       serpResults,
+      serpSource: serp.source,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Research failed";

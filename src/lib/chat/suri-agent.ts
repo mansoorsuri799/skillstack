@@ -1,6 +1,8 @@
 import { getDomainOverview } from "@/lib/dataforseo/services";
 import { queryGscAnalytics, getValidGscAccessToken } from "@/lib/google/gsc";
 import { runPromptExplorer } from "@/lib/dataforseo/services";
+import { hasReadyProjectDomain, missingProjectDomainReply } from "@/lib/chat/project-domain";
+import { runSerpCompetitorSearch, wantsLiveSerpSearch } from "@/lib/chat/serp-competitors";
 
 type SuriContext = {
   domain: string;
@@ -33,6 +35,21 @@ export async function runSuriAgentReply(
     return runFileAnalysisReply(prompt, context);
   }
 
+  if (wantsLiveSerpSearch(promptLower)) {
+    if (!hasReadyProjectDomain(domain)) {
+      return missingProjectDomainReply();
+    }
+    try {
+      return await runSerpCompetitorSearch(domain);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "unknown error";
+      return {
+        answer: `I tried a live SERP search for **${domain}** but Firecrawl returned an error: ${detail}\n\nConfirm \`FIRECRAWL_API_KEY\` in \`.env.local\`, then ask again.`,
+        sources: [{ title: domain, url: `https://${domain}` }],
+      };
+    }
+  }
+
   // 1. Check if asking about GSC
   if (
     (promptLower.includes("search console") || promptLower.includes("gsc") || promptLower.includes("traffic trend")) &&
@@ -61,9 +78,8 @@ export async function runSuriAgentReply(
     }
   }
 
-  // 2. Check if asking about competitors or quick wins or keywords
+  // 2. Check if asking about quick wins or keywords
   if (
-    promptLower.includes("competitor") ||
     promptLower.includes("quick win") ||
     promptLower.includes("focus on next") ||
     promptLower.includes("keywords") ||

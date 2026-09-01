@@ -4,7 +4,7 @@ import {
   DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
 } from "dataforseo-client";
-import { labsApi, taskItems, taskResultItems } from "@/lib/dataforseo/client";
+import { labsApi, normalizeDomain, taskItems, taskResultItems } from "@/lib/dataforseo/client";
 
 export type OrganicKeywordRow = {
   keyword: string;
@@ -46,6 +46,8 @@ export type OrganicCompetitorRow = {
   avgPosition: number | null;
   organicKeywords: number | null;
   organicTraffic: number | null;
+  title?: string | null;
+  url?: string | null;
 };
 
 type OrganicMetrics = {
@@ -231,17 +233,25 @@ export async function getOrganicCompetitors(
     }> | null;
   }>(response)[0];
 
+  const target = normalizeDomain(domain);
   const competitors = (result?.items ?? [])
     .map((item) => ({
-      domain: item.domain ?? "",
+      domain: normalizeDomain(item.domain ?? ""),
       intersections: item.intersections ?? null,
       avgPosition: item.avg_position ?? null,
       organicKeywords: item.competitor_metrics?.organic?.count ?? null,
       organicTraffic: item.competitor_metrics?.organic?.etv ?? null,
     }))
-    .filter((row) => row.domain);
+    .filter((row) => {
+      if (!row.domain) return false;
+      return (
+        row.domain !== target &&
+        !row.domain.endsWith(`.${target}`) &&
+        !target.endsWith(`.${row.domain}`)
+      );
+    });
 
-  return { domain, competitors };
+  return { domain: target, competitors };
 }
 
 export type OrganicReportType =

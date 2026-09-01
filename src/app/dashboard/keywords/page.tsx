@@ -6,7 +6,7 @@ import {
   KeywordResearchPanel,
   type KeywordResearchRow,
 } from "@/components/dashboard/keyword-research/KeywordResearchPanel";
-import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
+import { DataForSeoBanner, FirecrawlBanner } from "@/components/dashboard/ProjectDomainBanner";
 import { LoadingBlock, PageStack } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
 import type {
@@ -46,7 +46,7 @@ function applySession(
 }
 
 export default function KeywordsPage() {
-  const { project, dataForSeoConfigured, loading: projectLoading } =
+  const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [seed, setSeed] = useState("");
   const [locationCode, setLocationCode] = useState<number>(2840);
@@ -56,6 +56,7 @@ export default function KeywordsPage() {
   const [results, setResults] = useState<KeywordResearchRow[]>([]);
   const [seedInsights, setSeedInsights] = useState<SeedKeywordInsights | null>(null);
   const [serpResults, setSerpResults] = useState<SerpResultRow[]>([]);
+  const [serpLive, setSerpLive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -128,6 +129,7 @@ export default function KeywordsPage() {
       setResults(nextResults);
       setSeedInsights(nextInsights);
       setSerpResults(nextSerp);
+      setSerpLive(data.serpSource === "firecrawl");
 
       if (nextResults.length > 0) {
         void saveKeywordResearchSession({
@@ -151,6 +153,7 @@ export default function KeywordsPage() {
       setResults([]);
       setSeedInsights(null);
       setSerpResults([]);
+      setSerpLive(false);
     } finally {
       setLoading(false);
     }
@@ -162,6 +165,7 @@ export default function KeywordsPage() {
       setResults([]);
       setSeedInsights(null);
       setSerpResults([]);
+      setSerpLive(false);
       setError("");
       void clearKeywordResearchSession();
     }
@@ -189,6 +193,7 @@ export default function KeywordsPage() {
     >
       <PageStack className="!max-w-none w-full">
         <DataForSeoBanner configured={dataForSeoConfigured} />
+        <FirecrawlBanner configured={firecrawlConfigured} />
 
         <KeywordResearchPanel
           seed={seed}
@@ -204,6 +209,7 @@ export default function KeywordsPage() {
           results={results}
           seedInsights={seedInsights}
           serpResults={serpResults}
+          serpLive={serpLive}
           loading={loading}
           error={error}
           message={message}

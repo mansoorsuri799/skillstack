@@ -26,6 +26,7 @@ export type DashboardProjectContextValue = {
   project: DashboardProject | null;
   projects: DashboardProject[];
   dataForSeoConfigured: boolean;
+  firecrawlConfigured: boolean;
   loading: boolean;
   error: string;
   refresh: () => Promise<void>;
@@ -83,6 +84,7 @@ export function DashboardProjectProvider({
   );
   const [projects, setProjects] = useState<DashboardProject[]>([]);
   const [dataForSeoConfigured, setDataForSeoConfigured] = useState(true);
+  const [firecrawlConfigured, setFirecrawlConfigured] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -98,6 +100,7 @@ export function DashboardProjectProvider({
       setProject(nextActive);
       setProjects(nextList);
       setDataForSeoConfigured(Boolean(data.dataForSeoConfigured));
+      setFirecrawlConfigured(Boolean(data.firecrawlConfigured));
 
       if (typeof window !== "undefined") {
         if (nextActive) {
@@ -148,6 +151,9 @@ export function DashboardProjectProvider({
       if (data.dataForSeoConfigured !== undefined) {
         setDataForSeoConfigured(Boolean(data.dataForSeoConfigured));
       }
+      if (data.firecrawlConfigured !== undefined) {
+        setFirecrawlConfigured(Boolean(data.firecrawlConfigured));
+      }
       return nextActive;
     },
     [],
@@ -169,6 +175,12 @@ export function DashboardProjectProvider({
     }
     if (typeof window !== "undefined" && nextActive) {
       localStorage.setItem(CACHE_PROJECT_KEY, JSON.stringify(nextActive));
+    }
+    if (data.dataForSeoConfigured !== undefined) {
+      setDataForSeoConfigured(Boolean(data.dataForSeoConfigured));
+    }
+    if (data.firecrawlConfigured !== undefined) {
+      setFirecrawlConfigured(Boolean(data.firecrawlConfigured));
     }
     return nextActive;
   }, []);
@@ -260,6 +272,7 @@ export function DashboardProjectProvider({
         project,
         projects,
         dataForSeoConfigured,
+        firecrawlConfigured,
         loading,
         error,
         refresh,

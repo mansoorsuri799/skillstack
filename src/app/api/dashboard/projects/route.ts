@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
+import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import {
   createProjectForUser,
   getProjectForUser,
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
     project: activeProject,
     projects,
     dataForSeoConfigured: isDataForSeoConfigured(),
+    firecrawlConfigured: isFirecrawlConfigured(),
   });
 }
 
@@ -58,6 +60,7 @@ export async function POST(request: Request) {
       project: activeProject,
       projects,
       dataForSeoConfigured: isDataForSeoConfigured(),
+      firecrawlConfigured: isFirecrawlConfigured(),
     });
   } catch (error) {
     const message =

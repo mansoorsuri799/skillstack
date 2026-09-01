@@ -3,6 +3,8 @@ import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import { getContentGap } from "@/lib/dataforseo/competitive-analysis";
 import { getProjectForUser } from "@/lib/dashboard/project";
+import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
+import { liveSerpForDomain } from "@/lib/firecrawl/live-serp";
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -39,14 +41,35 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = await getContentGap(
-      yourDomain,
-      competitorDomain,
-      body.locationCode ?? project.locationCode,
-      body.languageCode ?? project.languageCode,
-    );
+    const locationCode = body.locationCode ?? project.locationCode;
+    const [data, live] = await Promise.all([
+      getContentGap(
+        yourDomain,
+        competitorDomain,
+        locationCode,
+        body.languageCode ?? project.languageCode,
+      ),
+      isFirecrawlConfigured()
+        ? liveSerpForDomain(competitorDomain, { locationCode }).catch(() => null)
+        : Promise.resolve(null),
+    ]);
 
-    return NextResponse.json({ data });
+    const liveSerp = live
+      ? {
+          keyword: live.keyword,
+          location: live.location,
+          listings: live.listings
+            .filter((row) => !row.isYours)
+            .map((row) => ({
+              position: row.position,
+              domain: row.host,
+              title: row.title,
+              url: row.url,
+            })),
+        }
+      : null;
+
+    return NextResponse.json({ data: { ...data, liveSerp } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lookup failed";
     return NextResponse.json({ message }, { status: 500 });

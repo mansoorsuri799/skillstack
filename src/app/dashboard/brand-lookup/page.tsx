@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import { AiToolLimitNotice } from "@/components/dashboard/AiToolLimitNotice";
 import { BrandLookupUnlock } from "@/components/dashboard/BrandLookupUnlock";
 import { TopUpgradeBanner } from "@/components/dashboard/PaidFeatureUnlockCard";
+import { FirecrawlBanner } from "@/components/dashboard/ProjectDomainBanner";
 import { SearchToolbar } from "@/components/dashboard/SearchToolbar";
 import {
   DashboardAlert,
@@ -19,7 +20,7 @@ import { useDashboardProject } from "@/components/dashboard/useDashboardProject"
 import type { AiToolUsage } from "@/lib/dashboard/ai-tool-limits";
 
 export default function BrandLookupPage() {
-  const { project, dataForSeoConfigured, loading: projectLoading } =
+  const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [brand, setBrand] = useState("");
   const [usage, setUsage] = useState<AiToolUsage | null>(null);
@@ -74,14 +75,16 @@ export default function BrandLookupPage() {
 
   const limitReached = Boolean(usage && !usage.unlimited && usage.remaining === 0);
 
+  const lookupReady = (firecrawlConfigured || dataForSeoConfigured) && !limitReached;
+
   const lookupForm =
-    dataForSeoConfigured && !limitReached ? (
+    lookupReady ? (
       <div className="space-y-4">
         <div>
           <p className="text-sm font-medium text-snow">Try Brand Lookup</p>
           <p className="mt-1 text-sm text-ink-muted">
-            DataForSEO is connected — check how a brand appears in AI answers and cited sources
-            {project ? ` for ${project.domain}.` : "."}
+            Search live Google results for a brand
+            {project ? ` and see if ${project.domain} appears.` : "."}
           </p>
           <div className="mt-2">
             <AiToolLimitNotice usage={usage} featureLabel="Brand Lookup" />
@@ -98,20 +101,21 @@ export default function BrandLookupPage() {
           submitLabel={loading ? "Looking up..." : "Lookup brand"}
         />
       </div>
-    ) : dataForSeoConfigured && limitReached ? (
+    ) : limitReached ? (
       <AiToolLimitNotice usage={usage} featureLabel="Brand Lookup" />
     ) : null;
 
   return (
     <DashboardShell
       title="Brand Lookup"
-      description="See how AI search cites any brand name or domain."
+      description="See live Google first-page results and cited sources for any brand."
     >
       <PageStack className="max-w-5xl">
         <TopUpgradeBanner />
+        <FirecrawlBanner configured={firecrawlConfigured} />
         <BrandLookupUnlock footer={lookupForm} />
 
-        {loading ? <LoadingBlock label="Querying AI search data..." /> : null}
+        {loading ? <LoadingBlock label="Fetching live brand results..." /> : null}
 
         {result ? (
           <>
@@ -129,7 +133,7 @@ export default function BrandLookupPage() {
                 featured
               />
             </MetricGrid>
-            <ResultsPanel title="AI answer snapshot">
+            <ResultsPanel title="Live search snapshot">
               <div className="whitespace-pre-wrap rounded-xl border border-line bg-bg p-5 text-sm leading-relaxed text-ink">
                 {result.answer || "No answer text returned."}
               </div>

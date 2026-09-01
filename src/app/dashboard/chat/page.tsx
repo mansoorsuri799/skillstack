@@ -127,6 +127,47 @@ function AttachmentChips({
   );
 }
 
+function ChatRichText({ content }: { content: string }) {
+  const blocks = content.split(/\n{2,}/);
+
+  return (
+    <div className="space-y-3 text-xs sm:text-sm leading-relaxed">
+      {blocks.map((block, index) => (
+        <p key={index} className="whitespace-pre-wrap">
+          {renderInline(block)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function renderInline(text: string) {
+  const parts = text.split(/(\*\*[^*\n]+\*\*|https?:\/\/[^\s]+)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={index} className="font-semibold text-snow">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="break-all text-accent hover:underline"
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
 function MessageBubble({
   msg,
   canEdit = false,
@@ -275,10 +316,12 @@ function MessageBubble({
               </button>
             </div>
           </div>
-        ) : (
+        ) : isUser ? (
           <div className="whitespace-pre-wrap leading-relaxed space-y-2">
             {msg.content}
           </div>
+        ) : (
+          <ChatRichText content={msg.content} />
         )}
 
         {msg.sources && msg.sources.length > 0 ? (
@@ -609,7 +652,7 @@ export default function ChatPage() {
                   </p>
                 </div>
                 <p className="text-[11px] text-ink-muted/70 pt-1 border-t border-white/[0.04]">
-                  Suri uses this project context to tailor all keyword, SERP, and traffic answers specifically for {project?.domain}.
+                  Suri uses this project domain for live SERP competitor searches. Add a real domain first — placeholder sites like example.com are skipped.
                 </p>
               </div>
             ) : null}
@@ -670,7 +713,10 @@ export default function ChatPage() {
             <div className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated p-4 text-xs text-ink-muted animate-pulse max-w-md">
               <Bot className="h-4 w-4 text-accent animate-spin" />
               <span>
-                {messages[messages.length - 1]?.attachments?.length
+                {messages[messages.length - 1]?.content?.toLowerCase().includes("competitor") ||
+                messages[messages.length - 1]?.content?.toLowerCase().includes("serp")
+                  ? "Suri is running a live SERP search for your domain..."
+                  : messages[messages.length - 1]?.attachments?.length
                   ? "Suri is reading your files and drafting recommendations..."
                   : "Suri is analyzing project metrics and SERPs..."}
               </span>

@@ -308,10 +308,12 @@ function MiniBarTrend({ points }: { points: KeywordTrendPoint[] }) {
 function SerpAnalysisPanel({
   keyword,
   results,
+  live,
   onExport,
 }: {
   keyword: string;
   results: SerpResultRow[];
+  live?: boolean;
   onExport: () => void;
 }) {
   const [page, setPage] = useState(0);
@@ -343,6 +345,7 @@ function SerpAnalysisPanel({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
         <p className="text-xs text-ink-muted">
           {results.length} organic result{results.length === 1 ? "" : "s"}
+          {live ? " · live first page" : ""}
         </p>
         <button
           type="button"
@@ -427,6 +430,7 @@ export function KeywordResearchPanel({
   summary,
   seedInsights,
   serpResults = [],
+  serpLive = false,
   loading,
   error,
   message,
@@ -447,6 +451,7 @@ export function KeywordResearchPanel({
   summary?: SeedKeywordInsights | null;
   seedInsights?: SeedKeywordInsights | null;
   serpResults?: SerpResultRow[];
+  serpLive?: boolean;
   loading: boolean;
   error?: string | null;
   message?: string | null;
@@ -1324,6 +1329,7 @@ export function KeywordResearchPanel({
                 <SerpAnalysisPanel
                   keyword={activeSeed}
                   results={serpResults}
+                  live={serpLive}
                   onExport={() => exportCsv()}
                 />
               </div>

@@ -5,7 +5,9 @@ import {
   getOrganicReport,
   type OrganicReportType,
 } from "@/lib/dataforseo/organic-search";
+import { getOrganicCompetitorsReport } from "@/lib/dashboard/organic-competitors";
 import { getProjectForUser } from "@/lib/dashboard/project";
+import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 
 const REPORT_TYPES = new Set<OrganicReportType>([
   "keywords",
@@ -15,13 +17,6 @@ const REPORT_TYPES = new Set<OrganicReportType>([
 ]);
 
 export async function POST(request: Request) {
-  if (!isDataForSeoConfigured()) {
-    return NextResponse.json(
-      { message: "Add DATAFORSEO_API_KEY to .env.local." },
-      { status: 503 },
-    );
-  }
-
   const result = await requireUser(request);
   if ("response" in result) return result.response;
   const { user } = result;
@@ -40,6 +35,32 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "Enter a domain to analyze." },
         { status: 400 },
+      );
+    }
+
+    if (type === "competitors") {
+      if (!isFirecrawlConfigured() && !isDataForSeoConfigured()) {
+        return NextResponse.json(
+          {
+            message:
+              "Add FIRECRAWL_API_KEY (or DATAFORSEO_API_KEY) to .env.local to load organic competitors.",
+          },
+          { status: 503 },
+        );
+      }
+
+      const data = await getOrganicCompetitorsReport(
+        domain,
+        body.locationCode ?? project.locationCode,
+        body.languageCode ?? project.languageCode,
+      );
+      return NextResponse.json({ type, data });
+    }
+
+    if (!isDataForSeoConfigured()) {
+      return NextResponse.json(
+        { message: "Add DATAFORSEO_API_KEY to .env.local." },
+        { status: 503 },
       );
     }
 

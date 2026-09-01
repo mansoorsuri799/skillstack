@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
+import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { selectActiveProject } from "@/lib/dashboard/project";
 
 export async function POST(
@@ -23,6 +24,7 @@ export async function POST(
       project: activeProject,
       projects,
       dataForSeoConfigured: isDataForSeoConfigured(),
+      firecrawlConfigured: isFirecrawlConfigured(),
     });
   } catch (error) {
     const message =

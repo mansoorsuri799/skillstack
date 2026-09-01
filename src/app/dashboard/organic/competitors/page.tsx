@@ -6,6 +6,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   Download,
+  ExternalLink,
   Search,
   Users,
 } from "lucide-react";
@@ -24,6 +25,9 @@ import type { OrganicCompetitorRow } from "@/lib/dataforseo/organic-search";
 
 type CompetitorsData = {
   domain: string;
+  keyword?: string | null;
+  location?: string | null;
+  source?: "firecrawl" | "dataforseo";
   competitors: OrganicCompetitorRow[];
 };
 
@@ -49,10 +53,11 @@ export default function OrganicCompetitorsPage() {
     analyze,
     projectLoading,
     dataForSeoConfigured,
+    firecrawlConfigured,
   } = useOrganicSearch<CompetitorsData>("competitors");
 
-  const [sortField, setSortField] = useState<SortField>("intersections");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [sortField, setSortField] = useState<SortField>("avgPosition");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [searchQuery, setSearchQuery] = useState("");
 
   function handleSort(field: SortField) {
@@ -64,9 +69,18 @@ export default function OrganicCompetitorsPage() {
     }
   }
 
-  const filteredCompetitors = useMemo(() => {
+  const competitorsExcludingSelf = useMemo(() => {
     if (!data?.competitors) return [];
-    let list = [...data.competitors];
+    const own = (data.domain || domain).replace(/^www\./i, "").toLowerCase();
+    return data.competitors.filter((c) => {
+      const host = (c.domain || "").replace(/^www\./i, "").toLowerCase();
+      if (!host) return false;
+      return host !== own && !host.endsWith(`.${own}`) && !own.endsWith(`.${host}`);
+    });
+  }, [data?.competitors, data?.domain, domain]);
+
+  const filteredCompetitors = useMemo(() => {
+    let list = [...competitorsExcludingSelf];
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -91,21 +105,25 @@ export default function OrganicCompetitorsPage() {
     });
 
     return list;
-  }, [data?.competitors, searchQuery, sortField, sortOrder]);
+  }, [competitorsExcludingSelf, searchQuery, sortField, sortOrder]);
 
   function exportCsv() {
     if (!filteredCompetitors.length) return;
     const header = [
+      "Rank",
       "Domain",
+      "Title",
+      "URL",
       "Shared Keywords",
-      "Avg. Position",
       "Organic Keywords",
       "Organic Traffic",
     ];
     const rows = filteredCompetitors.map((c) => [
-      `"${(c.domain || "").replace(/"/g, '""')}"`,
-      c.intersections ?? "",
       c.avgPosition ?? "",
+      `"${(c.domain || "").replace(/"/g, '""')}"`,
+      `"${(c.title || "").replace(/"/g, '""')}"`,
+      `"${(c.url || "").replace(/"/g, '""')}"`,
+      c.intersections ?? "",
       c.organicKeywords ?? "",
       c.organicTraffic ?? "",
     ]);
@@ -122,8 +140,8 @@ export default function OrganicCompetitorsPage() {
   return (
     <OrganicSearchLayout
       title="Organic competitors"
-      description="Domains competing for the same organic keywords"
-      searchDescription="Find overlapping competitors by shared keyword intersections in Google."
+      description="Live first-page Google competitors for this domain"
+      searchDescription="Find close organic competitors from the current Google first page for this site's keyword."
       domain={domain}
       setDomain={setDomain}
       locationCode={locationCode}
@@ -133,6 +151,7 @@ export default function OrganicCompetitorsPage() {
       loading={loading}
       error={error}
       dataForSeoConfigured={dataForSeoConfigured}
+      firecrawlConfigured={firecrawlConfigured}
       projectLoading={projectLoading}
       onAnalyze={() => void analyze()}
     >
@@ -143,21 +162,29 @@ export default function OrganicCompetitorsPage() {
           <MetricGrid className="sm:grid-cols-2">
             <MetricTile
               label="Competitors found"
-              value={data.competitors.length}
+              value={competitorsExcludingSelf.length}
               icon={Users}
               featured
             />
             <MetricTile
-              label="Top overlap"
-              value={data.competitors[0]?.intersections ?? null}
-              hint="shared keywords"
+              label={data.keyword ? "Keyword" : "Best rank"}
+              value={data.keyword ?? filteredCompetitors[0]?.avgPosition ?? null}
+              hint={
+                data.source === "firecrawl"
+                  ? `Live first page${data.location ? ` · ${data.location}` : ""}`
+                  : "shared keyword overlap"
+              }
               icon={Users}
             />
           </MetricGrid>
 
           <ResultsPanel
             title={`Organic competitors for ${data.domain}`}
-            description="Competitors ranked by keyword intersection with your domain."
+            description={
+              data.keyword
+                ? `Live Google first page for “${data.keyword}”${data.location ? ` · ${data.location}` : ""}. Your own site is excluded.`
+                : "Competitors ranked by keyword overlap. Your own site is excluded."
+            }
           >
             <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-bg-soft/60 px-3.5 py-3 md:px-5">
               <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
@@ -182,10 +209,10 @@ export default function OrganicCompetitorsPage() {
                     }}
                     className="rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none transition focus:border-accent"
                   >
+                    <option value="avgPosition:asc">Rank: Best first</option>
+                    <option value="avgPosition:desc">Rank: High to Low</option>
                     <option value="intersections:desc">Shared Keywords: High to Low</option>
                     <option value="intersections:asc">Shared Keywords: Low to High</option>
-                    <option value="avgPosition:asc">Avg. Position: Best first</option>
-                    <option value="avgPosition:desc">Avg. Position: High to Low</option>
                     <option value="organicKeywords:desc">Keywords: High to Low</option>
                     <option value="organicTraffic:desc">Traffic: High to Low</option>
                     <option value="domain:asc">Domain: A to Z</option>
@@ -196,7 +223,7 @@ export default function OrganicCompetitorsPage() {
               <div className="flex items-center gap-2.5">
                 <span className="text-xs text-ink-muted tabular-nums">
                   Showing <strong className="text-snow">{filteredCompetitors.length}</strong> of{" "}
-                  {data.competitors.length}
+                  {competitorsExcludingSelf.length}
                 </span>
                 <button
                   type="button"
@@ -262,7 +289,7 @@ export default function OrganicCompetitorsPage() {
                           sortField === "avgPosition" ? "text-accent" : "text-ink-muted hover:text-snow"
                         }`}
                       >
-                        <span>Avg. position</span>
+                        <span>Rank</span>
                         {sortField === "avgPosition" ? (
                           sortOrder === "desc" ? (
                             <ArrowDown className="h-3.5 w-3.5 text-accent" />
@@ -329,12 +356,29 @@ export default function OrganicCompetitorsPage() {
                         key={`${row.domain}-${idx}`}
                         className="border-b border-line/50 transition hover:bg-white/[0.02] last:border-0"
                       >
-                        <td className="px-4 py-3.5 font-medium text-snow">{row.domain}</td>
+                        <td className="px-4 py-3.5">
+                          {row.url ? (
+                            <a
+                              href={row.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline"
+                            >
+                              {row.domain}
+                              <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
+                            </a>
+                          ) : (
+                            <span className="font-medium text-snow">{row.domain}</span>
+                          )}
+                          {row.title ? (
+                            <p className="mt-0.5 line-clamp-1 text-xs text-ink-muted">{row.title}</p>
+                          ) : null}
+                        </td>
                         <td className="px-4 py-3.5 font-semibold text-accent tabular-nums">
                           {row.intersections?.toLocaleString() ?? "—"}
                         </td>
                         <td className="px-4 py-3.5 text-ink-muted tabular-nums">
-                          {row.avgPosition != null ? row.avgPosition.toFixed(1) : "—"}
+                          {row.avgPosition != null ? `#${Math.round(row.avgPosition)}` : "—"}
                         </td>
                         <td className="px-4 py-3.5 text-ink-muted tabular-nums">
                           {row.organicKeywords?.toLocaleString() ?? "—"}
@@ -355,7 +399,7 @@ export default function OrganicCompetitorsPage() {
           <EmptyBlock
             icon={Users}
             title="Analyze organic competitors"
-            description="Enter a domain and click Analyze to find domains ranking for the same keywords."
+            description="Enter a domain and click Analyze to load live first-page Google competitors for that site."
           />
         )
       )}
