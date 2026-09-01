@@ -4,6 +4,55 @@ import { connectDB } from "@/lib/db";
 import { getProjectDocument, getProjectForUser } from "@/lib/dashboard/project";
 import { ProjectChat } from "@/models/ProjectChat";
 import { runSuriAgentReply } from "@/lib/chat/suri-agent";
+import { analyzeChatUploads } from "@/lib/chat/file-analysis";
+import {
+  DEFAULT_FILE_ANALYSIS_PROMPT,
+  validateChatFiles,
+} from "@/lib/chat/file-types";
+import { serializeChat } from "@/lib/chat/serialize-chat";
+
+type IncomingUpload = {
+  name: string;
+  mimeType: string;
+  size: number;
+  buffer: Buffer;
+};
+
+async function readChatRequest(request: Request): Promise<{
+  prompt: string;
+  chatId: string | null;
+  files: IncomingUpload[];
+}> {
+  const contentType = request.headers.get("content-type") || "";
+  if (contentType.includes("multipart/form-data")) {
+    const form = await request.formData();
+    const prompt = String(form.get("message") ?? "").trim();
+    const chatIdRaw = form.get("chatId");
+    const chatId = chatIdRaw ? String(chatIdRaw).trim() : null;
+    const files: IncomingUpload[] = [];
+
+    for (const item of form.getAll("files")) {
+      if (typeof item === "string") continue;
+      const file = item as File;
+      if (!file.size) continue;
+      files.push({
+        name: file.name || "upload",
+        mimeType: file.type || "",
+        size: file.size,
+        buffer: Buffer.from(await file.arrayBuffer()),
+      });
+    }
+
+    return { prompt, chatId, files };
+  }
+
+  const body = (await request.json()) as { message?: unknown; chatId?: unknown };
+  return {
+    prompt: String(body.message ?? "").trim(),
+    chatId: body.chatId ? String(body.chatId).trim() : null,
+    files: [],
+  };
+}
 
 export async function GET(request: Request) {
   const result = await requireUser(request);
@@ -47,12 +96,15 @@ export async function POST(request: Request) {
     const projectDoc = await getProjectDocument(user.id, true);
     await connectDB();
 
-    const body = await request.json();
-    const prompt = String(body.message ?? "").trim();
-    const chatId = body.chatId ? String(body.chatId).trim() : null;
+    const { prompt: rawPrompt, chatId, files } = await readChatRequest(request);
+    const fileError = validateChatFiles(files);
+    if (fileError) {
+      return NextResponse.json({ message: fileError }, { status: 400 });
+    }
 
+    const prompt = rawPrompt || (files.length ? DEFAULT_FILE_ANALYSIS_PROMPT : "");
     if (!prompt) {
-      return NextResponse.json({ message: "Enter a message." }, { status: 400 });
+      return NextResponse.json({ message: "Enter a message or attach a file." }, { status: 400 });
     }
 
     let chat;
@@ -61,8 +113,8 @@ export async function POST(request: Request) {
     }
 
     if (!chat) {
-      // Create new chat session with first user message as title snippet
-      const title = prompt.length > 35 ? `${prompt.slice(0, 32)}...` : prompt;
+      const titleSource = rawPrompt || files[0]?.name || prompt;
+      const title = titleSource.length > 35 ? `${titleSource.slice(0, 32)}...` : titleSource;
       chat = new ProjectChat({
         userId: user.id,
         projectId: project.id,
@@ -76,15 +128,22 @@ export async function POST(request: Request) {
       content: m.content,
     }));
 
-    // Append user message
+    const fileAnalysis = files.length ? await analyzeChatUploads(files) : null;
+    const attachments = fileAnalysis?.attachments ?? [];
+
     chat.messages.push({
       role: "user",
       content: prompt,
+      attachments,
+      fileContext: fileAnalysis?.report || "",
       createdAt: new Date(),
     });
 
-    // Run Suri Agent reasoning
-    const suriReply = await runSuriAgentReply(prompt, history, {
+    const agentPrompt = attachments.length
+      ? `${prompt}\n\nAttached files: ${attachments.map((a) => a.name).join(", ")}`
+      : prompt;
+
+    const suriReply = await runSuriAgentReply(agentPrompt, history, {
       domain: projectDoc.domain,
       projectName: projectDoc.name,
       gscProject: {
@@ -94,9 +153,9 @@ export async function POST(request: Request) {
         gscAccessToken: projectDoc.gscAccessToken,
         gscTokenExpiry: projectDoc.gscTokenExpiry,
       },
+      fileAnalysis,
     });
 
-    // Append assistant response
     chat.messages.push({
       role: "assistant",
       content: suriReply.answer,
@@ -107,13 +166,7 @@ export async function POST(request: Request) {
     await chat.save();
 
     return NextResponse.json({
-      chat: {
-        id: chat._id.toString(),
-        title: chat.title,
-        messages: chat.messages,
-        createdAt: chat.createdAt,
-        updatedAt: chat.updatedAt,
-      },
+      chat: serializeChat(chat),
       reply: suriReply,
     });
   } catch (error) {
@@ -122,4 +175,5 @@ export async function POST(request: Request) {
   }
 }
 
+export const runtime = "nodejs";
 export const maxDuration = 60;

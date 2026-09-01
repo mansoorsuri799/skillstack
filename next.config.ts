@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["mongoose", "stripe"],
+  serverExternalPackages: ["mongoose", "stripe", "jszip"],
   devIndicators: false,
   compress: true,
   poweredByHeader: false,

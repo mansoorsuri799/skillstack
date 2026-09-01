@@ -10,6 +10,20 @@ const ChatMessageSchema = new Schema(
         url: { type: String, default: "" },
       },
     ],
+    attachments: [
+      {
+        name: { type: String, default: "" },
+        mimeType: { type: String, default: "" },
+        size: { type: Number, default: 0 },
+        kind: {
+          type: String,
+          enum: ["image", "document", "archive", "spreadsheet"],
+          default: "document",
+        },
+      },
+    ],
+    fileContext: { type: String, default: "" },
+    editedAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
   },
   { _id: true },

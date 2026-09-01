@@ -8,11 +8,13 @@ export default function DashboardShell({
   description,
   children,
   actions,
+  fill = false,
 }: {
   title: string;
   description?: string;
   children: ReactNode;
   actions?: ReactNode;
+  fill?: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-bg-soft md:rounded-tl-2xl md:border-l md:border-t md:border-line overflow-hidden">
@@ -28,7 +30,15 @@ export default function DashboardShell({
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </header>
-      <main className="flex-1 overflow-y-auto overscroll-contain px-3.5 py-4 sm:px-6 sm:py-5">{children}</main>
+      <main
+        className={
+          fill
+            ? "flex min-h-0 flex-1 flex-col overflow-hidden px-3.5 pt-4 sm:px-6 sm:pt-5"
+            : "flex-1 overflow-y-auto overscroll-contain px-3.5 py-4 sm:px-6 sm:py-5"
+        }
+      >
+        {children}
+      </main>
     </div>
   );
 }

@@ -12,6 +12,10 @@ type SuriContext = {
     gscAccessToken?: string | null;
     gscTokenExpiry?: Date | null;
   } | null;
+  fileAnalysis?: {
+    report: string;
+    synthesisBrief: string;
+  } | null;
 };
 
 export async function runSuriAgentReply(
@@ -24,6 +28,10 @@ export async function runSuriAgentReply(
 }> {
   const domain = context.domain;
   const promptLower = prompt.toLowerCase();
+
+  if (context.fileAnalysis?.report) {
+    return runFileAnalysisReply(prompt, context);
+  }
 
   // 1. Check if asking about GSC
   if (
@@ -102,6 +110,40 @@ export async function runSuriAgentReply(
       sources: [
         { title: "Google Search Central Documentation", url: "https://developers.google.com/search" },
       ],
+    };
+  }
+}
+
+async function runFileAnalysisReply(
+  prompt: string,
+  context: SuriContext,
+): Promise<{
+  answer: string;
+  sources: Array<{ title: string; url: string }>;
+}> {
+  const localReport = context.fileAnalysis?.report || "";
+  const domainLabel = context.domain && context.domain !== "example.com" ? context.domain : "this project";
+  const sources = [
+    {
+      title: "Uploaded files — Suri extraction",
+      url:
+        context.domain && context.domain !== "example.com"
+          ? `https://${context.domain}`
+          : "https://developers.google.com/search",
+    },
+  ];
+
+  try {
+    const synthesisPrompt = `Acting as Suri, an expert SEO agent for ${domainLabel}. The user uploaded files. Extraction notes:\n${context.fileAnalysis?.synthesisBrief || ""}\n\nUser request: ${prompt}\n\nGive concise, actionable recommendations. Do not repeat the file inventory. Focus on SEO, content, technical fixes, and what to do next.`;
+    const result = await runPromptExplorer(synthesisPrompt);
+    return {
+      answer: `${localReport}\n\n---\n\n### Suri's recommendations\n\n${result.answer}`,
+      sources: result.sources?.length ? result.sources : sources,
+    };
+  } catch {
+    return {
+      answer: `${localReport}\n\n---\n\n### Suri's recommendations\n\n1. Fix the issues listed above first — titles, meta descriptions, image weight, and thin copy move rankings fastest.\n2. Rename files with descriptive hyphenated slugs and add specific alt text before publishing.\n3. If this is a content draft, add H2s that match search intent and a short FAQ block for AI Overviews.\n4. Re-upload after edits if you want Suri to re-check the same files.`,
+      sources,
     };
   }
 }
