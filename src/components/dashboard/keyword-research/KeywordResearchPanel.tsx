@@ -26,7 +26,7 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
-import { ToolbarMenu } from "@/components/dashboard/ToolbarMenu";
+import { ToolbarSelect } from "@/components/dashboard/SearchToolbar";
 import {
   buttonGhostClass,
   buttonPrimaryClass,
@@ -611,52 +611,64 @@ export function KeywordResearchPanel({
     <div className="flex flex-col gap-6">
       {/* Search Bar & Parameters */}
       <div className="rounded-2xl border border-line bg-bg-elevated p-4 shadow-sm md:p-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-            <input
-              type="text"
-              placeholder="Enter a keyword or phrase (e.g. fusionner pdf, seo tool)..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className={`${inputClass} pl-10 pr-10 text-sm`}
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-snow"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-end">
+          <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-xs font-medium text-ink-muted">
+            <span>Keyword</span>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+              <input
+                type="text"
+                placeholder="Enter a keyword or phrase (e.g. fusionner pdf, seo tool)..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className={`${inputClass} w-full pl-10 pr-10 text-sm`}
+              />
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-snow"
+                  aria-label="Clear keyword"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
+          </label>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <ToolbarMenu
-              value={String(locationCode)}
+          <div className="flex flex-wrap items-end gap-2 xl:shrink-0">
+            <ToolbarSelect
+              label="Location"
+              value={locationCode}
               options={KEYWORD_LOCATION_OPTIONS}
               onChange={(val) => onLocationChange(Number(val))}
             />
-            <ToolbarMenu
+            <ToolbarSelect
+              label="Mode"
               value={mode}
               options={KEYWORD_MODE_OPTIONS}
               onChange={(val) => onModeChange(val as KeywordMode)}
             />
-            <ToolbarMenu
-              value={String(limit)}
+            <ToolbarSelect
+              label="Limit"
+              value={limit}
               options={KEYWORD_LIMIT_OPTIONS}
               onChange={(val) => onLimitChange(Number(val))}
             />
-            <button
-              type="button"
-              onClick={() => handleSearch()}
-              disabled={loading || !query.trim()}
-              className={`${buttonPrimaryClass} px-5 py-2 text-sm font-medium`}
-            >
-              {loading ? "Searching..." : "Search"}
-            </button>
+            <div className="flex flex-col gap-1.5">
+              <span className="invisible text-xs font-medium" aria-hidden>
+                Search
+              </span>
+              <button
+                type="button"
+                onClick={() => handleSearch()}
+                disabled={loading || !query.trim()}
+                className={`${buttonPrimaryClass} px-5 text-sm font-medium`}
+              >
+                {loading ? "Searching..." : "Search"}
+              </button>
+            </div>
           </div>
         </div>
 

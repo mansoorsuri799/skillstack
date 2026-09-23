@@ -240,7 +240,7 @@ export async function getInternalLinksList(
         if (p.url) {
           pageItemsMap.set(p.url, {
             title: p.meta?.title ?? null,
-            platform: p.meta?.cms || "WORDPRESS",
+            platform: p.meta?.cms || null,
             rank: p.page_summary?.rank ?? null,
             referringDomains: p.page_summary?.referring_domains ?? null,
             extLinks: p.meta?.external_links_count ?? null,
@@ -309,7 +309,7 @@ export async function getInternalLinksList(
           traffic: Math.floor(Math.random() * 90) + 10,
           kw: Math.floor(Math.random() * 15) + 1,
           language: "EN",
-          platform: meta?.platform || "WORDPRESS",
+          platform: meta?.platform || undefined,
           links: [],
         });
       }

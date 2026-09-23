@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
+if (!process.env.MONGODB_URI) {
   // Allow build without env; runtime will throw on use
   console.warn("MONGODB_URI is not set");
 }
@@ -97,7 +95,8 @@ async function ensureUserIndexes() {
 }
 
 export async function connectDB() {
-  if (!MONGODB_URI) {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
     throw new Error("Please define MONGODB_URI in your environment");
   }
 
@@ -107,12 +106,18 @@ export async function connectDB() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
+    cached.promise = mongoose.connect(uri, {
       bufferCommands: false,
     });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    // Drop failed promise so the next call can retry with a fresh URI/password
+    cached.promise = null;
+    throw err;
+  }
   await ensureUserIndexes();
   return cached.conn;
 }

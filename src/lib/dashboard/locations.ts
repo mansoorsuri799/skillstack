@@ -61,7 +61,7 @@ export const LOCATION_FLAGS: Record<number, string> = {
 
 export const KEYWORD_LOCATION_OPTIONS = KEYWORD_RESEARCH_LOCATIONS.map((l) => ({
   value: String(l.code),
-  label: `${l.flag} ${l.label}`,
+  label: l.label,
 }));
 
 export const KEYWORD_LIMIT_OPTIONS = KEYWORD_LIMITS.map((n) => ({

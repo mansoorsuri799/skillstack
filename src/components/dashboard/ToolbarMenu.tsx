@@ -157,34 +157,44 @@ export function ToolbarMenu({
                     setOpen(false);
                   }}
                   className={`flex w-full rounded-lg px-3 py-2.5 text-left transition ${
-                    isSelected ? "bg-white/[0.06]" : "hover:bg-white/[0.04]"
+                    isSelected
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-white/[0.06]"
                   }`}
                 >
                   {rich ? (
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-medium text-snow">
+                        <span
+                          className={`text-sm font-medium ${isSelected ? "text-white" : "text-snow"}`}
+                        >
                           {option.label}
                         </span>
                         {isSelected ? (
-                          <Check className="h-4 w-4 shrink-0 text-accent" />
+                          <Check className="h-4 w-4 shrink-0 text-white" />
                         ) : null}
                       </div>
                       {option.description ? (
-                        <p className="mt-0.5 text-xs text-ink-muted">
+                        <p
+                          className={`mt-0.5 text-xs ${isSelected ? "text-white/80" : "text-ink-muted"}`}
+                        >
                           {option.description}
                         </p>
                       ) : null}
                       {option.example ? (
-                        <p className="mt-1 font-mono text-[11px] text-ink-muted/80">
+                        <p
+                          className={`mt-1 font-mono text-[11px] ${isSelected ? "text-white/70" : "text-ink-muted/80"}`}
+                        >
                           {option.example}
                         </p>
                       ) : null}
                     </div>
                   ) : (
-                    <span className="flex w-full items-center gap-2 text-sm text-snow">
+                    <span
+                      className={`flex w-full items-center gap-2 text-sm ${isSelected ? "text-white" : "text-snow"}`}
+                    >
                       {isSelected ? (
-                        <Check className="h-4 w-4 shrink-0 text-accent" />
+                        <Check className="h-4 w-4 shrink-0 text-white" />
                       ) : (
                         <span className="h-4 w-4 shrink-0" />
                       )}
@@ -213,7 +223,7 @@ export function ToolbarMenu({
         aria-haspopup="listbox"
         aria-controls={listId}
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-line bg-bg px-3 py-2.5 text-left text-sm text-snow transition hover:border-accent/30 disabled:cursor-not-allowed disabled:opacity-70 ${open ? "border-accent/40 ring-1 ring-accent/20" : ""}`}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-line bg-bg px-3 py-2.5 text-left text-sm text-snow transition hover:border-line disabled:cursor-not-allowed disabled:opacity-70 ${open ? "border-line" : ""}`}
       >
         <span className="truncate">{selected?.label ?? value}</span>
         <ChevronDown

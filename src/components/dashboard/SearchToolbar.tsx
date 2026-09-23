@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import type { ReactNode } from "react";
+import { ToolbarMenu } from "@/components/dashboard/ToolbarMenu";
 import { buttonPrimaryClass, inputClass } from "@/components/dashboard/ui";
 
 export function SearchPanel({
@@ -140,18 +141,17 @@ export function ToolbarSelect({
       className={`flex min-w-0 flex-col gap-1.5 text-xs font-medium text-ink-muted ${className}`}
     >
       {label ? <span>{label}</span> : null}
-      <select
-        className={`${inputClass} w-full min-w-0 cursor-pointer sm:min-w-[9.5rem] ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
-        value={value}
+      <ToolbarMenu
+        value={String(value)}
+        onChange={onChange}
+        options={options.map((opt) => ({
+          value: String(opt.value),
+          label: opt.label,
+        }))}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+        className="w-full"
+        minWidth="9.5rem"
+      />
     </label>
   );
 }
