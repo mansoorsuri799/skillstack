@@ -897,7 +897,7 @@ export function KeywordResearchPanel({
                 </div>
 
                 {/* Top Countries List with Progress Bars */}
-                <div className="mt-3 flex flex-col gap-2 overflow-y-auto max-h-[140px] pr-1">
+                <div className="mt-3 flex flex-col gap-2 overflow-y-auto max-h-[180px] pr-1">
                   {(activeInsights?.globalBreakdown && activeInsights.globalBreakdown.length > 0
                     ? activeInsights.globalBreakdown
                     : isAllLocations(locationCode)
@@ -912,7 +912,6 @@ export function KeywordResearchPanel({
                           },
                         ]
                   )
-                    .slice(0, 6)
                     .map((item, idx) => (
                       <div key={idx} className="flex flex-col gap-1">
                         <div className="flex items-center justify-between text-xs">

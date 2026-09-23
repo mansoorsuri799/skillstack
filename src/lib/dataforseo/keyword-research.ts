@@ -170,23 +170,53 @@ export async function fetchKeywordIntents(
   return map;
 }
 
-// Major international countries for global volume calculation
-const TOP_GLOBAL_TARGETS = [
-  { code: 2250, label: "France", flag: "🇫🇷", lang: "fr" },
-  { code: 2504, label: "Morocco", flag: "🇲🇦", lang: "fr" },
-  { code: 2012, label: "Algeria", flag: "🇩🇿", lang: "fr" },
-  { code: 2124, label: "Canada", flag: "🇨🇦", lang: "fr" },
-  { code: 2056, label: "Belgium", flag: "🇧🇪", lang: "fr" },
-  { code: 2788, label: "Tunisia", flag: "🇹🇳", lang: "fr" },
-  { code: 2840, label: "United States", flag: "🇺🇸", lang: "en" },
-  { code: 2826, label: "United Kingdom", flag: "🇬🇧", lang: "en" },
-  { code: 2080, label: "Germany", flag: "🇩🇪", lang: "de" },
-  { code: 2724, label: "Spain", flag: "🇪🇸", lang: "es" },
-  { code: 2380, label: "Italy", flag: "🇮🇹", lang: "it" },
-  { code: 2076, label: "Brazil", flag: "🇧🇷", lang: "pt" },
-  { code: 2356, label: "India", flag: "🇮🇳", lang: "en" },
-  { code: 2586, label: "Pakistan", flag: "🇵🇰", lang: "en" },
-];
+// Major markets used for KD/intent when All locations is selected
+const INSIGHTS_FALLBACK_LOCATION = { code: 2840, label: "United States", flag: "🇺🇸", lang: "en" };
+
+/**
+ * Google Ads volume per research country (parallel).
+ * Uses the seed language for every market so English keywords like
+ * "pdf extractor" return US/UK/IN volumes instead of only FR-lang markets.
+ */
+async function fetchGlobalCountryVolumes(
+  seed: string,
+  languageCode: string,
+): Promise<
+  Array<{
+    countryCode: number;
+    countryName: string;
+    flag: string;
+    volume: number;
+  }>
+> {
+  const settled = await Promise.all(
+    RESEARCH_LOCATIONS.map(async (loc) => {
+      const countryCode = loc.code as number;
+      const countryName = loc.label;
+      const flag = loc.flag || LOCATION_FLAGS[countryCode] || "🌐";
+      try {
+        const map = await fetchGoogleAdsSearchVolumes(
+          [seed],
+          countryCode,
+          languageCode,
+        );
+        const row = map.get(seed.trim().toLowerCase());
+        return {
+          countryCode,
+          countryName,
+          flag,
+          volume: row?.searchVolume ?? 0,
+        };
+      } catch {
+        return { countryCode, countryName, flag, volume: 0 };
+      }
+    }),
+  );
+
+  return settled
+    .filter((row) => row.volume > 0)
+    .sort((a, b) => b.volume - a.volume);
+}
 
 export async function fetchSeedKeywordInsights(
   seed: string,
@@ -197,54 +227,30 @@ export async function fetchSeedKeywordInsights(
   const api = labsApi();
   const isGlobal = locationCode === ALL_LOCATIONS_CODE;
 
-  // Always pull clickstream/Bing fields for fallback; display prefers Google Ads
-  const includeClickstream = true;
+  // Country breakdown for Global Volume card — all research markets
+  const countryVolumes = await fetchGlobalCountryVolumes(seed, languageCode);
 
-  // All locations → query major markets only. Single market → primary + other globals.
-  const tasks: DataforseoLabsGoogleKeywordOverviewLiveRequestInfo[] = isGlobal
-    ? TOP_GLOBAL_TARGETS.map(
-        (t) =>
-          ({
-            keywords: [seed],
-            location_code: t.code,
-            language_code: t.lang,
-            include_clickstream_data: includeClickstream,
-          }) as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
-      )
-    : [
-        {
-          keywords: [seed],
-          location_code: locationCode,
-          language_code: languageCode,
-          include_clickstream_data: includeClickstream,
-        } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
-        ...TOP_GLOBAL_TARGETS.filter((t) => t.code !== locationCode).map(
-          (t) =>
-            ({
-              keywords: [seed],
-              location_code: t.code,
-              language_code: t.lang,
-              include_clickstream_data: includeClickstream,
-            }) as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
-        ),
-      ];
+  const topCountry = countryVolumes[0];
+  const overviewLocationCode = isGlobal
+    ? (topCountry?.countryCode ?? INSIGHTS_FALLBACK_LOCATION.code)
+    : locationCode;
+  const overviewLanguageCode = isGlobal
+    ? languageCode
+    : languageCode;
 
+  // Single-market Labs overview for KD / intent / monthly trend fallback
   let rawResponse: unknown;
   try {
-    rawResponse = await api.googleKeywordOverviewLive(tasks);
+    rawResponse = await api.googleKeywordOverviewLive([
+      {
+        keywords: [seed],
+        location_code: overviewLocationCode,
+        language_code: overviewLanguageCode,
+        include_clickstream_data: true,
+      } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
+    ]);
   } catch {
-    // Fallback: run markets in parallel if the batch call fails
-    const settled = await Promise.all(
-      tasks.map((task) =>
-        api.googleKeywordOverviewLive([task]).catch(() => null),
-      ),
-    );
-    rawResponse = {
-      tasks: settled.flatMap((res) => {
-        const data = res as { tasks?: unknown[] } | null;
-        return data?.tasks ?? [];
-      }),
-    };
+    rawResponse = null;
   }
 
   type OverviewItem = {
@@ -279,23 +285,14 @@ export async function fetchSeedKeywordInsights(
     search_intent_info?: { main_intent?: string | null } | null;
   };
 
-  // Aggregate every location task — not just tasks[0]
-  let items: OverviewItem[] = allTasksResultItems<OverviewItem>(rawResponse);
-  if (items.length === 0) {
+  let items: OverviewItem[] = rawResponse
+    ? allTasksResultItems<OverviewItem>(rawResponse)
+    : [];
+  if (items.length === 0 && rawResponse) {
     items = taskResultItems<OverviewItem>(rawResponse);
   }
 
-  // Prefer Google Ads volume (Keywords Everywhere–style), then Bing/clickstream
-  const volumeOf = (item: OverviewItem) =>
-    resolveVolumeMetrics(
-      item.keyword_info,
-      item.keyword_info_normalized_with_clickstream,
-      item.keyword_info_normalized_with_bing,
-    ).searchVolume ?? 0;
-
-  const primaryItem = isGlobal
-    ? [...items].sort((a, b) => volumeOf(b) - volumeOf(a))[0]
-    : (items.find((row) => row.location_code === locationCode) ?? items[0]);
+  const primaryItem = items[0];
 
   const metrics = resolveVolumeMetrics(
     primaryItem?.keyword_info,
@@ -305,7 +302,7 @@ export async function fetchSeedKeywordInsights(
   const standard = primaryItem?.keyword_info;
   const clickstream = primaryItem?.keyword_info_normalized_with_clickstream;
 
-  // Overlay live Google Ads Keyword Planner volumes (Keywords Everywhere source)
+  // Worldwide Ads when All locations; otherwise selected market
   const adsPrimary = await fetchGoogleAdsSearchVolumes(
     [seed],
     isGlobal ? null : locationCode,
@@ -318,9 +315,7 @@ export async function fetchSeedKeywordInsights(
   const competitionAds = adsRow?.competition;
 
   const monthly =
-    (adsRow?.monthlySearches?.length
-      ? adsRow.monthlySearches
-      : null) ??
+    (adsRow?.monthlySearches?.length ? adsRow.monthlySearches : null) ??
     standard?.monthly_searches ??
     clickstream?.monthly_searches ??
     [];
@@ -349,67 +344,28 @@ export async function fetchSeedKeywordInsights(
       ? `${trends[0]?.label} – ${trends[trends.length - 1]?.label}`
       : "Last 12 months";
 
-  // Build Global Volume breakdown across countries (Labs Google Ads per market)
-  const countryVolumes: Array<{
-    countryCode: number;
-    countryName: string;
-    flag: string;
-    volume: number;
-  }> = [];
-
-  for (const item of items) {
-    const code = item.location_code ?? (isGlobal ? null : locationCode);
-    if (code == null) continue;
-    const itemVol = volumeOf(item);
-
-    const matchedMeta =
-      RESEARCH_LOCATIONS.find((r) => r.code === code) ??
-      TOP_GLOBAL_TARGETS.find((r) => r.code === code);
-
-    if (matchedMeta && itemVol > 0) {
-      const existing = countryVolumes.find((c) => c.countryCode === code);
+  // Ensure selected market appears when not All locations
+  if (!isGlobal) {
+    const selectedVol =
+      searchVolumeAds ??
+      countryVolumes.find((c) => c.countryCode === locationCode)?.volume ??
+      metrics.searchVolume;
+    if (selectedVol != null && selectedVol > 0) {
+      const existing = countryVolumes.find((c) => c.countryCode === locationCode);
       if (existing) {
-        if (itemVol > existing.volume) existing.volume = itemVol;
+        existing.volume = selectedVol;
       } else {
+        const matchedMeta = RESEARCH_LOCATIONS.find((r) => r.code === locationCode);
         countryVolumes.push({
-          countryCode: code,
-          countryName: matchedMeta.label,
-          flag: matchedMeta.flag || LOCATION_FLAGS[code] || "🌐",
-          volume: itemVol,
+          countryCode: locationCode,
+          countryName: matchedMeta?.label || "Target Region",
+          flag: matchedMeta?.flag || LOCATION_FLAGS[locationCode] || "🌐",
+          volume: selectedVol,
         });
       }
+      countryVolumes.sort((a, b) => b.volume - a.volume);
     }
   }
-
-  // Prefer live Ads volume for the selected market in the breakdown
-  if (!isGlobal && searchVolumeAds != null && searchVolumeAds > 0) {
-    const existing = countryVolumes.find((c) => c.countryCode === locationCode);
-    if (existing) {
-      existing.volume = searchVolumeAds;
-    } else {
-      const matchedMeta = RESEARCH_LOCATIONS.find((r) => r.code === locationCode);
-      countryVolumes.push({
-        countryCode: locationCode,
-        countryName: matchedMeta?.label || "Target Region",
-        flag: matchedMeta?.flag || LOCATION_FLAGS[locationCode] || "🌐",
-        volume: searchVolumeAds,
-      });
-    }
-  }
-
-  // If only primary location returned, add default representation
-  const primaryVol = searchVolumeAds ?? metrics.searchVolume;
-  if (countryVolumes.length === 0 && primaryVol && !isGlobal) {
-    const matchedMeta = RESEARCH_LOCATIONS.find((r) => r.code === locationCode);
-    countryVolumes.push({
-      countryCode: locationCode,
-      countryName: matchedMeta?.label || "Target Region",
-      flag: matchedMeta?.flag || LOCATION_FLAGS[locationCode] || "🌐",
-      volume: primaryVol,
-    });
-  }
-
-  countryVolumes.sort((a, b) => b.volume - a.volume);
 
   const totalGlobalVolume = countryVolumes.reduce((acc, c) => acc + c.volume, 0);
 
@@ -419,7 +375,7 @@ export async function fetchSeedKeywordInsights(
       totalGlobalVolume > 0 ? Math.round((c.volume / totalGlobalVolume) * 100) : 0,
   }));
 
-  // All locations: worldwide Ads volume when available, else sum of markets
+  // All locations Volume = worldwide Ads (KE-style); Global card = sum of markets
   const searchVol = isGlobal
     ? (searchVolumeAds ?? (totalGlobalVolume || metrics.searchVolume || null))
     : (searchVolumeAds ?? metrics.searchVolume);
@@ -427,10 +383,13 @@ export async function fetchSeedKeywordInsights(
   const cpc = cpcAds ?? metrics.cpc;
   const competition = competitionAds ?? metrics.competition;
 
-  // Traffic potential estimation (~40-60% of primary volume or top ranking organic capture)
   const trafficPotential = searchVol ? Math.round(searchVol * 0.42) : null;
   const trafficValue =
-    trafficPotential && cpc ? Math.round(trafficPotential * cpc) : (trafficPotential ? Math.round(trafficPotential * 0.85) : null);
+    trafficPotential && cpc
+      ? Math.round(trafficPotential * cpc)
+      : trafficPotential
+        ? Math.round(trafficPotential * 0.85)
+        : null;
 
   const clicks = searchVol ? Math.round(searchVol * 1.15) : null;
   const cps = 1.12;
@@ -449,7 +408,7 @@ export async function fetchSeedKeywordInsights(
     globalBreakdown,
     trafficPotential,
     trafficValue,
-    topRankingResult: null, // Populated via SERP
+    topRankingResult: null,
     parentTopic: seed,
     parentTopicVolume: searchVol,
     refDomainsNeeded: calculateRefDomainsNeeded(kd),
