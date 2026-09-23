@@ -10,7 +10,7 @@ import {
 } from "@/lib/dataforseo/keyword-research";
 import { researchKeywords } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
-import { isAllLocations } from "@/lib/dashboard/locations";
+import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE } from "@/lib/dashboard/locations";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { FIRST_PAGE_SIZE, searchLiveSerp } from "@/lib/firecrawl/live-serp";
@@ -72,8 +72,12 @@ export async function POST(request: Request) {
     const limit = body.limit ?? 150;
     const mode = body.mode ?? "auto";
     const useClickstream = body.useClickstream !== false;
+    // All locations → fetch multi-market insights (not project country alone)
     const insightLocation = isAllLocations(locationCode)
-      ? project.locationCode || 2586
+      ? ALL_LOCATIONS_CODE
+      : locationCode;
+    const serpLocation = isAllLocations(locationCode)
+      ? project.locationCode || DEFAULT_LOCATION_CODE
       : locationCode;
 
     const [results, seedInsights, serp] = await Promise.all([
@@ -91,7 +95,7 @@ export async function POST(request: Request) {
         languageCode,
         useClickstream,
       ).catch(() => null),
-      loadKeywordSerp(seed, insightLocation, languageCode),
+      loadKeywordSerp(seed, serpLocation, languageCode),
     ]);
     const serpResults = serp.rows;
 
@@ -171,17 +175,18 @@ export async function POST(request: Request) {
         trends: [],
         trendRange: "Last 12 months",
         globalVolume: seedRow.searchVolume,
-        globalBreakdown: seedRow.searchVolume
-          ? [
-              {
-                countryCode: insightLocation,
-                countryName: "Target Region",
-                flag: "🌐",
-                volume: seedRow.searchVolume,
-                percentage: 100,
-              },
-            ]
-          : [],
+        globalBreakdown:
+          seedRow.searchVolume && !isAllLocations(locationCode)
+            ? [
+                {
+                  countryCode: serpLocation,
+                  countryName: "Target Region",
+                  flag: "🌐",
+                  volume: seedRow.searchVolume,
+                  percentage: 100,
+                },
+              ]
+            : [],
         trafficPotential: seedRow.searchVolume ? Math.round(seedRow.searchVolume * 0.42) : null,
         trafficValue:
           seedRow.searchVolume && seedRow.cpc

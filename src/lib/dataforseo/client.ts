@@ -2,6 +2,7 @@ import {
   AiOptimizationApi,
   BacklinksApi,
   DataforseoLabsApi,
+  KeywordsDataApi,
   OnPageApi,
   SerpApi,
 } from "dataforseo-client";
@@ -43,6 +44,7 @@ export function isDataForSeoConfigured() {
 }
 
 export const labsApi = () => new DataforseoLabsApi(API_BASE, http);
+export const keywordsDataApi = () => new KeywordsDataApi(API_BASE, http);
 export const backlinksApi = () => new BacklinksApi(API_BASE, http);
 export const serpApi = () => new SerpApi(API_BASE, http);
 export const onPageApi = () => new OnPageApi(API_BASE, http);
@@ -86,4 +88,33 @@ export function taskResult<T>(response: unknown): T | null {
 export function taskResultItems<T>(response: unknown): T[] {
   const result = taskResult<{ items?: T[] | null }>(response);
   return result?.items ?? [];
+}
+
+/** Collect items from every task in a multi-task Labs response (e.g. multi-location overview). */
+export function allTasksResultItems<T extends { location_code?: number | null }>(
+  response: unknown,
+): T[] {
+  const data = response as {
+    tasks?: Array<{
+      status_code?: number | null;
+      data?: { location_code?: number | null } | null;
+      result?: Array<{ items?: T[] | null }> | null;
+    }> | null;
+  } | null;
+
+  const out: T[] = [];
+  for (const task of data?.tasks ?? []) {
+    if (task.status_code != null && task.status_code >= 40000) continue;
+    const taskLocation = task.data?.location_code ?? null;
+    for (const result of task.result ?? []) {
+      for (const item of result.items ?? []) {
+        if (item.location_code == null && taskLocation != null) {
+          out.push({ ...item, location_code: taskLocation });
+        } else {
+          out.push(item);
+        }
+      }
+    }
+  }
+  return out;
 }

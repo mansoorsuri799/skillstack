@@ -52,6 +52,7 @@ import {
   KEYWORD_LIMIT_OPTIONS,
   KEYWORD_LOCATION_OPTIONS,
   KEYWORD_MODE_OPTIONS,
+  KEYWORD_RESEARCH_LOCATIONS,
   LOCATION_FLAGS,
   RESEARCH_LOCATIONS,
   type KeywordMode,
@@ -597,6 +598,7 @@ export function KeywordResearchPanel({
     paginatedResults.every((row) => selected.has(row.keyword));
 
   const currentLocationMeta =
+    KEYWORD_RESEARCH_LOCATIONS.find((r) => r.code === locationCode) ??
     RESEARCH_LOCATIONS.find((r) => r.code === locationCode) ?? {
       code: locationCode,
       label: "Target Region",
@@ -898,15 +900,17 @@ export function KeywordResearchPanel({
                 <div className="mt-3 flex flex-col gap-2 overflow-y-auto max-h-[140px] pr-1">
                   {(activeInsights?.globalBreakdown && activeInsights.globalBreakdown.length > 0
                     ? activeInsights.globalBreakdown
-                    : [
-                        {
-                          countryCode: locationCode,
-                          countryName: currentLocationMeta.label,
-                          flag: currentLocationMeta.flag,
-                          volume: activeInsights?.searchVolume ?? 0,
-                          percentage: 100,
-                        },
-                      ]
+                    : isAllLocations(locationCode)
+                      ? []
+                      : [
+                          {
+                            countryCode: locationCode,
+                            countryName: currentLocationMeta.label,
+                            flag: currentLocationMeta.flag,
+                            volume: activeInsights?.searchVolume ?? 0,
+                            percentage: 100,
+                          },
+                        ]
                   )
                     .slice(0, 6)
                     .map((item, idx) => (

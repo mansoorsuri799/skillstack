@@ -4,6 +4,7 @@ import {
   DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
   DataforseoLabsGoogleKeywordIdeasLiveRequestInfo,
+  DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
   DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
   BacklinksSummaryLiveRequestInfo,
   BacklinksBacklinksLiveRequestInfo,
@@ -12,8 +13,11 @@ import {
   OnPageLighthouseLiveJsonRequestInfo,
   AiOptimizationChatGptLlmScraperLiveAdvancedRequestInfo,
 } from "dataforseo-client";
+import { ALL_LOCATIONS_CODE, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import { fetchGoogleAdsSearchVolumes, resolveVolumeMetrics } from "@/lib/dataforseo/volume";
 import {
   aiOptimizationApi,
+  allTasksResultItems,
   backlinksApi,
   labsApi,
   onPageApi,
@@ -21,7 +25,6 @@ import {
   taskItems,
   taskResultItems,
 } from "@/lib/dataforseo/client";
-import { ALL_LOCATIONS_CODE, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
 
 export type KeywordResult = {
   keyword: string;
@@ -32,46 +35,155 @@ export type KeywordResult = {
   intent?: string | null;
 };
 
+type VolumeFields = {
+  search_volume?: number | null;
+  cpc?: number | null;
+  competition?: number | null;
+};
+
 function mapKeywordItems(
   items: Array<{
     keyword?: string | null;
-    keyword_info?: {
-      search_volume?: number | null;
-      cpc?: number | null;
-      competition?: number | null;
-      keyword_difficulty?: number | null;
-    } | null;
-    keyword_info_normalized_with_clickstream?: {
-      search_volume?: number | null;
-      cpc?: number | null;
-      competition?: number | null;
-    } | null;
+    keyword_info?: VolumeFields & { keyword_difficulty?: number | null } | null;
+    keyword_info_normalized_with_clickstream?: VolumeFields | null;
+    keyword_info_normalized_with_bing?: VolumeFields | null;
     keyword_properties?: { keyword_difficulty?: number | null } | null;
   }>,
-  useClickstream = false,
+  _useClickstream = true,
 ): KeywordResult[] {
   return items
     .map((item) => {
-      const clickstream = item.keyword_info_normalized_with_clickstream;
-      const standard = item.keyword_info;
-      const volumeSource =
-        useClickstream && clickstream?.search_volume != null
-          ? clickstream
-          : standard;
+      const metrics = resolveVolumeMetrics(
+        item.keyword_info,
+        item.keyword_info_normalized_with_clickstream,
+        item.keyword_info_normalized_with_bing,
+      );
       return {
         keyword: item.keyword ?? "",
-        searchVolume:
-          volumeSource?.search_volume ?? standard?.search_volume ?? null,
-        cpc: volumeSource?.cpc ?? standard?.cpc ?? null,
+        searchVolume: metrics.searchVolume,
+        cpc: metrics.cpc,
         difficulty:
           item.keyword_properties?.keyword_difficulty ??
-          standard?.keyword_difficulty ??
+          item.keyword_info?.keyword_difficulty ??
           null,
-        competition:
-          volumeSource?.competition ?? standard?.competition ?? null,
+        competition: metrics.competition,
       };
     })
     .filter((k) => k.keyword);
+}
+
+/**
+ * Prefer live Google Ads Keyword Planner volumes (Keywords Everywhere–style),
+ * then Labs Overview for difficulty / missing Ads rows.
+ */
+async function enrichKeywordVolumes(
+  rows: KeywordResult[],
+  locationCode: number,
+  languageCode: string,
+): Promise<KeywordResult[]> {
+  if (rows.length === 0) return rows;
+
+  const keywords = [...new Set(rows.map((r) => r.keyword))].slice(0, 700);
+  const adsVolumes = await fetchGoogleAdsSearchVolumes(
+    keywords,
+    locationCode,
+    languageCode,
+  );
+
+  const volumeByKeyword = new Map<
+    string,
+    {
+      searchVolume: number | null;
+      cpc: number | null;
+      competition: number | null;
+      difficulty: number | null;
+    }
+  >();
+
+  for (const [key, ads] of adsVolumes) {
+    volumeByKeyword.set(key, {
+      searchVolume: ads.searchVolume,
+      cpc: ads.cpc,
+      competition: ads.competition,
+      difficulty: null,
+    });
+  }
+
+  // Fill difficulty (and any keywords Ads skipped) from Labs Overview
+  const stillNeed = keywords.filter((k) => {
+    const row = volumeByKeyword.get(k.toLowerCase());
+    return !row || row.difficulty == null;
+  });
+
+  if (stillNeed.length > 0) {
+    const api = labsApi();
+    const chunks: string[][] = [];
+    for (let i = 0; i < stillNeed.length; i += 100) {
+      chunks.push(stillNeed.slice(i, i + 100));
+    }
+
+    await Promise.all(
+      chunks.map(async (chunk) => {
+        try {
+          const response = await api.googleKeywordOverviewLive([
+            {
+              keywords: chunk,
+              location_code: locationCode,
+              language_code: languageCode,
+              include_clickstream_data: true,
+            } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
+          ]);
+
+          type OverviewItem = {
+            keyword?: string | null;
+            location_code?: number | null;
+            keyword_info?: VolumeFields & { keyword_difficulty?: number | null } | null;
+            keyword_info_normalized_with_clickstream?: VolumeFields | null;
+            keyword_info_normalized_with_bing?: VolumeFields | null;
+            keyword_properties?: { keyword_difficulty?: number | null } | null;
+          };
+
+          const items = allTasksResultItems<OverviewItem>(response);
+          for (const item of items) {
+            const key = item.keyword?.toLowerCase();
+            if (!key) continue;
+            const metrics = resolveVolumeMetrics(
+              item.keyword_info,
+              item.keyword_info_normalized_with_clickstream,
+              item.keyword_info_normalized_with_bing,
+            );
+            const existing = volumeByKeyword.get(key);
+            volumeByKeyword.set(key, {
+              searchVolume: existing?.searchVolume ?? metrics.searchVolume,
+              cpc: existing?.cpc ?? metrics.cpc,
+              competition: existing?.competition ?? metrics.competition,
+              difficulty:
+                item.keyword_properties?.keyword_difficulty ??
+                item.keyword_info?.keyword_difficulty ??
+                existing?.difficulty ??
+                null,
+            });
+          }
+        } catch {
+          // Keep Ads / suggestion volumes if overview fails
+        }
+      }),
+    );
+  }
+
+  if (volumeByKeyword.size === 0) return rows;
+
+  return rows.map((row) => {
+    const enriched = volumeByKeyword.get(row.keyword.toLowerCase());
+    if (!enriched) return row;
+    return {
+      ...row,
+      searchVolume: enriched.searchVolume ?? row.searchVolume,
+      cpc: enriched.cpc ?? row.cpc,
+      competition: enriched.competition ?? row.competition,
+      difficulty: enriched.difficulty ?? row.difficulty,
+    };
+  });
 }
 
 export async function researchKeywords(
@@ -80,7 +192,7 @@ export async function researchKeywords(
   languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
-  useClickstream = false,
+  useClickstream = true,
 ): Promise<KeywordResult[]> {
   if (locationCode === ALL_LOCATIONS_CODE) {
     return researchKeywordsAllLocations(
@@ -95,6 +207,10 @@ export async function researchKeywords(
   const api = labsApi();
   const resolvedMode =
     mode === "auto" ? "suggestions" : mode;
+  // Always request clickstream fields so Bing/clickstream-normalized volumes are available
+  const includeClickstream = true;
+
+  let rows: KeywordResult[] = [];
 
   if (resolvedMode === "related") {
     const response = await api.googleRelatedKeywordsLive([
@@ -103,7 +219,7 @@ export async function researchKeywords(
         location_code: locationCode,
         language_code: languageCode,
         limit,
-        include_clickstream_data: useClickstream,
+        include_clickstream_data: includeClickstream,
       } as DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
     ]);
     const items = taskResultItems<{
@@ -120,29 +236,34 @@ export async function researchKeywords(
           cpc?: number | null;
           competition?: number | null;
         } | null;
+        keyword_info_normalized_with_bing?: {
+          search_volume?: number | null;
+          cpc?: number | null;
+          competition?: number | null;
+        } | null;
         keyword_properties?: { keyword_difficulty?: number | null } | null;
       } | null;
     }>(response);
-    return mapKeywordItems(
+    rows = mapKeywordItems(
       items.map((item) => ({
         keyword: item.keyword_data?.keyword,
         keyword_info: item.keyword_data?.keyword_info,
         keyword_info_normalized_with_clickstream:
           item.keyword_data?.keyword_info_normalized_with_clickstream,
+        keyword_info_normalized_with_bing:
+          item.keyword_data?.keyword_info_normalized_with_bing,
         keyword_properties: item.keyword_data?.keyword_properties,
       })),
       useClickstream,
     );
-  }
-
-  if (resolvedMode === "ideas") {
+  } else if (resolvedMode === "ideas") {
     const response = await api.googleKeywordIdeasLive([
       {
         keywords: [seed],
         location_code: locationCode,
         language_code: languageCode,
         limit,
-        include_clickstream_data: useClickstream,
+        include_clickstream_data: includeClickstream,
       } as DataforseoLabsGoogleKeywordIdeasLiveRequestInfo,
     ]);
     const items = taskResultItems<{
@@ -158,40 +279,53 @@ export async function researchKeywords(
         cpc?: number | null;
         competition?: number | null;
       } | null;
+      keyword_info_normalized_with_bing?: {
+        search_volume?: number | null;
+        cpc?: number | null;
+        competition?: number | null;
+      } | null;
       keyword_properties?: { keyword_difficulty?: number | null } | null;
     }>(response);
-    return mapKeywordItems(items, useClickstream);
+    rows = mapKeywordItems(items, useClickstream);
+  } else {
+    const response = await api.googleKeywordSuggestionsLive([
+      {
+        keyword: seed,
+        location_code: locationCode,
+        language_code: languageCode,
+        include_seed_keyword: true,
+        include_clickstream_data: includeClickstream,
+        order_by: ["keyword_info.search_volume,desc"],
+        limit,
+      } as DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo,
+    ]);
+
+    const items = taskResultItems<{
+      keyword?: string | null;
+      keyword_info?: {
+        search_volume?: number | null;
+        cpc?: number | null;
+        competition?: number | null;
+        keyword_difficulty?: number | null;
+      } | null;
+      keyword_info_normalized_with_clickstream?: {
+        search_volume?: number | null;
+        cpc?: number | null;
+        competition?: number | null;
+      } | null;
+      keyword_info_normalized_with_bing?: {
+        search_volume?: number | null;
+        cpc?: number | null;
+        competition?: number | null;
+      } | null;
+      keyword_properties?: { keyword_difficulty?: number | null } | null;
+    }>(response);
+
+    rows = mapKeywordItems(items, useClickstream);
   }
 
-  const response = await api.googleKeywordSuggestionsLive([
-    {
-      keyword: seed,
-      location_code: locationCode,
-      language_code: languageCode,
-      include_seed_keyword: true,
-      include_clickstream_data: useClickstream,
-      order_by: ["keyword_info.search_volume,desc"],
-      limit,
-    } as DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo,
-  ]);
-
-  const items = taskResultItems<{
-    keyword?: string | null;
-    keyword_info?: {
-      search_volume?: number | null;
-      cpc?: number | null;
-      competition?: number | null;
-      keyword_difficulty?: number | null;
-    } | null;
-    keyword_info_normalized_with_clickstream?: {
-      search_volume?: number | null;
-      cpc?: number | null;
-      competition?: number | null;
-    } | null;
-    keyword_properties?: { keyword_difficulty?: number | null } | null;
-  }>(response);
-
-  return mapKeywordItems(items, useClickstream);
+  // Overview enrichment → Google Ads volumes (closer to Keywords Everywhere)
+  return enrichKeywordVolumes(rows, locationCode, languageCode);
 }
 
 export async function researchKeywordsAllLocations(
@@ -199,7 +333,7 @@ export async function researchKeywordsAllLocations(
   languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
-  useClickstream = false,
+  useClickstream = true,
 ): Promise<KeywordResult[]> {
   const batches = await Promise.all(
     RESEARCH_LOCATIONS.map((location) =>

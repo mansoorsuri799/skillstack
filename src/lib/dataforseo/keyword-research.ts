@@ -3,8 +3,13 @@ import {
   DataforseoLabsGoogleSearchIntentLiveRequestInfo,
   SerpGoogleOrganicLiveAdvancedRequestInfo,
 } from "dataforseo-client";
-import { labsApi, serpApi, taskResult, taskResultItems } from "@/lib/dataforseo/client";
-import { LOCATION_FLAGS, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import { labsApi, serpApi, taskResult, taskResultItems, allTasksResultItems } from "@/lib/dataforseo/client";
+import {
+  ALL_LOCATIONS_CODE,
+  LOCATION_FLAGS,
+  RESEARCH_LOCATIONS,
+} from "@/lib/dashboard/locations";
+import { resolveVolumeMetrics, fetchGoogleAdsSearchVolumes } from "@/lib/dataforseo/volume";
 
 export type KeywordIntent =
   | "informational"
@@ -187,35 +192,59 @@ export async function fetchSeedKeywordInsights(
   seed: string,
   locationCode = 2586,
   languageCode = "en",
-  useClickstream = false,
+  _useClickstream = false,
 ): Promise<SeedKeywordInsights> {
   const api = labsApi();
+  const isGlobal = locationCode === ALL_LOCATIONS_CODE;
 
-  // Create tasks: primary location first, followed by key global countries
-  const tasks: DataforseoLabsGoogleKeywordOverviewLiveRequestInfo[] = [
-    {
-      keywords: [seed],
-      location_code: locationCode,
-      language_code: languageCode,
-      include_clickstream_data: useClickstream,
-    } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
-    ...TOP_GLOBAL_TARGETS.filter((t) => t.code !== locationCode).map(
-      (t) =>
-        ({
+  // Always pull clickstream/Bing fields for fallback; display prefers Google Ads
+  const includeClickstream = true;
+
+  // All locations → query major markets only. Single market → primary + other globals.
+  const tasks: DataforseoLabsGoogleKeywordOverviewLiveRequestInfo[] = isGlobal
+    ? TOP_GLOBAL_TARGETS.map(
+        (t) =>
+          ({
+            keywords: [seed],
+            location_code: t.code,
+            language_code: t.lang,
+            include_clickstream_data: includeClickstream,
+          }) as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
+      )
+    : [
+        {
           keywords: [seed],
-          location_code: t.code,
-          language_code: t.lang,
-          include_clickstream_data: useClickstream,
-        }) as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
-    ),
-  ];
+          location_code: locationCode,
+          language_code: languageCode,
+          include_clickstream_data: includeClickstream,
+        } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
+        ...TOP_GLOBAL_TARGETS.filter((t) => t.code !== locationCode).map(
+          (t) =>
+            ({
+              keywords: [seed],
+              location_code: t.code,
+              language_code: t.lang,
+              include_clickstream_data: includeClickstream,
+            }) as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
+        ),
+      ];
 
   let rawResponse: unknown;
   try {
     rawResponse = await api.googleKeywordOverviewLive(tasks);
-  } catch (err) {
-    // Fallback to single location task if batch is not permitted
-    rawResponse = await api.googleKeywordOverviewLive([tasks[0]]);
+  } catch {
+    // Fallback: run markets in parallel if the batch call fails
+    const settled = await Promise.all(
+      tasks.map((task) =>
+        api.googleKeywordOverviewLive([task]).catch(() => null),
+      ),
+    );
+    rawResponse = {
+      tasks: settled.flatMap((res) => {
+        const data = res as { tasks?: unknown[] } | null;
+        return data?.tasks ?? [];
+      }),
+    };
   }
 
   type OverviewItem = {
@@ -241,24 +270,60 @@ export async function fetchSeedKeywordInsights(
         search_volume?: number | null;
       }> | null;
     } | null;
+    keyword_info_normalized_with_bing?: {
+      search_volume?: number | null;
+      cpc?: number | null;
+      competition?: number | null;
+    } | null;
     keyword_properties?: { keyword_difficulty?: number | null } | null;
     search_intent_info?: { main_intent?: string | null } | null;
   };
 
-  // Extract items from response tasks
-  const items: OverviewItem[] = taskResultItems<OverviewItem>(rawResponse);
+  // Aggregate every location task — not just tasks[0]
+  let items: OverviewItem[] = allTasksResultItems<OverviewItem>(rawResponse);
+  if (items.length === 0) {
+    items = taskResultItems<OverviewItem>(rawResponse);
+  }
 
-  // Find primary item matching selected locationCode
-  const primaryItem =
-    items.find((row) => row.location_code === locationCode) ?? items[0];
+  // Prefer Google Ads volume (Keywords Everywhere–style), then Bing/clickstream
+  const volumeOf = (item: OverviewItem) =>
+    resolveVolumeMetrics(
+      item.keyword_info,
+      item.keyword_info_normalized_with_clickstream,
+      item.keyword_info_normalized_with_bing,
+    ).searchVolume ?? 0;
 
-  const clickstream = primaryItem?.keyword_info_normalized_with_clickstream;
+  const primaryItem = isGlobal
+    ? [...items].sort((a, b) => volumeOf(b) - volumeOf(a))[0]
+    : (items.find((row) => row.location_code === locationCode) ?? items[0]);
+
+  const metrics = resolveVolumeMetrics(
+    primaryItem?.keyword_info,
+    primaryItem?.keyword_info_normalized_with_clickstream,
+    primaryItem?.keyword_info_normalized_with_bing,
+  );
   const standard = primaryItem?.keyword_info;
-  const metrics =
-    useClickstream && clickstream?.search_volume != null ? clickstream : standard;
+  const clickstream = primaryItem?.keyword_info_normalized_with_clickstream;
+
+  // Overlay live Google Ads Keyword Planner volumes (Keywords Everywhere source)
+  const adsPrimary = await fetchGoogleAdsSearchVolumes(
+    [seed],
+    isGlobal ? null : locationCode,
+    languageCode,
+  );
+  const adsRow = adsPrimary.get(seed.trim().toLowerCase());
+
+  const searchVolumeAds = adsRow?.searchVolume;
+  const cpcAds = adsRow?.cpc;
+  const competitionAds = adsRow?.competition;
 
   const monthly =
-    standard?.monthly_searches ?? clickstream?.monthly_searches ?? [];
+    (adsRow?.monthlySearches?.length
+      ? adsRow.monthlySearches
+      : null) ??
+    standard?.monthly_searches ??
+    clickstream?.monthly_searches ??
+    [];
 
   const trends = [...monthly]
     .filter((point) => point.search_volume != null)
@@ -284,7 +349,7 @@ export async function fetchSeedKeywordInsights(
       ? `${trends[0]?.label} – ${trends[trends.length - 1]?.label}`
       : "Last 12 months";
 
-  // Build Global Volume breakdown across countries
+  // Build Global Volume breakdown across countries (Labs Google Ads per market)
   const countryVolumes: Array<{
     countryCode: number;
     countryName: string;
@@ -293,36 +358,54 @@ export async function fetchSeedKeywordInsights(
   }> = [];
 
   for (const item of items) {
-    const code = item.location_code ?? locationCode;
-    const itemVol =
-      (useClickstream
-        ? item.keyword_info_normalized_with_clickstream?.search_volume
-        : item.keyword_info?.search_volume) ??
-      item.keyword_info?.search_volume ??
-      0;
+    const code = item.location_code ?? (isGlobal ? null : locationCode);
+    if (code == null) continue;
+    const itemVol = volumeOf(item);
 
     const matchedMeta =
       RESEARCH_LOCATIONS.find((r) => r.code === code) ??
       TOP_GLOBAL_TARGETS.find((r) => r.code === code);
 
     if (matchedMeta && itemVol > 0) {
+      const existing = countryVolumes.find((c) => c.countryCode === code);
+      if (existing) {
+        if (itemVol > existing.volume) existing.volume = itemVol;
+      } else {
+        countryVolumes.push({
+          countryCode: code,
+          countryName: matchedMeta.label,
+          flag: matchedMeta.flag || LOCATION_FLAGS[code] || "🌐",
+          volume: itemVol,
+        });
+      }
+    }
+  }
+
+  // Prefer live Ads volume for the selected market in the breakdown
+  if (!isGlobal && searchVolumeAds != null && searchVolumeAds > 0) {
+    const existing = countryVolumes.find((c) => c.countryCode === locationCode);
+    if (existing) {
+      existing.volume = searchVolumeAds;
+    } else {
+      const matchedMeta = RESEARCH_LOCATIONS.find((r) => r.code === locationCode);
       countryVolumes.push({
-        countryCode: code,
-        countryName: matchedMeta.label,
-        flag: matchedMeta.flag || LOCATION_FLAGS[code] || "🌐",
-        volume: itemVol,
+        countryCode: locationCode,
+        countryName: matchedMeta?.label || "Target Region",
+        flag: matchedMeta?.flag || LOCATION_FLAGS[locationCode] || "🌐",
+        volume: searchVolumeAds,
       });
     }
   }
 
   // If only primary location returned, add default representation
-  if (countryVolumes.length === 0 && metrics?.search_volume) {
+  const primaryVol = searchVolumeAds ?? metrics.searchVolume;
+  if (countryVolumes.length === 0 && primaryVol && !isGlobal) {
     const matchedMeta = RESEARCH_LOCATIONS.find((r) => r.code === locationCode);
     countryVolumes.push({
       countryCode: locationCode,
       countryName: matchedMeta?.label || "Target Region",
       flag: matchedMeta?.flag || LOCATION_FLAGS[locationCode] || "🌐",
-      volume: metrics.search_volume,
+      volume: primaryVol,
     });
   }
 
@@ -336,9 +419,13 @@ export async function fetchSeedKeywordInsights(
       totalGlobalVolume > 0 ? Math.round((c.volume / totalGlobalVolume) * 100) : 0,
   }));
 
-  const searchVol = metrics?.search_volume ?? standard?.search_volume ?? null;
+  // All locations: worldwide Ads volume when available, else sum of markets
+  const searchVol = isGlobal
+    ? (searchVolumeAds ?? (totalGlobalVolume || metrics.searchVolume || null))
+    : (searchVolumeAds ?? metrics.searchVolume);
   const kd = primaryItem?.keyword_properties?.keyword_difficulty ?? null;
-  const cpc = metrics?.cpc ?? standard?.cpc ?? null;
+  const cpc = cpcAds ?? metrics.cpc;
+  const competition = competitionAds ?? metrics.competition;
 
   // Traffic potential estimation (~40-60% of primary volume or top ranking organic capture)
   const trafficPotential = searchVol ? Math.round(searchVol * 0.42) : null;
@@ -353,7 +440,7 @@ export async function fetchSeedKeywordInsights(
     keyword: primaryItem?.keyword ?? seed,
     searchVolume: searchVol,
     cpc,
-    competition: metrics?.competition ?? standard?.competition ?? null,
+    competition,
     difficulty: kd,
     intent: normalizeIntent(primaryItem?.search_intent_info?.main_intent),
     trends,
