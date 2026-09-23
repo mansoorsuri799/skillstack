@@ -84,7 +84,7 @@ export async function createProjectForUser(
 
   const domain = normalizeDomain(data.domain);
   if (!domain || !domain.includes(".")) {
-    throw new Error("Enter a valid domain (e.g. cardrummy.app)");
+    throw new Error("Enter a valid domain (e.g. example.com)");
   }
 
   const name = data.name?.trim() || formatDomainToProjectName(domain);
@@ -159,7 +159,7 @@ export async function updateProjectById(
   if (data.domain !== undefined) {
     const domain = normalizeDomain(data.domain);
     if (!domain || !domain.includes(".")) {
-      throw new Error("Enter a valid domain (e.g. cardrummy.app)");
+      throw new Error("Enter a valid domain (e.g. example.com)");
     }
     project.domain = domain;
   }
@@ -245,7 +245,7 @@ export async function updateProjectDomain(
   await connectDB();
   const domain = normalizeDomain(domainInput);
   if (!domain || !domain.includes(".")) {
-    throw new Error("Enter a valid domain (e.g. skillstack.com.pk)");
+    throw new Error("Enter a valid domain (e.g. example.com)");
   }
 
   const project = await getOrCreateProject(userId);
@@ -276,7 +276,7 @@ export async function updateProjectSettings(
   if (settings.domain !== undefined) {
     const domain = normalizeDomain(settings.domain);
     if (!domain || !domain.includes(".")) {
-      throw new Error("Enter a valid domain (e.g. skillstack.com.pk)");
+      throw new Error("Enter a valid domain (e.g. example.com)");
     }
     project.domain = domain;
   }

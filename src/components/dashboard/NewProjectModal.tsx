@@ -33,13 +33,13 @@ export function NewProjectModal({
   const derivedPlaceholder = cleanDomain
     ? cleanDomain.split(".")[0]?.charAt(0).toUpperCase() +
       cleanDomain.split(".")[0]?.slice(1)
-    : "e.g. Card Rummy";
+    : "e.g. Example";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const targetDomain = normalizeDomain(domain);
     if (!targetDomain || !targetDomain.includes(".")) {
-      setError("Please enter a valid domain (e.g. cardrummy.app)");
+      setError("Please enter a valid domain (e.g. example.com)");
       return;
     }
 
@@ -82,7 +82,7 @@ export function NewProjectModal({
             <input
               type="text"
               autoFocus
-              placeholder="e.g. cardrummy.app or mywebsite.com"
+              placeholder="example.com"
               value={domain}
               onChange={(e) => {
                 setDomain(e.target.value);
