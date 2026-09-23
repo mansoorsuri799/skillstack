@@ -91,7 +91,7 @@ function mapPositionBuckets(organic: OrganicMetrics | null | undefined) {
 
 export async function getOrganicKeywords(
   domain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
   limit = 100,
@@ -138,7 +138,7 @@ export async function getOrganicKeywords(
 
 export async function getOrganicPositions(
   domain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
 ): Promise<OrganicPositionsResult> {
   const api = labsApi();
@@ -173,7 +173,7 @@ export async function getOrganicPositions(
 
 export async function getOrganicTopPages(
   domain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
   limit = 100,
@@ -208,7 +208,7 @@ export async function getOrganicTopPages(
 
 export async function getOrganicCompetitors(
   domain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   limit = 50,
 ): Promise<{ domain: string; competitors: OrganicCompetitorRow[] }> {

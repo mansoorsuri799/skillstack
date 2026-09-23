@@ -29,7 +29,7 @@ function labsMetricsByDomain(
 
 export async function getOrganicCompetitorsReport(
   domain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
 ): Promise<OrganicCompetitorsReport> {
   const labs = isDataForSeoConfigured()

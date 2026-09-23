@@ -9,7 +9,7 @@ const ProjectSchema = new Schema(
     },
     name: { type: String, required: true, trim: true, maxlength: 120 },
     domain: { type: String, required: true, trim: true, lowercase: true },
-    locationCode: { type: Number, default: 2840 },
+    locationCode: { type: Number, default: 2586 },
     languageCode: { type: String, default: "en" },
     gscConnected: { type: Boolean, default: false },
     gscSiteUrl: { type: String, default: null },

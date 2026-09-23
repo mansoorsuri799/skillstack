@@ -499,7 +499,7 @@ export default function RankTrackingPage() {
         }}
         onSubmit={handleAddDomain}
         defaultDomain={project?.domain ?? ""}
-        defaultLocationCode={project?.locationCode ?? 2840}
+        defaultLocationCode={project?.locationCode ?? 2586}
         defaultLanguageCode={project?.languageCode ?? "en"}
         submitting={addSubmitting}
         error={addError}

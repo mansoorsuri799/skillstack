@@ -300,7 +300,7 @@ async function getDomainHealth(domain: string) {
 
 export async function getDomainDashboard(
   targetInput: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   scope: DomainScope = "subdomains",
 ): Promise<DomainDashboard> {

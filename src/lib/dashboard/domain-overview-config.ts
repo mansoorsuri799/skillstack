@@ -39,6 +39,7 @@ export const DOMAIN_KEYWORD_SORTS = [
 
 /** Common markets for searchable country picker */
 export const DOMAIN_OVERVIEW_LOCATIONS = [
+  { code: 2586, label: "Pakistan" },
   { code: 2840, label: "United States" },
   { code: 2826, label: "United Kingdom" },
   { code: 2124, label: "Canada" },
@@ -48,7 +49,6 @@ export const DOMAIN_OVERVIEW_LOCATIONS = [
   { code: 2380, label: "Italy" },
   { code: 2724, label: "Spain" },
   { code: 2356, label: "India" },
-  { code: 2586, label: "Pakistan" },
   { code: 2784, label: "United Arab Emirates" },
   { code: 2392, label: "Japan" },
   { code: 2410, label: "South Korea" },

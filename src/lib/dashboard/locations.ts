@@ -1,4 +1,8 @@
+/** DataForSEO location code — SkillStack default market */
+export const DEFAULT_LOCATION_CODE = 2586; // Pakistan
+
 export const RESEARCH_LOCATIONS = [
+  { code: 2586, label: "Pakistan", flag: "🇵🇰", lang: "en" },
   { code: 2840, label: "United States", flag: "🇺🇸", lang: "en" },
   { code: 2826, label: "United Kingdom", flag: "🇬🇧", lang: "en" },
   { code: 2124, label: "Canada", flag: "🇨🇦", lang: "en" },
@@ -16,7 +20,6 @@ export const RESEARCH_LOCATIONS = [
   { code: 2076, label: "Brazil", flag: "🇧🇷", lang: "pt" },
   { code: 2484, label: "Mexico", flag: "🇲🇽", lang: "es" },
   { code: 2356, label: "India", flag: "🇮🇳", lang: "en" },
-  { code: 2586, label: "Pakistan", flag: "🇵🇰", lang: "en" },
   { code: 2784, label: "United Arab Emirates", flag: "🇦🇪", lang: "ar" },
   { code: 2682, label: "Saudi Arabia", flag: "🇸🇦", lang: "ar" },
 ] as const;
@@ -37,6 +40,7 @@ export const KEYWORD_LIMITS = [25, 50, 100, 150] as const;
 
 export const LOCATION_FLAGS: Record<number, string> = {
   [ALL_LOCATIONS_CODE]: "🌍",
+  2586: "🇵🇰",
   2840: "🇺🇸",
   2826: "🇬🇧",
   2124: "🇨🇦",
@@ -54,7 +58,6 @@ export const LOCATION_FLAGS: Record<number, string> = {
   2076: "🇧🇷",
   2484: "🇲🇽",
   2356: "🇮🇳",
-  2586: "🇵🇰",
   2784: "🇦🇪",
   2682: "🇸🇦",
 };

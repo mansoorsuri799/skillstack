@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Enter a domain to track." }, { status: 400 });
     }
 
-    const locationCode = Number(body.locationCode ?? project.locationCode ?? 2840);
+    const locationCode = Number(body.locationCode ?? project.locationCode ?? 2586);
     const languageCode = String(body.languageCode ?? project.languageCode ?? "en");
     const searchTargeting = String(
       body.searchTargeting ?? "national",

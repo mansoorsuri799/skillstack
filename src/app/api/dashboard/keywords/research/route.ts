@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     const mode = body.mode ?? "auto";
     const useClickstream = body.useClickstream !== false;
     const insightLocation = isAllLocations(locationCode)
-      ? project.locationCode || 2840
+      ? project.locationCode || 2586
       : locationCode;
 
     const [results, seedInsights, serp] = await Promise.all([

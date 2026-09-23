@@ -129,7 +129,7 @@ export default function InternalLinksPage() {
       searchDescription="Crawls up to 40 pages and groups internal links by referring page like Ahrefs. This may take 1–2 minutes."
       domain={domain}
       setDomain={setDomain}
-      locationCode={2840}
+      locationCode={2586}
       setLocationCode={() => undefined}
       scope="subdomains"
       setScope={() => undefined}

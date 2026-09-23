@@ -185,7 +185,7 @@ const TOP_GLOBAL_TARGETS = [
 
 export async function fetchSeedKeywordInsights(
   seed: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   useClickstream = false,
 ): Promise<SeedKeywordInsights> {
@@ -374,7 +374,7 @@ export async function fetchSeedKeywordInsights(
 
 export async function fetchSerpResults(
   keyword: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   limit = 40,
 ): Promise<SerpResultRow[]> {

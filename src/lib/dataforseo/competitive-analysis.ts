@@ -20,7 +20,7 @@ export type ContentGapResult = {
 export async function getContentGap(
   yourDomain: string,
   competitorDomain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   limit = 100,
 ): Promise<ContentGapResult> {

@@ -37,7 +37,7 @@ export default function BestByLinksPage() {
       searchDescription="See which URLs earn the most external links and referring domains."
       domain={domain}
       setDomain={setDomain}
-      locationCode={2840}
+      locationCode={2586}
       setLocationCode={() => undefined}
       scope="subdomains"
       setScope={() => undefined}

@@ -1,6 +1,7 @@
 import mongoose, { type HydratedDocument } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { normalizeDomain } from "@/lib/dataforseo/client";
+import { DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 import { Project, toProjectDto, type ProjectDocument, type ProjectDto } from "@/models/Project";
 import { User } from "@/models/User";
 
@@ -92,7 +93,7 @@ export async function createProjectForUser(
     userId,
     name,
     domain,
-    locationCode: data.locationCode ?? 2840,
+    locationCode: data.locationCode ?? DEFAULT_LOCATION_CODE,
     languageCode: data.languageCode ?? "en",
   });
 

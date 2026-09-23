@@ -85,13 +85,13 @@ function writeDomainCache(key: string, data: Overview) {
 export default function DomainPage() {
   const { project, dataForSeoConfigured } = useDashboardProject();
   const [domain, setDomain] = useState(() => project?.domain ?? "");
-  const [locationCode, setLocationCode] = useState(() => project?.locationCode ?? 2840);
+  const [locationCode, setLocationCode] = useState(() => project?.locationCode ?? 2586);
   const [scope, setScope] = useState<DomainScope>("subdomains");
   const [sortBy, setSortBy] = useState<DomainKeywordSort>("traffic");
   const [tab, setTab] = useState<DomainTab>("keywords");
   const [overview, setOverview] = useState<Overview | null>(() => {
     if (!project?.domain) return null;
-    return readDomainCache(getDomainCacheKey(project.domain, project.locationCode ?? 2840, "subdomains"));
+    return readDomainCache(getDomainCacheKey(project.domain, project.locationCode ?? 2586, "subdomains"));
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

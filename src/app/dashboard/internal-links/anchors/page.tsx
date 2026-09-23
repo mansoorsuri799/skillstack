@@ -37,7 +37,7 @@ export default function InternalAnchorsPage() {
       searchDescription="Aggregates anchor text from an OnPage crawl. May take 1–2 minutes."
       domain={domain}
       setDomain={setDomain}
-      locationCode={2840}
+      locationCode={2586}
       setLocationCode={() => undefined}
       scope="subdomains"
       setScope={() => undefined}

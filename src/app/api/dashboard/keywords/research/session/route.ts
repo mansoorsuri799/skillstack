@@ -16,7 +16,7 @@ function sanitizeSession(input: unknown): KeywordResearchSession | null {
   const locationCode =
     typeof body.locationCode === "number" && Number.isFinite(body.locationCode)
       ? body.locationCode
-      : 2840;
+      : 2586;
   const limit =
     typeof body.limit === "number" && Number.isFinite(body.limit)
       ? Math.min(Math.max(Math.round(body.limit), 1), 150)

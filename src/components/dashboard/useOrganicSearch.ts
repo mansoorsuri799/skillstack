@@ -44,11 +44,11 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
   const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [domain, setDomain] = useState(() => project?.domain ?? "");
-  const [locationCode, setLocationCode] = useState(() => project?.locationCode ?? 2840);
+  const [locationCode, setLocationCode] = useState(() => project?.locationCode ?? 2586);
   const [scope, setScope] = useState("subdomains");
   const [data, setData] = useState<T | null>(() => {
     if (!project?.domain) return null;
-    return readCachedData<T>(getCacheKey(type, project.domain, project.locationCode ?? 2840, "subdomains"));
+    return readCachedData<T>(getCacheKey(type, project.domain, project.locationCode ?? 2586, "subdomains"));
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

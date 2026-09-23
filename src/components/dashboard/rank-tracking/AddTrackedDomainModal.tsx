@@ -39,7 +39,7 @@ export function AddTrackedDomainModal({
   onClose,
   onSubmit,
   defaultDomain = "",
-  defaultLocationCode = 2840,
+  defaultLocationCode = 2586,
   defaultLanguageCode = "en",
   submitting = false,
   error = "",

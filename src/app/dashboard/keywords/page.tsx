@@ -29,7 +29,6 @@ function applySession(
     setLocationCode: (value: number) => void;
     setLimit: (value: number) => void;
     setMode: (value: KeywordMode) => void;
-    setClickstreamEnabled: (value: boolean) => void;
     setResults: (value: KeywordResearchRow[]) => void;
     setSeedInsights: (value: SeedKeywordInsights | null) => void;
     setSerpResults: (value: SerpResultRow[]) => void;
@@ -39,7 +38,6 @@ function applySession(
   setters.setLocationCode(session.locationCode);
   setters.setLimit(session.limit);
   setters.setMode(session.mode);
-  setters.setClickstreamEnabled(session.useClickstream);
   setters.setResults(session.results);
   setters.setSeedInsights(session.seedInsights);
   setters.setSerpResults(session.serpResults);
@@ -49,10 +47,9 @@ export default function KeywordsPage() {
   const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [seed, setSeed] = useState("");
-  const [locationCode, setLocationCode] = useState<number>(2840);
+  const [locationCode, setLocationCode] = useState<number>(2586);
   const [limit, setLimit] = useState<number>(150);
   const [mode, setMode] = useState<KeywordMode>("auto");
-  const [clickstreamEnabled, setClickstreamEnabled] = useState(true);
   const [results, setResults] = useState<KeywordResearchRow[]>([]);
   const [seedInsights, setSeedInsights] = useState<SeedKeywordInsights | null>(null);
   const [serpResults, setSerpResults] = useState<SerpResultRow[]>([]);
@@ -68,7 +65,6 @@ export default function KeywordsPage() {
       setLocationCode,
       setLimit,
       setMode,
-      setClickstreamEnabled,
       setResults,
       setSeedInsights,
       setSerpResults,
@@ -116,7 +112,7 @@ export default function KeywordsPage() {
           locationCode,
           limit,
           mode,
-          useClickstream: clickstreamEnabled,
+          useClickstream: true,
         }),
       });
       const data = await res.json();
@@ -137,7 +133,7 @@ export default function KeywordsPage() {
           locationCode,
           limit,
           mode,
-          useClickstream: clickstreamEnabled,
+          useClickstream: true,
           results: nextResults,
           seedInsights: nextInsights,
           serpResults: nextSerp,
@@ -204,8 +200,6 @@ export default function KeywordsPage() {
           onLimitChange={setLimit}
           mode={mode}
           onModeChange={setMode}
-          clickstreamEnabled={clickstreamEnabled}
-          onClickstreamChange={setClickstreamEnabled}
           results={results}
           seedInsights={seedInsights}
           serpResults={serpResults}

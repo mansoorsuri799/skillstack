@@ -42,7 +42,7 @@ export default function ContentGapPage() {
     useDashboardProject();
   const [yourDomain, setYourDomain] = useState("");
   const [competitor, setCompetitor] = useState("");
-  const [locationCode, setLocationCode] = useState(2840);
+  const [locationCode, setLocationCode] = useState(2586);
   const [data, setData] = useState<ContentGapPageData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

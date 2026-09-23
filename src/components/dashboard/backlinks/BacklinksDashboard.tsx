@@ -578,7 +578,7 @@ export function BacklinksDashboard({
         onDomainChange={setDomain}
         scope={scope}
         onScopeChange={setScope}
-        locationCode={2840}
+        locationCode={2586}
         onLocationChange={() => {}}
         sortBy="traffic"
         onSortChange={() => {}}

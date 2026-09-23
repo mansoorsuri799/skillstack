@@ -44,7 +44,7 @@ export const DEFAULT_FALLBACK_PROJECT: DashboardProject = {
   id: "default",
   name: "My Project",
   domain: "example.com",
-  locationCode: 2840,
+  locationCode: 2586,
   languageCode: "en",
   gscConnected: false,
   gscSiteUrl: null,

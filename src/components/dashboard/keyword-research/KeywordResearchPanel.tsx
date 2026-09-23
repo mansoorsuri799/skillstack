@@ -424,8 +424,6 @@ export function KeywordResearchPanel({
   onLimitChange,
   mode,
   onModeChange,
-  clickstreamEnabled,
-  onClickstreamChange,
   results,
   summary,
   seedInsights,
@@ -445,17 +443,15 @@ export function KeywordResearchPanel({
   onLimitChange: (lim: number) => void;
   mode: KeywordMode;
   onModeChange: (m: KeywordMode) => void;
-  clickstreamEnabled: boolean;
-  onClickstreamChange: (val: boolean) => void;
   results: KeywordResearchRow[];
   summary?: SeedKeywordInsights | null;
-  seedInsights?: SeedKeywordInsights | null;
+  seedInsights: SeedKeywordInsights | null;
   serpResults?: SerpResultRow[];
   serpLive?: boolean;
   loading: boolean;
-  error?: string | null;
-  message?: string | null;
-  onResearch: (customSeed?: string) => void;
+  error: string;
+  message: string;
+  onResearch: (seed?: string) => void;
   onSaveKeyword?: (row: KeywordResearchRow) => void;
 }) {
   const activeInsights = summary ?? seedInsights ?? null;
@@ -670,19 +666,6 @@ export function KeywordResearchPanel({
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Clickstream refine label */}
-        <div className="mt-3 flex items-center justify-between border-t border-line/40 pt-2.5 text-xs text-ink-muted">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={clickstreamEnabled}
-              onChange={(e) => onClickstreamChange(e.target.checked)}
-              className="rounded border-line bg-bg text-accent focus:ring-accent/40"
-            />
-            <span>Clickstream-refined search volume (accurate real-world data)</span>
-          </label>
         </div>
 
         {/* Recent Searches */}

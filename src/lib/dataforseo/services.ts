@@ -76,7 +76,7 @@ function mapKeywordItems(
 
 export async function researchKeywords(
   seed: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
@@ -232,7 +232,7 @@ export async function researchKeywordsAllLocations(
 
 export async function getDomainOverview(
   target: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
 ) {
@@ -476,7 +476,7 @@ async function checkKeywordRankForDevice(
 export async function checkKeywordRank(
   keyword: string,
   domain: string,
-  locationCode = 2840,
+  locationCode = 2586,
   languageCode = "en",
   options: { depth?: number; device?: "mobile" | "desktop" | "both" } = {},
 ) {
@@ -559,7 +559,7 @@ export async function exploreBrandMentions(brand: string, domain?: string) {
     {
       keyword: brand,
       language_code: "en",
-      location_code: 2840,
+      location_code: 2586,
     } as AiOptimizationChatGptLlmScraperLiveAdvancedRequestInfo,
   ]);
 
@@ -591,7 +591,7 @@ export async function runPromptExplorer(prompt: string) {
     {
       keyword: prompt,
       language_code: "en",
-      location_code: 2840,
+      location_code: 2586,
     } as AiOptimizationChatGptLlmScraperLiveAdvancedRequestInfo,
   ]);
 

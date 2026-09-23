@@ -30,7 +30,7 @@ const TrackedDomainSchema = new Schema(
       index: true,
     },
     domain: { type: String, required: true, trim: true, lowercase: true },
-    locationCode: { type: Number, default: 2840 },
+    locationCode: { type: Number, default: 2586 },
     languageCode: { type: String, default: "en", trim: true },
     searchTargeting: {
       type: String,
