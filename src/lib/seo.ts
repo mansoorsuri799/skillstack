@@ -18,6 +18,7 @@ export const X_URL = "https://x.com/skillstack_co";
 /** Shared social / Google preview images (JPEG for LinkedIn/Facebook compatibility). */
 export const OG_IMAGE = {
   url: `${SITE_URL}/og-image.jpg`,
+  secureUrl: `${SITE_URL}/og-image.jpg`,
   width: 1200,
   height: 630,
   type: "image/jpeg",
@@ -26,6 +27,7 @@ export const OG_IMAGE = {
 
 export const OG_IMAGE_SQUARE = {
   url: `${SITE_URL}/og-image-square.jpg`,
+  secureUrl: `${SITE_URL}/og-image-square.jpg`,
   width: 1200,
   height: 1200,
   type: "image/jpeg",
@@ -64,8 +66,9 @@ export function pageOpenGraph({
     type: "website",
     siteName: SITE_NAME,
     locale: "en_PK",
-    // Absolute JPEG so LinkedIn / Facebook previews always get a supported image.
-    images: [OG_IMAGE, OG_IMAGE_SQUARE],
+    // One landscape JPEG only — LinkedIn often fails or shows a tiny card when
+    // a square second og:image is present.
+    images: [OG_IMAGE],
   };
 }
 

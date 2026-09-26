@@ -85,17 +85,11 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-image.jpg",
+        secureUrl: "/og-image.jpg",
         width: 1200,
         height: 630,
         type: "image/jpeg",
         alt: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
-      },
-      {
-        url: "/og-image-square.jpg",
-        width: 1200,
-        height: 1200,
-        type: "image/jpeg",
-        alt: "SkillStack",
       },
     ],
   },

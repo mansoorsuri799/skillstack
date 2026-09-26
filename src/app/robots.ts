@@ -14,7 +14,12 @@ export default function robots(): MetadataRoute.Robots {
           "/pricing/success",
           "/pricing/cancel",
           "/profile",
+          "/dashboard",
         ],
+      },
+      {
+        userAgent: "LinkedInBot",
+        allow: ["/", "/og-image.jpg", "/twitter-card.jpg", "/opengraph-image"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap-index.xml`,

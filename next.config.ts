@@ -23,6 +23,24 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/og-image.jpg",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, immutable" },
+          { key: "Content-Type", value: "image/jpeg" },
+        ],
+      },
+      {
+        source: "/twitter-card.jpg",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, immutable" },
+          { key: "Content-Type", value: "image/jpeg" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
