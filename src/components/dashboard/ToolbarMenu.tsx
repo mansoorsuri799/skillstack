@@ -158,7 +158,7 @@ export function ToolbarMenu({
                   }}
                   className={`flex w-full rounded-lg px-3 py-2.5 text-left transition ${
                     isSelected
-                      ? "bg-blue-600 text-white"
+                      ? "bg-accent text-[#010409]"
                       : "hover:bg-white/[0.06]"
                   }`}
                 >
@@ -166,24 +166,24 @@ export function ToolbarMenu({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-3">
                         <span
-                          className={`text-sm font-medium ${isSelected ? "text-white" : "text-snow"}`}
+                          className={`text-sm font-medium ${isSelected ? "text-[#010409]" : "text-snow"}`}
                         >
                           {option.label}
                         </span>
                         {isSelected ? (
-                          <Check className="h-4 w-4 shrink-0 text-white" />
+                          <Check className="h-4 w-4 shrink-0 text-[#010409]" />
                         ) : null}
                       </div>
                       {option.description ? (
                         <p
-                          className={`mt-0.5 text-xs ${isSelected ? "text-white/80" : "text-ink-muted"}`}
+                          className={`mt-0.5 text-xs ${isSelected ? "text-[#010409]/80" : "text-ink-muted"}`}
                         >
                           {option.description}
                         </p>
                       ) : null}
                       {option.example ? (
                         <p
-                          className={`mt-1 font-mono text-[11px] ${isSelected ? "text-white/70" : "text-ink-muted/80"}`}
+                          className={`mt-1 font-mono text-[11px] ${isSelected ? "text-[#010409]/70" : "text-ink-muted/80"}`}
                         >
                           {option.example}
                         </p>
@@ -191,10 +191,10 @@ export function ToolbarMenu({
                     </div>
                   ) : (
                     <span
-                      className={`flex w-full items-center gap-2 text-sm ${isSelected ? "text-white" : "text-snow"}`}
+                      className={`flex w-full items-center gap-2 text-sm ${isSelected ? "text-[#010409]" : "text-snow"}`}
                     >
                       {isSelected ? (
-                        <Check className="h-4 w-4 shrink-0 text-white" />
+                        <Check className="h-4 w-4 shrink-0 text-[#010409]" />
                       ) : (
                         <span className="h-4 w-4 shrink-0" />
                       )}
