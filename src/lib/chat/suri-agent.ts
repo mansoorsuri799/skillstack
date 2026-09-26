@@ -152,7 +152,7 @@ function generalSeoReply(prompt: string, context: SuriContext): SuriReply {
   const domain =
     context.domain && context.domain !== "example.com" ? context.domain : null;
   return {
-    answer: `### Suri · DataForSEO-backed guidance\n\nFor **${domain || "your project"}** regarding "${prompt.slice(0, 120)}":\n\n1. **Technical** — clean indexation, HTTPS, sitemap, Core Web Vitals.\n2. **Keywords** — ask me for quick wins or ranking opportunities (pulls live Labs data).\n3. **Content** — match search intent with clear H2s + FAQ blocks for AI Overviews.\n4. **Authority** — earn relevant links; avoid spammy PBNs.\n5. **Measurement** — connect GSC, then ask for a 28-day traffic trend.\n\nTip: Ask *“Find quick-win keywords I already rank for”* or *“Who are my top SERP competitors?”* for live data pulls.`,
+    answer: `For **${domain || "your project"}** regarding "${prompt.slice(0, 120)}":\n\n1. **Technical** — clean indexation, HTTPS, sitemap, Core Web Vitals.\n2. **Keywords** — ask me for quick wins or ranking opportunities (pulls live Labs data).\n3. **Content** — match search intent with clear H2s + FAQ blocks for AI Overviews.\n4. **Authority** — earn relevant links; avoid spammy PBNs.\n5. **Measurement** — connect GSC, then ask for a 28-day traffic trend.\n\nTip: Ask *“Find quick-win keywords I already rank for”* or *“Who are my top SERP competitors?”* for live data pulls.`,
     sources: defaultSources(context.domain),
   };
 }

@@ -4,26 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity,
   ArrowRight,
   BarChart3,
   CheckCircle2,
-  ChevronRight,
-  CircleDot,
-  Compass,
-  Cpu,
   FileCode2,
   Globe,
-  Layers,
-  LineChart,
   MessageSquare,
-  Search,
   ShieldCheck,
-  Terminal,
-  TrendingUp,
-  Zap,
+  Sparkles,
 } from "lucide-react";
-import { buttonPrimaryClass, buttonGhostClass } from "@/components/dashboard/ui";
 import type { DashboardProject } from "@/components/dashboard/useDashboardProject";
 
 type StepId = "domain" | "gsc" | "audit" | "agent";
@@ -36,85 +25,55 @@ const SETUP_STEPS: Array<{
   icon: typeof Globe;
   cta: string;
   href?: string;
-  metric: string;
+  accent: string;
+  glow: string;
 }> = [
   {
     id: "domain",
     stepNumber: "01",
     title: "Domain Scope",
-    description: "Anchor all crawler operations, backlink topology, and keyword rankings to your primary target domain.",
+    description:
+      "Anchor crawls, backlinks, and keyword rankings to your primary target domain.",
     icon: Globe,
-    cta: "Save Domain",
-    metric: "Target Anchor",
+    cta: "Set Domain",
+    accent: "text-sky-400",
+    glow: "group-hover:shadow-sky-500/10",
   },
   {
     id: "gsc",
     stepNumber: "02",
-    title: "Search Console Insights",
-    description: "Stream verified Google search clicks, impression anomalies, and query rankings directly into your workspace.",
+    title: "Search Console",
+    description:
+      "Stream verified Google clicks, impressions, and query rankings into this workspace.",
     icon: BarChart3,
     cta: "Connect GSC",
     href: "/dashboard/gsc",
-    metric: "Verified CTR Stream",
+    accent: "text-violet-400",
+    glow: "group-hover:shadow-violet-500/10",
   },
   {
     id: "audit",
     stepNumber: "03",
-    title: "Technical & AEO Diagnostics",
-    description: "Evaluate robots.txt, Schema.org entities, Core Web Vitals, and uncover root causes of ranking volatility.",
+    title: "Site Diagnostics",
+    description:
+      "Check robots.txt, Schema.org, Core Web Vitals, and ranking risk signals.",
     icon: FileCode2,
     cta: "Run Diagnostic",
     href: "/dashboard/audit",
-    metric: "Crawl & Schema Analysis",
+    accent: "text-amber-400",
+    glow: "group-hover:shadow-amber-500/10",
   },
   {
     id: "agent",
     stepNumber: "04",
-    title: "Suri SEO Intelligence",
-    description: "Multi-turn assistant equipped with project memory for keyword research, striking-distance queries, and ranking strategy.",
+    title: "Suri Intelligence",
+    description:
+      "Ask Suri about keywords, competitors, GSC, and next SEO moves for this project.",
     icon: MessageSquare,
-    cta: "Open Suri Console",
+    cta: "Open Suri",
     href: "/dashboard/chat",
-    metric: "Contextual Strategy",
-  },
-];
-
-const WORKBENCH_MODULES = [
-  {
-    title: "Suri Intelligence Agent",
-    category: "Conversational Copilot",
-    description: "Query project memory, evaluate competitor keyword gaps, and generate actionable SEO steps in real time.",
-    href: "/dashboard/chat",
-    icon: Terminal,
-    status: "Ready",
-    actionLabel: "Launch Console",
-  },
-  {
-    title: "AI Site Diagnostic",
-    category: "Technical & AEO Health",
-    description: "Automated site crawl verifying Schema.org JSON-LD, robots.txt directives, and algorithmic ranking factors.",
-    href: "/dashboard/audit",
-    icon: Cpu,
-    status: "Active",
-    actionLabel: "Start Crawl",
-  },
-  {
-    title: "Search Console Insights",
-    category: "Google Search Data",
-    description: "Real-time query performance, CTR trend analysis, and high-impression striking distance detection.",
-    href: "/dashboard/gsc",
-    icon: Activity,
-    status: "OAuth 2.0",
-    actionLabel: "View Insights",
-  },
-  {
-    title: "Keyword & SERP Explorer",
-    category: "Market Intelligence",
-    description: "Search volumes, CPC metrics, keyword difficulty scores, and top ranking SERP competitor breakdowns.",
-    href: "/dashboard/keywords",
-    icon: Compass,
-    status: "DataForSEO Labs",
-    actionLabel: "Explore Keywords",
+    accent: "text-accent",
+    glow: "group-hover:shadow-teal-500/15",
   },
 ];
 
@@ -128,19 +87,20 @@ export default function DashboardOnboarding({
   const router = useRouter();
   const [domainInput, setDomainInput] = useState(project.domain);
   const [saving, setSaving] = useState(false);
+  const [focusedStep, setFocusedStep] = useState<StepId | null>(null);
 
   useEffect(() => {
     setDomainInput(project.domain);
   }, [project.domain]);
 
-  const hasCustomDomain = project.domain && project.domain !== "example.com";
+  const hasCustomDomain = Boolean(project.domain && project.domain !== "example.com");
   const gscConnected = Boolean(project.gscConnected);
 
   const completedMap: Record<StepId, boolean> = useMemo(
     () => ({
-      domain: Boolean(hasCustomDomain),
+      domain: hasCustomDomain,
       gsc: gscConnected,
-      audit: Boolean(hasCustomDomain),
+      audit: hasCustomDomain,
       agent: true,
     }),
     [hasCustomDomain, gscConnected],
@@ -148,6 +108,7 @@ export default function DashboardOnboarding({
 
   const completedCount = Object.values(completedMap).filter(Boolean).length;
   const progressPercent = Math.round((completedCount / SETUP_STEPS.length) * 100);
+  const nextStep = SETUP_STEPS.find((s) => !completedMap[s.id]) ?? null;
 
   async function handleSaveDomain(e: React.FormEvent) {
     e.preventDefault();
@@ -162,12 +123,16 @@ export default function DashboardOnboarding({
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Platform Workspace Header */}
+      {/* Workspace header */}
       <div className="relative overflow-hidden rounded-2xl border border-line bg-bg-elevated/90 p-5 sm:p-7 md:p-8 shadow-sm">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div
+          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent/10 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
-              <span className="flex h-2 w-2 rounded-full bg-accent" />
+              <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
               <span>Project Workspace</span>
               <span className="text-white/20">•</span>
               <span className="text-snow font-medium">{project.name || "Default Project"}</span>
@@ -176,19 +141,27 @@ export default function DashboardOnboarding({
             <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-snow">
               {hasCustomDomain ? (
                 <>
-                  Project Overview: <span className="font-mono text-accent">{project.domain}</span>
+                  Project Overview:{" "}
+                  <span className="font-mono text-accent">{project.domain}</span>
                 </>
               ) : (
-                "SEO Overview & Performance Dashboard"
+                "Finish setup to unlock live SEO data"
               )}
             </h1>
 
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              All-in-one control center for keyword rankings, site audits, backlinks analysis, and AI SEO recommendations.
+              Complete these four steps — domain, Search Console, diagnostics, and Suri.
+              {nextStep ? (
+                <>
+                  {" "}
+                  Next up: <span className="text-snow font-medium">{nextStep.title}</span>.
+                </>
+              ) : (
+                " All steps are ready."
+              )}
             </p>
           </div>
 
-          {/* Technical Telemetry Metadata Panel */}
           <div className="rounded-xl border border-line/80 bg-bg p-3.5 sm:p-4 font-mono text-xs w-full lg:w-72 shrink-0 space-y-2">
             <div className="flex items-center justify-between border-b border-line/60 pb-2 text-[11px] text-ink-muted">
               <span className="font-sans font-semibold text-snow">Workspace Status</span>
@@ -197,9 +170,8 @@ export default function DashboardOnboarding({
                 ONLINE
               </span>
             </div>
-
             <div className="space-y-1.5 text-[11px]">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className="text-ink-muted">DOMAIN</span>
                 <span className="text-snow truncate max-w-[140px]">
                   {hasCustomDomain ? project.domain : "UNASSIGNED"}
@@ -212,188 +184,274 @@ export default function DashboardOnboarding({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted">AGENT</span>
-                <span className="text-snow font-medium">SURI V2.4</span>
+                <span className="text-ink-muted">SURI</span>
+                <span className="text-accent font-medium">READY</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Pipeline Readiness Progress Bar */}
-        <div className="mt-6 pt-5 border-t border-line/60 space-y-2.5">
+        <div className="relative mt-6 pt-5 border-t border-line/60 space-y-3">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-snow flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-accent" />
-              Workspace Pipeline Status
+              Setup Pipeline
             </span>
             <span className="font-mono font-semibold text-accent tabular-nums">
-              {progressPercent}% CONFIGURED
+              {completedCount}/{SETUP_STEPS.length} · {progressPercent}%
             </span>
           </div>
 
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5 border border-white/10">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/5 border border-white/10">
             <div
-              className="h-full rounded-full bg-accent transition-all duration-500 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-accent-deep to-accent transition-all duration-700 ease-out"
               style={{ width: `${progressPercent}%` }}
             />
+          </div>
+
+          {/* Step dots — click to focus card */}
+          <div className="flex items-center justify-between gap-2 pt-1">
+            {SETUP_STEPS.map((step, index) => {
+              const done = completedMap[step.id];
+              const isNext = nextStep?.id === step.id;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => {
+                    setFocusedStep(step.id);
+                    document.getElementById(`setup-step-${step.id}`)?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "nearest",
+                    });
+                  }}
+                  className={`flex flex-1 flex-col items-center gap-1.5 rounded-lg px-1 py-2 transition ${
+                    focusedStep === step.id ? "bg-white/5" : "hover:bg-white/[0.03]"
+                  }`}
+                >
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-mono font-bold transition ${
+                      done
+                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
+                        : isNext
+                          ? "border-accent/50 bg-accent/15 text-accent ring-2 ring-accent/20"
+                          : "border-line bg-bg text-ink-muted"
+                    }`}
+                  >
+                    {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : step.stepNumber}
+                  </span>
+                  <span
+                    className={`hidden sm:block text-[10px] font-medium truncate max-w-full ${
+                      done || isNext ? "text-snow" : "text-ink-muted"
+                    }`}
+                  >
+                    {step.title.split(" ")[0]}
+                  </span>
+                  {index < SETUP_STEPS.length - 1 ? null : null}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* 4-Step Operational Pipeline */}
+      {/* Four setup cards only */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-accent" />
             Setup & Integration Pipeline
           </h2>
           <span className="text-xs text-ink-muted tabular-nums">
-            {completedCount} of {SETUP_STEPS.length} Steps Completed
+            Tap a card to continue
           </span>
         </div>
 
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           {SETUP_STEPS.map((step) => {
             const isDone = completedMap[step.id];
+            const isNext = nextStep?.id === step.id;
+            const isFocused = focusedStep === step.id || isNext;
             const Icon = step.icon;
 
             return (
               <div
+                id={`setup-step-${step.id}`}
                 key={step.id}
-                className={`relative flex flex-col justify-between rounded-xl border p-4 sm:p-5 transition-all ${
-                  isDone
-                    ? "border-line bg-bg-elevated/40"
-                    : "border-line/90 bg-bg-elevated hover:border-accent/40"
+                onMouseEnter={() => setFocusedStep(step.id)}
+                onFocus={() => setFocusedStep(step.id)}
+                className={`group relative flex min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${
+                  isFocused
+                    ? `border-accent/45 bg-bg-elevated shadow-lg ${step.glow} scale-[1.01]`
+                    : isDone
+                      ? "border-line/80 bg-bg-elevated/50 hover:border-line"
+                      : "border-line bg-bg-elevated hover:border-accent/30"
                 }`}
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-semibold text-ink-muted">
-                      {step.stepNumber}
-                    </span>
+                {/* Soft accent wash */}
+                <div
+                  className={`pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-0 blur-2xl transition duration-500 group-hover:opacity-100 ${
+                    step.id === "domain"
+                      ? "bg-sky-500/20"
+                      : step.id === "gsc"
+                        ? "bg-violet-500/20"
+                        : step.id === "audit"
+                          ? "bg-amber-500/20"
+                          : "bg-accent/25"
+                  }`}
+                  aria-hidden
+                />
 
+                <div className="relative space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl border transition ${
+                        isDone
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                          : `border-line bg-bg ${step.accent}`
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
                     {isDone ? (
-                      <span className="inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-400">
-                        <CheckCircle2 className="h-3 w-3" /> CONFIGURED
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-emerald-400">
+                        <CheckCircle2 className="h-3 w-3" />
+                        DONE
+                      </span>
+                    ) : isNext ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-accent animate-pulse">
+                        NEXT
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-ink-muted">
+                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-mono text-ink-muted">
                         PENDING
                       </span>
                     )}
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Icon className="h-4 w-4 text-accent" />
-                      <h3 className="font-medium text-sm text-snow">{step.title}</h3>
-                    </div>
-                    <p className="text-xs text-ink-muted leading-relaxed min-h-[44px]">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted mb-1">
+                      Step {step.stepNumber}
+                    </p>
+                    <h3 className="font-display text-base font-semibold text-snow tracking-tight">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-ink-muted leading-relaxed">
                       {step.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-line/60">
+                <div className="relative mt-5 pt-4 border-t border-line/60">
                   {step.id === "domain" && !isDone ? (
-                    <form onSubmit={handleSaveDomain} className="space-y-2">
+                    <form onSubmit={handleSaveDomain} className="space-y-2.5">
                       <input
                         type="text"
                         value={domainInput}
                         onChange={(e) => setDomainInput(e.target.value)}
                         placeholder="yourdomain.com"
-                        className="w-full rounded-md border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none focus:border-accent"
+                        className="w-full rounded-xl border border-line bg-bg px-3 py-2.5 text-sm text-snow outline-none transition focus:border-accent focus:ring-1 focus:ring-accent/30"
                         disabled={saving}
                       />
                       <button
                         type="submit"
                         disabled={saving || !domainInput.trim()}
-                        className="w-full inline-flex items-center justify-center rounded-md bg-accent py-1.5 text-xs font-semibold text-[#010409] hover:bg-accent-deep transition disabled:opacity-50"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-50"
                       >
-                        {saving ? "Saving..." : "Set Domain"}
+                        {saving ? "Saving…" : step.cta}
+                        <ArrowRight className="h-4 w-4" />
                       </button>
                     </form>
+                  ) : step.id === "domain" && isDone ? (
+                    <div className="space-y-2.5">
+                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2.5 text-xs font-mono text-emerald-400 truncate">
+                        {project.domain}
+                      </div>
+                      <DomainEditRow
+                        domainInput={domainInput}
+                        setDomainInput={setDomainInput}
+                        saving={saving}
+                        onSave={handleSaveDomain}
+                      />
+                    </div>
                   ) : step.href ? (
                     <Link
                       href={step.href}
-                      prefetch={true}
+                      prefetch
                       onMouseEnter={() => step.href && router.prefetch(step.href)}
                       onTouchStart={() => step.href && router.prefetch(step.href)}
-                      className={`w-full inline-flex items-center justify-between rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                      className={`w-full inline-flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                         isDone
-                          ? "border border-line bg-white/5 text-snow hover:bg-white/10"
-                          : "bg-accent text-[#010409] hover:bg-accent-deep font-semibold"
+                          ? "border border-line bg-white/5 text-snow hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
+                          : "bg-accent text-[#010409] hover:bg-accent-deep shadow-md shadow-accent/20"
                       }`}
                     >
                       <span>{step.cta}</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
                     </Link>
-                  ) : (
-                    <div className="flex items-center justify-between text-[11px] font-mono text-emerald-400">
-                      <span>{step.metric}</span>
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* SEO Tools & Features */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted">
-              SEO Tools & Quick Launch
-            </h2>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {WORKBENCH_MODULES.map((mod, i) => {
-            const ModIcon = mod.icon;
-            return (
-              <Link
-                key={i}
-                href={mod.href}
-                prefetch={true}
-                onMouseEnter={() => router.prefetch(mod.href)}
-                onTouchStart={() => router.prefetch(mod.href)}
-                className="group relative flex flex-col justify-between rounded-xl border border-line bg-bg-elevated p-4 sm:p-5 transition hover:border-line/80 hover:bg-white/[0.02]"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-bg text-snow group-hover:text-accent transition-colors">
-                      <ModIcon className="h-4 w-4" />
-                    </div>
-                    <span className="font-mono text-[10px] text-ink-muted/80 uppercase">
-                      {mod.status}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-accent/80 block mb-0.5">
-                      {mod.category}
-                    </span>
-                    <h3 className="font-medium text-sm text-snow group-hover:text-accent transition-colors">
-                      {mod.title}
-                    </h3>
-                    <p className="mt-1.5 text-xs text-ink-muted leading-relaxed">
-                      {mod.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-xs text-ink-muted group-hover:text-snow transition-colors">
-                  <span className="font-medium">{mod.actionLabel}</span>
-                  <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
     </div>
+  );
+}
+
+function DomainEditRow({
+  domainInput,
+  setDomainInput,
+  saving,
+  onSave,
+}: {
+  domainInput: string;
+  setDomainInput: (v: string) => void;
+  saving: boolean;
+  onSave: (e: React.FormEvent) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="w-full inline-flex items-center justify-between rounded-xl border border-line bg-white/5 px-4 py-2.5 text-sm font-medium text-snow transition hover:border-accent/40 hover:text-accent"
+      >
+        <span>Change domain</span>
+        <ArrowRight className="h-4 w-4" />
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={onSave} className="space-y-2">
+      <input
+        type="text"
+        value={domainInput}
+        onChange={(e) => setDomainInput(e.target.value)}
+        className="w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm text-snow outline-none focus:border-accent"
+        disabled={saving}
+        autoFocus
+      />
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setEditing(false)}
+          className="flex-1 rounded-xl border border-line px-3 py-2 text-xs text-ink-muted hover:text-snow"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={saving || !domainInput.trim()}
+          className="flex-1 rounded-xl bg-accent py-2 text-xs font-semibold text-[#010409] disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+    </form>
   );
 }
