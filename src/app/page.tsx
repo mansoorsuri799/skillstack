@@ -10,6 +10,7 @@ import {
   faqJsonLd,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -41,6 +42,10 @@ export const metadata: Metadata = {
     title: "SkillStack — Web Development & SEO for Pakistan & Beyond",
     description:
       "Official SkillStack site — SEO, ranking, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
+  }),
+  twitter: pageTwitter({
+    title: "SkillStack — Web Development & SEO for Pakistan & Beyond",
+    description: "Official SkillStack site — SEO, ranking, content, backlinks, and websites from Gilgit-Baltistan for Pakistan and worldwide.",
   }),
 };
 

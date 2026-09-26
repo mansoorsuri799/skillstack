@@ -10,6 +10,7 @@ import {
   absoluteUrl,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -22,6 +23,10 @@ export const metadata: Metadata = {
     title: "SkillStack Pricing — All-in-One SEO Suite",
     description:
       "Unlock the entire SkillStack SEO Dashboard, Keyword Research, Backlinks, Rank Tracking & AI tools for $20 USD.",
+  }),
+  twitter: pageTwitter({
+    title: "SkillStack Pricing — All-in-One SEO Suite",
+    description: "Unlock the entire SkillStack SEO Dashboard, Keyword Research, Backlinks, Rank Tracking & AI tools for $20 USD.",
   }),
 };
 

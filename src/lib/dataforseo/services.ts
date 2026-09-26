@@ -370,33 +370,59 @@ export async function getDomainOverview(
   languageCode = "en",
   includeSubdomains = true,
 ) {
+  return getDomainOverviewInternal(target, locationCode, languageCode, includeSubdomains, true);
+}
+
+/** Faster Suri path — keywords + rank overview only (skips relevant pages). */
+export async function getDomainOverviewLight(
+  target: string,
+  locationCode = 2586,
+  languageCode = "en",
+  includeSubdomains = true,
+) {
+  return getDomainOverviewInternal(target, locationCode, languageCode, includeSubdomains, false);
+}
+
+async function getDomainOverviewInternal(
+  target: string,
+  locationCode: number,
+  languageCode: string,
+  includeSubdomains: boolean,
+  includePages: boolean,
+) {
   const api = labsApi();
+  const overviewReq = api.googleDomainRankOverviewLive([
+    {
+      target,
+      location_code: locationCode,
+      language_code: languageCode,
+    } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
+  ]);
+  const keywordsReq = api.googleRankedKeywordsLive([
+    {
+      target,
+      location_code: locationCode,
+      language_code: languageCode,
+      limit: 25,
+      include_subdomains: includeSubdomains,
+    } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
+  ]);
+  const pagesReq = includePages
+    ? api.googleRelevantPagesLive([
+        {
+          target,
+          location_code: locationCode,
+          language_code: languageCode,
+          limit: 25,
+          include_subdomains: includeSubdomains,
+        } as unknown as DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
+      ])
+    : Promise.resolve(null);
+
   const [overviewRes, keywordsRes, pagesRes] = await Promise.all([
-    api.googleDomainRankOverviewLive([
-      {
-        target,
-        location_code: locationCode,
-        language_code: languageCode,
-      } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
-    ]),
-    api.googleRankedKeywordsLive([
-      {
-        target,
-        location_code: locationCode,
-        language_code: languageCode,
-        limit: 25,
-        include_subdomains: includeSubdomains,
-      } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
-    ]),
-    api.googleRelevantPagesLive([
-      {
-        target,
-        location_code: locationCode,
-        language_code: languageCode,
-        limit: 25,
-        include_subdomains: includeSubdomains,
-      } as unknown as DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
-    ]),
+    overviewReq,
+    keywordsReq,
+    pagesReq,
   ]);
 
   const overview = taskItems<{
@@ -440,19 +466,21 @@ export async function getDomainOverview(
 
   const organic = overview?.metrics?.organic;
 
-  const topPages = taskResultItems<{
-    page_address?: string | null;
-    metrics?: {
-      organic?: { etv?: number | null; count?: number | null } | null;
-    } | null;
-  }>(pagesRes)
-    .map((page) => ({
-      url: page.page_address ?? "",
-      traffic: page.metrics?.organic?.etv ?? null,
-      keywords: page.metrics?.organic?.count ?? null,
-    }))
-    .filter((p) => p.url)
-    .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0));
+  const topPages = pagesRes
+    ? taskResultItems<{
+        page_address?: string | null;
+        metrics?: {
+          organic?: { etv?: number | null; count?: number | null } | null;
+        } | null;
+      }>(pagesRes)
+        .map((page) => ({
+          url: page.page_address ?? "",
+          traffic: page.metrics?.organic?.etv ?? null,
+          keywords: page.metrics?.organic?.count ?? null,
+        }))
+        .filter((p) => p.url)
+        .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0))
+    : [];
 
   return {
     domain: target.replace(/^https?:\/\//i, "").split("/")[0] ?? target,

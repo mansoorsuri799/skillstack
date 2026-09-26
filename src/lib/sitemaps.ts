@@ -47,6 +47,14 @@ export type ImageSitemapEntry = {
   images: { loc: string; title?: string }[];
 };
 
+function pageFeatureImage(pagePath: string, title: string) {
+  const ogPath = pagePath ? `${pagePath}/opengraph-image` : "/opengraph-image";
+  return {
+    loc: `${SITE_URL}${ogPath}`,
+    title,
+  };
+}
+
 export const imageSitemapEntries: ImageSitemapEntry[] = [
   {
     pagePath: "",
@@ -60,8 +68,16 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
         title: "SkillStack app icon",
       },
       {
-        loc: `${SITE_URL}/opengraph-image`,
-        title: "SkillStack — Web development and SEO",
+        loc: `${SITE_URL}/og-image.webp`,
+        title: "SkillStack Open Graph image",
+      },
+      {
+        loc: `${SITE_URL}/og-image-square.webp`,
+        title: "SkillStack square social image",
+      },
+      {
+        loc: `${SITE_URL}/twitter-card.webp`,
+        title: "SkillStack Twitter / X card",
       },
       {
         loc: `${SITE_URL}/apple-icon.png`,
@@ -72,65 +88,50 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
   {
     pagePath: "/about",
     images: [
+      pageFeatureImage("/about", "About SkillStack"),
       {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: "SkillStack brand mark",
+        loc: `${SITE_URL}/mansoor-khan.webp`,
+        title: "Mansoor Khan — CEO of SkillStack",
       },
     ],
   },
   {
     pagePath: "/services",
-    images: [
-      {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: "SkillStack services",
-      },
-    ],
+    images: [pageFeatureImage("/services", "SkillStack services")],
   },
   ...services.map((service) => ({
     pagePath: `/services/${service.slug}`,
     images: [
-      {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: `SkillStack — ${service.title}`,
-      },
+      pageFeatureImage(
+        `/services/${service.slug}`,
+        `SkillStack — ${service.title}`,
+      ),
     ],
   })),
   {
     pagePath: "/pricing",
-    images: [
-      {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: "SkillStack pricing",
-      },
-    ],
+    images: [pageFeatureImage("/pricing", "SkillStack pricing")],
   },
   {
     pagePath: "/process",
-    images: [
-      {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: "SkillStack process",
-      },
-    ],
+    images: [pageFeatureImage("/process", "SkillStack process")],
   },
   {
     pagePath: "/seo-company-gilgit-baltistan",
     images: [
-      {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: "Best SEO Company in Gilgit-Baltistan — SkillStack",
-      },
+      pageFeatureImage(
+        "/seo-company-gilgit-baltistan",
+        "Best SEO Company in Gilgit-Baltistan — SkillStack",
+      ),
     ],
   },
   {
+    pagePath: "/seo-2026",
+    images: [pageFeatureImage("/seo-2026", "SEO in 2026 — SkillStack")],
+  },
+  {
     pagePath: "/contact",
-    images: [
-      {
-        loc: `${SITE_URL}/brand/skill-stack.webp`,
-        title: "SkillStack contact",
-      },
-    ],
+    images: [pageFeatureImage("/contact", "Contact SkillStack")],
   },
   {
     pagePath: "/login",

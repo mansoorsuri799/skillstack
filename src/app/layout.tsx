@@ -84,10 +84,18 @@ export const metadata: Metadata = {
       "Official SkillStack site — keyword research, Google ranking, content writing, blogging, and backlink services from Gilgit-Baltistan.",
     images: [
       {
-        url: `${SITE_URL}/opengraph-image`,
+        url: "/og-image.webp",
         width: 1200,
         height: 630,
+        type: "image/webp",
         alt: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
+      },
+      {
+        url: "/og-image-square.webp",
+        width: 1200,
+        height: 1200,
+        type: "image/webp",
+        alt: "SkillStack",
       },
     ],
   },
@@ -96,7 +104,7 @@ export const metadata: Metadata = {
     title: "SkillStack — Grow Your Web Ranking | Pakistan & Beyond",
     description:
       "Keyword research, ranking, content, backlinks, and websites. Based in Gilgit-Baltistan, serving Pakistan and the world.",
-    images: [`${SITE_URL}/opengraph-image`],
+    images: ["/twitter-card.webp"],
   },
   icons: {
     icon: [

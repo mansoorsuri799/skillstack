@@ -5,6 +5,7 @@ import RegisterForm from "@/components/RegisterForm";
 import {
   absoluteUrl,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl("/register") },
   openGraph: pageOpenGraph({
     url: absoluteUrl("/register"),
+    title: "Register · SkillStack",
+    description: "Create your SkillStack account.",
+  }),
+  twitter: pageTwitter({
     title: "Register · SkillStack",
     description: "Create your SkillStack account.",
   }),

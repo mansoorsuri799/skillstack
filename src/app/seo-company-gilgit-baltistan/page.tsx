@@ -14,6 +14,7 @@ import {
   aggregateRatingJsonLd,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
   faqJsonLd,
   OFFICE,
   LINKEDIN_URL,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: PAGE_URL },
   openGraph: pageOpenGraph({ url: PAGE_URL, title: TITLE, description: DESC }),
+  twitter: pageTwitter({ title: TITLE, description: DESC }),
 };
 
 const localFaqs = [

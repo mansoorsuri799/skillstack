@@ -5,6 +5,7 @@ import LoginForm from "@/components/LoginForm";
 import {
   absoluteUrl,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl("/login") },
   openGraph: pageOpenGraph({
     url: absoluteUrl("/login"),
+    title: "Login · SkillStack",
+    description: "Sign in to your SkillStack account.",
+  }),
+  twitter: pageTwitter({
     title: "Login · SkillStack",
     description: "Sign in to your SkillStack account.",
   }),

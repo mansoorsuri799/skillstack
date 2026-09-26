@@ -10,6 +10,7 @@ import {
   howToJsonLd,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -22,6 +23,10 @@ export const metadata: Metadata = {
     title: "SkillStack Process",
     description:
       "Four stages from research to revenue — clear approvals, no black-box SEO.",
+  }),
+  twitter: pageTwitter({
+    title: "SkillStack Process",
+    description: "Four stages from research to revenue — clear approvals, no black-box SEO.",
   }),
 };
 

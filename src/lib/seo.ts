@@ -15,14 +15,39 @@ export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
 export const X_URL = "https://x.com/skillstack_co";
 
-/** Shared social / Google preview image — never omit on page openGraph. */
-export const DEFAULT_OG_IMAGE = {
-  url: `${SITE_URL}/opengraph-image`,
+/** Shared social / Google preview images (static WebP in /public). */
+export const OG_IMAGE = {
+  url: `${SITE_URL}/og-image.webp`,
   width: 1200,
   height: 630,
+  type: "image/webp",
   alt: "SkillStack — Web Development & SEO for Pakistan & Beyond",
 } as const;
 
+export const OG_IMAGE_SQUARE = {
+  url: `${SITE_URL}/og-image-square.webp`,
+  width: 1200,
+  height: 1200,
+  type: "image/webp",
+  alt: "SkillStack",
+} as const;
+
+export const TWITTER_CARD_IMAGE = {
+  url: `${SITE_URL}/twitter-card.webp`,
+  width: 1200,
+  height: 628,
+  type: "image/webp",
+  alt: "SkillStack — Keyword research, ranking, content, backlinks",
+} as const;
+
+/** @deprecated Prefer OG_IMAGE — kept for older imports. */
+export const DEFAULT_OG_IMAGE = OG_IMAGE;
+
+/**
+ * Open Graph fields for marketing pages.
+ * Feature / social images come from each route's `opengraph-image` file —
+ * do not hardcode DEFAULT_OG_IMAGE here or it overrides per-page art.
+ */
 export function pageOpenGraph({
   url,
   title,
@@ -36,7 +61,24 @@ export function pageOpenGraph({
     url,
     title,
     description,
-    images: [DEFAULT_OG_IMAGE],
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_PK",
+  };
+}
+
+/** Twitter / X large card — pairs with route `twitter-image` when present. */
+export function pageTwitter({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}): NonNullable<Metadata["twitter"]> {
+  return {
+    card: "summary_large_image",
+    title,
+    description,
   };
 }
 
@@ -140,6 +182,9 @@ export function faqJsonLd(
 /** Core entity graph for branded search, AEO, and AI citation clarity. */
 export function siteGraphJsonLd() {
   const logo = absoluteUrl("/brand/skill-stack.webp");
+  const ogImage = absoluteUrl("/og-image.webp");
+  const ogSquare = absoluteUrl("/og-image-square.webp");
+  const twitterCard = absoluteUrl("/twitter-card.webp");
 
   const offerCatalog = {
     "@type": "OfferCatalog",
@@ -187,7 +232,7 @@ export function siteGraphJsonLd() {
           width: 512,
           height: 512,
         },
-        image: logo,
+        image: [logo, ogImage, ogSquare, twitterCard],
         description:
           "SkillStack (SkillStack Private Limited) is a web development and SEO company based in Gilgit City, Gilgit-Baltistan, Pakistan — founded and led by CEO Mansoor Khan. The company provides keyword research, Google ranking, content writing, SEO blogging, backlink building, and websites for clients across Pakistan and internationally.",
         disambiguatingDescription:
@@ -269,7 +314,7 @@ export function siteGraphJsonLd() {
         alternateName: ["Skill Stack", "SkillStack Private Limited"],
         legalName: LEGAL_NAME,
         url: SITE_URL,
-        image: logo,
+        image: [logo, ogImage, ogSquare],
         email: SITE_EMAIL,
         ...(SITE_PHONE ? { telephone: SITE_PHONE } : {}),
         priceRange: "$$",
@@ -348,7 +393,7 @@ export function siteGraphJsonLd() {
         jobTitle: "CEO",
         worksFor: { "@id": `${SITE_URL}/#organization` },
         url: `${SITE_URL}/about`,
-        image: logo,
+        image: absoluteUrl("/mansoor-khan.webp"),
         sameAs: [
           LINKEDIN_URL,
           X_URL,

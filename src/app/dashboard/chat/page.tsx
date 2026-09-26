@@ -172,6 +172,7 @@ function MessageBubble({
   msg,
   canEdit = false,
   isEditing = false,
+  isStreaming = false,
   onStartEdit,
   onCancelEdit,
   onSaveEdit,
@@ -179,6 +180,7 @@ function MessageBubble({
   msg: ChatMessage;
   canEdit?: boolean;
   isEditing?: boolean;
+  isStreaming?: boolean;
   onStartEdit?: () => void;
   onCancelEdit?: () => void;
   onSaveEdit?: (content: string) => void;
@@ -321,7 +323,15 @@ function MessageBubble({
             {msg.content}
           </div>
         ) : (
-          <ChatRichText content={msg.content} />
+          <div>
+            {msg.content ? <ChatRichText content={msg.content} /> : null}
+            {isStreaming ? (
+              <span
+                className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 animate-pulse rounded-sm bg-accent align-middle"
+                aria-hidden
+              />
+            ) : null}
+          </div>
         )}
 
         {msg.sources && msg.sources.length > 0 ? (
@@ -367,6 +377,7 @@ export default function ChatPage() {
   const [activeChatId, setActiveChatId] = useState<string | null>(currentChatId);
   const [chatTitle, setChatTitle] = useState("New chat");
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState("");
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<PendingUpload[]>([]);
@@ -504,44 +515,162 @@ export default function ChatPage() {
     setInput("");
     clearPendingFiles();
     setLoading(true);
+    setStreaming(true);
+    let knownChatId = activeChatId;
+
+    // Placeholder assistant bubble — tokens append live (ChatGPT-style)
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: "", createdAt: new Date() },
+    ]);
 
     try {
       const form = new FormData();
       form.append("message", userContent);
-      if (activeChatId) form.append("chatId", activeChatId);
+      form.append("stream", "1");
+      if (knownChatId) form.append("chatId", knownChatId);
       for (const item of uploads) {
         form.append("files", item.file, item.file.name);
       }
 
-      const res = await fetch("/api/dashboard/chat", {
+      const res = await fetch("/api/dashboard/chat?stream=1", {
         method: "POST",
+        headers: { Accept: "text/event-stream" },
         body: form,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to get reply from Suri");
 
-      if (data.chat?.id && !activeChatId) {
-        setActiveChatId(data.chat.id);
-        setChatTitle(data.chat.title);
-        window.history.replaceState(null, "", `/dashboard/chat?id=${data.chat.id}`);
-        window.dispatchEvent(new CustomEvent("refresh-chats"));
+      const contentType = res.headers.get("content-type") || "";
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          (data as { message?: string }).message || "Failed to get reply from Suri",
+        );
       }
 
-      if (Array.isArray(data.chat?.messages) && data.chat.messages.length) {
-        setMessages(data.chat.messages);
-      } else {
-        const assistantMsg: ChatMessage = {
-          role: "assistant",
-          content: data.reply.answer,
-          sources: data.reply.sources || [],
-          createdAt: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
+      // Non-stream JSON fallback
+      if (!contentType.includes("text/event-stream")) {
+        const data = await res.json();
+        if (data.chat?.id && !knownChatId) {
+          knownChatId = data.chat.id;
+          setActiveChatId(data.chat.id);
+          setChatTitle(data.chat.title);
+          window.history.replaceState(null, "", `/dashboard/chat?id=${data.chat.id}`);
+          window.dispatchEvent(new CustomEvent("refresh-chats"));
+        }
+        if (Array.isArray(data.chat?.messages) && data.chat.messages.length) {
+          setMessages(data.chat.messages);
+        } else {
+          setMessages((prev) => {
+            const copy = [...prev];
+            const last = copy[copy.length - 1];
+            if (last?.role === "assistant") {
+              copy[copy.length - 1] = {
+                ...last,
+                content: data.reply.answer,
+                sources: data.reply.sources || [],
+              };
+            }
+            return copy;
+          });
+        }
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No stream from Suri");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let eventName = "message";
+
+      const applyToken = (text: string) => {
+        setMessages((prev) => {
+          const copy = [...prev];
+          const last = copy[copy.length - 1];
+          if (last?.role === "assistant") {
+            copy[copy.length - 1] = {
+              ...last,
+              content: (last.content || "") + text,
+            };
+          }
+          return copy;
+        });
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() ?? "";
+
+        for (const chunk of chunks) {
+          const lines = chunk.split("\n");
+          let dataLine = "";
+          for (const line of lines) {
+            if (line.startsWith("event:")) {
+              eventName = line.slice(6).trim();
+            } else if (line.startsWith("data:")) {
+              dataLine += line.slice(5).trim();
+            }
+          }
+          if (!dataLine) continue;
+
+          let payload: Record<string, unknown>;
+          try {
+            payload = JSON.parse(dataLine) as Record<string, unknown>;
+          } catch {
+            continue;
+          }
+
+          if (eventName === "meta") {
+            const id = typeof payload.chatId === "string" ? payload.chatId : "";
+            const title = typeof payload.title === "string" ? payload.title : "";
+            if (id && !knownChatId) {
+              knownChatId = id;
+              setActiveChatId(id);
+              if (title) setChatTitle(title);
+              window.history.replaceState(null, "", `/dashboard/chat?id=${id}`);
+              window.dispatchEvent(new CustomEvent("refresh-chats"));
+            }
+          } else if (eventName === "token") {
+            const text = typeof payload.text === "string" ? payload.text : "";
+            if (text) applyToken(text);
+          } else if (eventName === "done") {
+            const chat = payload.chat as
+              | { id?: string; title?: string; messages?: ChatMessage[] }
+              | undefined;
+            if (chat?.id && !knownChatId) {
+              knownChatId = chat.id;
+              setActiveChatId(chat.id);
+              window.history.replaceState(null, "", `/dashboard/chat?id=${chat.id}`);
+            }
+            if (chat?.title) setChatTitle(chat.title);
+            if (Array.isArray(chat?.messages) && chat.messages.length) {
+              setMessages(chat.messages);
+            }
+            window.dispatchEvent(new CustomEvent("refresh-chats"));
+          } else if (eventName === "error") {
+            throw new Error(
+              typeof payload.message === "string"
+                ? payload.message
+                : "Suri stream failed",
+            );
+          }
+          eventName = "message";
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Suri query failed");
+      // Drop empty streaming placeholder on failure
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant" && !last.content) return prev.slice(0, -1);
+        return prev;
+      });
     } finally {
       setLoading(false);
+      setStreaming(false);
       setTimeout(() => textareaRef.current?.focus(), 100);
     }
   }
@@ -701,6 +830,12 @@ export default function ChatPage() {
                   msg={m}
                   canEdit={m.role === "user" && Boolean(m.id) && !loading}
                   isEditing={Boolean(m.id) && editingId === m.id}
+                  isStreaming={
+                    streaming &&
+                    loading &&
+                    m.role === "assistant" &&
+                    idx === messages.length - 1
+                  }
                   onStartEdit={() => m.id && setEditingId(m.id)}
                   onCancelEdit={() => setEditingId(null)}
                   onSaveEdit={(content) => void handleEditMessage(m, content)}
@@ -709,7 +844,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          {loading ? (
+          {loading && !streaming ? (
             <div className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated p-4 text-xs text-ink-muted animate-pulse max-w-md">
               <Bot className="h-4 w-4 text-accent animate-spin" />
               <span>
@@ -718,8 +853,15 @@ export default function ChatPage() {
                   ? "Suri is running a live SERP search for your domain..."
                   : messages[messages.length - 1]?.attachments?.length
                   ? "Suri is reading your files and drafting recommendations..."
-                  : "Suri is analyzing project metrics and SERPs..."}
+                  : "Suri is thinking..."}
               </span>
+            </div>
+          ) : null}
+
+          {loading && streaming && !messages[messages.length - 1]?.content ? (
+            <div className="flex items-center gap-2 text-xs text-ink-muted pl-1">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+              Suri is typing…
             </div>
           ) : null}
 

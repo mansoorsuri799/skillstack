@@ -11,6 +11,7 @@ import {
   absoluteUrl,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
     title: "SkillStack Services — SEO & Ranking Worldwide",
     description:
       "Research, ranking content, build, authority, and ads — for Gilgit-Baltistan, Pakistan, and worldwide.",
+  }),
+  twitter: pageTwitter({
+    title: "SkillStack Services — SEO & Ranking Worldwide",
+    description: "Research, ranking content, build, authority, and ads — for Gilgit-Baltistan, Pakistan, and worldwide.",
   }),
 };
 

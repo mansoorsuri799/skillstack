@@ -8,6 +8,7 @@ import { connectDB } from "@/lib/db";
 import {
   absoluteUrl,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 import { User, toPublicProfile } from "@/models/User";
 
@@ -35,6 +36,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: p.name,
       description: p.headline || p.bio?.slice(0, 140) || "SkillStack profile",
       url: absoluteUrl(`/u/${p.username}`),
+    }),
+    twitter: pageTwitter({
+      title: p.name,
+      description: p.headline || p.bio?.slice(0, 140) || "SkillStack profile",
     }),
   };
 }

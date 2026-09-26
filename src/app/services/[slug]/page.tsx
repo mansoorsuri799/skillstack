@@ -16,6 +16,7 @@ import {
   absoluteUrl,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -47,6 +48,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: url },
     openGraph: pageOpenGraph({
       url,
+      title: `${service.title} · SkillStack Worldwide`,
+      description,
+    }),
+    twitter: pageTwitter({
       title: `${service.title} · SkillStack Worldwide`,
       description,
     }),

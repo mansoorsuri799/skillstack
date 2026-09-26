@@ -11,6 +11,7 @@ import {
   absoluteUrl,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -23,6 +24,10 @@ export const metadata: Metadata = {
     title: "About SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
     description:
       "Built in Gilgit-Baltistan. Serving Pakistan and international clients. Led by CEO Mansoor Khan.",
+  }),
+  twitter: pageTwitter({
+    title: "About SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
+    description: "Built in Gilgit-Baltistan. Serving Pakistan and international clients. Led by CEO Mansoor Khan.",
   }),
 };
 

@@ -12,6 +12,7 @@ import {
   aggregateRatingJsonLd,
   webPageJsonLd,
   pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 
 const PAGE_URL = absoluteUrl("/seo-2026");
@@ -42,6 +43,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: PAGE_URL },
   openGraph: pageOpenGraph({ url: PAGE_URL, title: TITLE, description: DESC }),
+  twitter: pageTwitter({ title: TITLE, description: DESC }),
 };
 
 const articleJsonLd = {
