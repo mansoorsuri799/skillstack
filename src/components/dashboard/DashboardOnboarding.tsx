@@ -130,9 +130,9 @@ export default function DashboardOnboarding({
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-5">
       {/* Workspace overview — large + interactive */}
-      <div className="group/overview relative overflow-hidden rounded-2xl border border-line bg-bg-elevated/90 p-5 sm:p-7 md:p-8 shadow-sm transition hover:border-accent/25">
+      <div className="group/overview relative overflow-hidden rounded-2xl border border-line bg-bg-elevated/90 p-4 sm:p-5 md:p-6 shadow-sm transition hover:border-accent/25">
         <div
           className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent/10 blur-3xl transition duration-700 group-hover/overview:bg-accent/20"
           aria-hidden
@@ -142,8 +142,8 @@ export default function DashboardOnboarding({
           aria-hidden
         />
 
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3 max-w-2xl">
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2.5 max-w-2xl">
             <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
               <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
               <span>Project Workspace</span>
@@ -151,7 +151,7 @@ export default function DashboardOnboarding({
               <span className="text-snow font-medium">{project.name || "Default Project"}</span>
             </div>
 
-            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-snow">
+            <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-snow">
               {hasCustomDomain ? (
                 <>
                   Project Overview:{" "}
@@ -162,7 +162,7 @@ export default function DashboardOnboarding({
               )}
             </h1>
 
-            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
+            <p className="text-xs text-ink-muted leading-relaxed">
               Complete these four steps — domain, Search Console, diagnostics, and Suri.
               {nextStep ? (
                 <>
@@ -174,13 +174,13 @@ export default function DashboardOnboarding({
               )}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
               {nextStep ? (
                 nextStep.href ? (
                   <Link
                     href={nextStep.href}
                     prefetch
-                    className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
                   >
                     Continue: {nextStep.title}
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -189,7 +189,7 @@ export default function DashboardOnboarding({
                   <button
                     type="button"
                     onClick={() => focusStep(nextStep.id)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
                   >
                     Continue: {nextStep.title}
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -199,7 +199,7 @@ export default function DashboardOnboarding({
                 <Link
                   href="/dashboard/chat"
                   prefetch
-                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
+                  className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
                 >
                   Open Suri
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -208,14 +208,14 @@ export default function DashboardOnboarding({
               <button
                 type="button"
                 onClick={() => focusStep(nextStep?.id ?? "agent")}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white/5 px-3.5 py-2 text-xs font-medium text-snow transition hover:border-accent/40 hover:text-accent"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white/5 px-3 py-1.5 text-xs font-medium text-snow transition hover:border-accent/40 hover:text-accent"
               >
                 Jump to pipeline
               </button>
             </div>
           </div>
 
-          <div className="rounded-xl border border-line/80 bg-bg p-3.5 sm:p-4 font-mono text-xs w-full lg:w-72 shrink-0 space-y-1">
+          <div className="rounded-xl border border-line/80 bg-bg p-3 font-mono text-xs w-full lg:w-64 shrink-0 space-y-0.5">
             <div className="flex items-center justify-between border-b border-line/60 pb-2 text-[11px] text-ink-muted">
               <span className="font-sans font-semibold text-snow">Workspace Status</span>
               <span className="flex items-center gap-1.5 text-accent font-medium">
@@ -256,7 +256,7 @@ export default function DashboardOnboarding({
         </div>
 
         {/* Slim progress only — no large step buttons */}
-        <div className="relative mt-5 flex items-center gap-3 border-t border-line/60 pt-4">
+        <div className="relative mt-4 flex items-center gap-3 border-t border-line/60 pt-3">
           <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-ink-muted">
             <ShieldCheck className="h-3.5 w-3.5 text-accent" />
             Setup
@@ -273,19 +273,19 @@ export default function DashboardOnboarding({
         </div>
       </div>
 
-      {/* Four setup cards only */}
-      <div className="space-y-3">
+      {/* Four setup cards — slightly tighter so the page fits without scroll */}
+      <div className="space-y-2.5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-ink-muted flex items-center gap-2">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
+          <h2 className="text-[11px] font-mono uppercase tracking-wider text-ink-muted flex items-center gap-2">
+            <Sparkles className="h-3 w-3 text-accent" />
             Setup & Integration Pipeline
           </h2>
-          <span className="text-xs text-ink-muted tabular-nums">
+          <span className="text-[11px] text-ink-muted tabular-nums">
             Tap a card to continue
           </span>
         </div>
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           {SETUP_STEPS.map((step) => {
             const isDone = completedMap[step.id];
             const isNext = nextStep?.id === step.id;
@@ -298,17 +298,16 @@ export default function DashboardOnboarding({
                 key={step.id}
                 onMouseEnter={() => setFocusedStep(step.id)}
                 onFocus={() => setFocusedStep(step.id)}
-                className={`group relative flex min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border p-3.5 sm:p-4 transition-all duration-300 ${
                   isFocused
-                    ? `border-accent/45 bg-bg-elevated shadow-lg ${step.glow} scale-[1.01]`
+                    ? `border-accent/45 bg-bg-elevated shadow-md ${step.glow}`
                     : isDone
                       ? "border-line/80 bg-bg-elevated/50 hover:border-line"
                       : "border-line bg-bg-elevated hover:border-accent/30"
                 }`}
               >
-                {/* Soft accent wash */}
                 <div
-                  className={`pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-0 blur-2xl transition duration-500 group-hover:opacity-100 ${
+                  className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-0 blur-2xl transition duration-500 group-hover:opacity-100 ${
                     step.id === "domain"
                       ? "bg-sky-500/20"
                       : step.id === "gsc"
@@ -320,69 +319,69 @@ export default function DashboardOnboarding({
                   aria-hidden
                 />
 
-                <div className="relative space-y-4">
+                <div className="relative space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div
-                      className={`flex h-11 w-11 items-center justify-center rounded-xl border transition ${
+                      className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
                         isDone
                           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                           : `border-line bg-bg ${step.accent}`
                       }`}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-4 w-4" />
                     </div>
                     {isDone ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-emerald-400">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" />
                         DONE
                       </span>
                     ) : isNext ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-accent animate-pulse">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-accent animate-pulse">
                         NEXT
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-mono text-ink-muted">
+                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-ink-muted">
                         PENDING
                       </span>
                     )}
                   </div>
 
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted mb-1">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-ink-muted mb-0.5">
                       Step {step.stepNumber}
                     </p>
-                    <h3 className="font-display text-base font-semibold text-snow tracking-tight">
+                    <h3 className="text-sm font-semibold text-snow tracking-tight">
                       {step.title}
                     </h3>
-                    <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+                    <p className="mt-1 text-[11px] text-ink-muted leading-snug line-clamp-2">
                       {step.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="relative mt-5 pt-4 border-t border-line/60">
+                <div className="relative mt-3 pt-3 border-t border-line/60">
                   {step.id === "domain" && !isDone ? (
-                    <form onSubmit={handleSaveDomain} className="space-y-2.5">
+                    <form onSubmit={handleSaveDomain} className="space-y-2">
                       <input
                         type="text"
                         value={domainInput}
                         onChange={(e) => setDomainInput(e.target.value)}
                         placeholder="yourdomain.com"
-                        className="w-full rounded-xl border border-line bg-bg px-3 py-2.5 text-sm text-snow outline-none transition focus:border-accent focus:ring-1 focus:ring-accent/30"
+                        className="w-full rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none transition focus:border-accent focus:ring-1 focus:ring-accent/30"
                         disabled={saving}
                       />
                       <button
                         type="submit"
                         disabled={saving || !domainInput.trim()}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-50"
+                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent py-1.5 text-xs font-semibold text-[#010409] transition hover:bg-accent-deep disabled:opacity-50"
                       >
                         {saving ? "Saving…" : step.cta}
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </form>
                   ) : step.id === "domain" && isDone ? (
-                    <div className="space-y-2.5">
-                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2.5 text-xs font-mono text-emerald-400 truncate">
+                    <div className="space-y-2">
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1.5 text-[11px] font-mono text-emerald-400 truncate">
                         {project.domain}
                       </div>
                       <DomainEditRow
@@ -398,14 +397,14 @@ export default function DashboardOnboarding({
                       prefetch
                       onMouseEnter={() => step.href && router.prefetch(step.href)}
                       onTouchStart={() => step.href && router.prefetch(step.href)}
-                      className={`w-full inline-flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                      className={`w-full inline-flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                         isDone
                           ? "border border-line bg-white/5 text-snow hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
                           : "bg-accent text-[#010409] hover:bg-accent-deep shadow-md shadow-accent/20"
                       }`}
                     >
                       <span>{step.cta}</span>
-                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                     </Link>
                   ) : null}
                 </div>
@@ -436,10 +435,10 @@ function DomainEditRow({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="w-full inline-flex items-center justify-between rounded-xl border border-line bg-white/5 px-4 py-2.5 text-sm font-medium text-snow transition hover:border-accent/40 hover:text-accent"
+        className="w-full inline-flex items-center justify-between rounded-lg border border-line bg-white/5 px-3 py-1.5 text-xs font-medium text-snow transition hover:border-accent/40 hover:text-accent"
       >
         <span>Change domain</span>
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="h-3.5 w-3.5" />
       </button>
     );
   }

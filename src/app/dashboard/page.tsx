@@ -3,7 +3,6 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardOnboarding from "@/components/dashboard/DashboardOnboarding";
 import { DataForSeoBanner } from "@/components/dashboard/ProjectDomainBanner";
-import { PageStack } from "@/components/dashboard/ui";
 import { useDashboardProject, DEFAULT_FALLBACK_PROJECT } from "@/components/dashboard/useDashboardProject";
 
 export default function DashboardHomePage() {
@@ -21,7 +20,7 @@ export default function DashboardHomePage() {
           : "Your SEO command center"
       }
     >
-      <PageStack>
+      <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4">
         <DataForSeoBanner configured={dataForSeoConfigured} />
         <DashboardOnboarding
           project={activeProject}
@@ -29,7 +28,7 @@ export default function DashboardHomePage() {
             await updateDomain(domain);
           }}
         />
-      </PageStack>
+      </div>
     </DashboardShell>
   );
 }
