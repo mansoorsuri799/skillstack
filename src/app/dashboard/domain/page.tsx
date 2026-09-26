@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Globe } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { DomainOverviewToolbar } from "@/components/dashboard/DomainOverviewToolbar";
@@ -44,6 +44,7 @@ type PageRow = {
 type Overview = DomainOverviewPanelData & {
   topKeywords: KeywordRow[];
   topPages: PageRow[];
+  marketLabel?: string | null;
 };
 
 type DomainTab = "keywords" | "pages";
@@ -51,7 +52,7 @@ type DomainTab = "keywords" | "pages";
 const domainMemoryCache = new Map<string, Overview>();
 
 function getDomainCacheKey(domain: string, locationCode: number, scope: string) {
-  return `ss_domain_${domain.toLowerCase()}_${locationCode}_${scope}`;
+  return `ss_domain_v3_${domain.toLowerCase()}_${locationCode}_${scope}`;
 }
 
 function readDomainCache(key: string): Overview | null {
@@ -95,22 +96,19 @@ export default function DomainPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const autoLoadedKey = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (project) {
-      setDomain(project.domain);
-      setLocationCode(project.locationCode);
-      const cacheKey = getDomainCacheKey(project.domain, project.locationCode, scope);
-      const cached = readDomainCache(cacheKey);
-      if (cached) setOverview(cached);
-    }
-  }, [project, scope]);
-
-  async function onLookup() {
-    const targetDomain = domain.trim();
+  const onLookup = useCallback(async (override?: {
+    domain?: string;
+    locationCode?: number;
+    scope?: DomainScope;
+  }) => {
+    const targetDomain = (override?.domain ?? domain).trim();
     if (!targetDomain) return;
 
-    const cacheKey = getDomainCacheKey(targetDomain, locationCode, scope);
+    const nextLocation = override?.locationCode ?? locationCode;
+    const nextScope = override?.scope ?? scope;
+    const cacheKey = getDomainCacheKey(targetDomain, nextLocation, nextScope);
     const cached = readDomainCache(cacheKey);
     if (cached) setOverview(cached);
 
@@ -120,7 +118,11 @@ export default function DomainPage() {
       const res = await fetch("/api/dashboard/domain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain: targetDomain, locationCode, scope }),
+        body: JSON.stringify({
+          domain: targetDomain,
+          locationCode: nextLocation,
+          scope: nextScope,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -132,7 +134,26 @@ export default function DomainPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [domain, locationCode, scope]);
+
+  useEffect(() => {
+    if (!project?.domain) return;
+    setDomain(project.domain);
+    setLocationCode(project.locationCode);
+    const cacheKey = getDomainCacheKey(project.domain, project.locationCode, scope);
+    const cached = readDomainCache(cacheKey);
+    if (cached) setOverview(cached);
+
+    // Auto-load once per domain/location/scope so results appear without a click.
+    const autoKey = `${project.domain}|${project.locationCode}|${scope}`;
+    if (autoLoadedKey.current === autoKey) return;
+    autoLoadedKey.current = autoKey;
+    void onLookup({
+      domain: project.domain,
+      locationCode: project.locationCode,
+      scope,
+    });
+  }, [project, scope, onLookup]);
 
   const sortedKeywords = useMemo(() => {
     if (!overview) return [];
@@ -162,7 +183,7 @@ export default function DomainPage() {
         />
 
         {loading && !overview ? (
-          <LoadingBlock label="Analyzing domain — this can take up to a minute..." />
+          <LoadingBlock label="Loading domain overview..." />
         ) : null}
 
         {overview ? (

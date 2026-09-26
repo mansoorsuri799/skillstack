@@ -6,8 +6,12 @@ import {
   fetchReferringDomainRows,
   fetchTopPageRows,
 } from "@/lib/dataforseo/backlinks-dashboard";
+import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import { getProjectForUser } from "@/lib/dashboard/project";
+
+const BACKLINKS_TTL_MS = 10 * 60 * 1000;
+const TABLE_LIMIT = 200;
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -35,22 +39,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Enter a domain to analyze." }, { status: 400 });
     }
 
+    const key = cacheKey(["backlinks", tab, domain, includeSubdomains, mode]);
+    const cached = getCached<unknown>(key);
+    if (cached) {
+      if (tab === "overview") {
+        return NextResponse.json({ tab: "overview", overview: cached, cached: true });
+      }
+      return NextResponse.json({ tab, rows: cached, cached: true });
+    }
+
     if (tab === "backlinks") {
-      const rows = await fetchBacklinkRows(domain, includeSubdomains, mode);
+      const rows = await fetchBacklinkRows(domain, includeSubdomains, mode, TABLE_LIMIT);
+      setCached(key, rows, BACKLINKS_TTL_MS);
       return NextResponse.json({ tab, rows });
     }
 
     if (tab === "referring") {
-      const rows = await fetchReferringDomainRows(domain, includeSubdomains);
+      const rows = await fetchReferringDomainRows(domain, includeSubdomains, TABLE_LIMIT);
+      setCached(key, rows, BACKLINKS_TTL_MS);
       return NextResponse.json({ tab, rows });
     }
 
     if (tab === "pages") {
-      const rows = await fetchTopPageRows(domain, includeSubdomains);
+      const rows = await fetchTopPageRows(domain, includeSubdomains, TABLE_LIMIT);
+      setCached(key, rows, BACKLINKS_TTL_MS);
       return NextResponse.json({ tab, rows });
     }
 
     const overview = await fetchBacklinksOverview(domain, includeSubdomains);
+    setCached(key, overview, BACKLINKS_TTL_MS);
     return NextResponse.json({ tab: "overview", overview });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lookup failed";

@@ -39,7 +39,7 @@ export function NewProjectModal({
     e.preventDefault();
     const targetDomain = normalizeDomain(domain);
     if (!targetDomain || !targetDomain.includes(".")) {
-      setError("Please enter a valid domain (e.g. example.com)");
+      setError("Please enter a valid domain (e.g. yoursite.com)");
       return;
     }
 
@@ -82,7 +82,7 @@ export function NewProjectModal({
             <input
               type="text"
               autoFocus
-              placeholder="example.com"
+              placeholder="yoursite.com"
               value={domain}
               onChange={(e) => {
                 setDomain(e.target.value);

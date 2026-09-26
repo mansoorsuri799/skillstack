@@ -8,12 +8,15 @@ import {
   type KeywordIntent,
   type SerpResultRow,
 } from "@/lib/dataforseo/keyword-research";
+import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
 import { researchKeywords } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE } from "@/lib/dashboard/locations";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { FIRST_PAGE_SIZE, searchLiveSerp } from "@/lib/firecrawl/live-serp";
+
+const KEYWORD_RESEARCH_TTL_MS = 10 * 60 * 1000;
 
 async function loadKeywordSerp(
   seed: string,
@@ -69,7 +72,7 @@ export async function POST(request: Request) {
 
     const locationCode = body.locationCode ?? project.locationCode;
     const languageCode = body.languageCode ?? project.languageCode;
-    const limit = body.limit ?? 150;
+    const limit = Math.min(Number(body.limit ?? 80) || 80, 100);
     const mode = body.mode ?? "auto";
     const useClickstream = body.useClickstream !== false;
     // All locations → fetch multi-market insights (not project country alone)
@@ -79,6 +82,26 @@ export async function POST(request: Request) {
     const serpLocation = isAllLocations(locationCode)
       ? project.locationCode || DEFAULT_LOCATION_CODE
       : locationCode;
+
+    const researchCacheKey = cacheKey([
+      "keyword-research",
+      seed.toLowerCase(),
+      locationCode,
+      languageCode,
+      limit,
+      mode,
+      useClickstream,
+    ]);
+    const cachedPayload = getCached<{
+      seed: string;
+      results: unknown;
+      seedInsights: unknown;
+      serpResults: unknown;
+      serpSource: string;
+    }>(researchCacheKey);
+    if (cachedPayload) {
+      return NextResponse.json({ ...cachedPayload, cached: true });
+    }
 
     const [results, seedInsights, serp] = await Promise.all([
       researchKeywords(
@@ -99,8 +122,9 @@ export async function POST(request: Request) {
     ]);
     const serpResults = serp.rows;
 
+    // Intent only for the first page of results — keeps the Labs call small.
     const intentMap = await fetchKeywordIntents(
-      results.map((row) => row.keyword),
+      results.slice(0, 50).map((row) => row.keyword),
       languageCode,
     ).catch(() => new Map<string, KeywordIntent>());
 
@@ -214,13 +238,15 @@ export async function POST(request: Request) {
       };
     }
 
-    return NextResponse.json({
+    const payload = {
       seed,
       results: enriched,
       seedInsights: insights,
       serpResults,
       serpSource: serp.source,
-    });
+    };
+    setCached(researchCacheKey, payload, KEYWORD_RESEARCH_TTL_MS);
+    return NextResponse.json(payload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Research failed";
     return NextResponse.json({ message }, { status: 500 });

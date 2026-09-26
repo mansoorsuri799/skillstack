@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
+import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
 import {
   getOrganicReport,
   type OrganicReportType,
@@ -15,6 +16,8 @@ const REPORT_TYPES = new Set<OrganicReportType>([
   "pages",
   "competitors",
 ]);
+
+const ORGANIC_TTL_MS = 10 * 60 * 1000;
 
 export async function POST(request: Request) {
   const result = await requireUser(request);
@@ -38,6 +41,22 @@ export async function POST(request: Request) {
       );
     }
 
+    const locationCode = body.locationCode ?? project.locationCode;
+    const languageCode = body.languageCode ?? project.languageCode;
+    const includeSubdomains = body.scope !== "domain";
+    const key = cacheKey([
+      "organic",
+      type,
+      domain,
+      locationCode,
+      languageCode,
+      includeSubdomains,
+    ]);
+    const cached = getCached<unknown>(key);
+    if (cached) {
+      return NextResponse.json({ type, data: cached, cached: true });
+    }
+
     if (type === "competitors") {
       if (!isFirecrawlConfigured() && !isDataForSeoConfigured()) {
         return NextResponse.json(
@@ -51,9 +70,10 @@ export async function POST(request: Request) {
 
       const data = await getOrganicCompetitorsReport(
         domain,
-        body.locationCode ?? project.locationCode,
-        body.languageCode ?? project.languageCode,
+        locationCode,
+        languageCode,
       );
+      setCached(key, data, ORGANIC_TTL_MS);
       return NextResponse.json({ type, data });
     }
 
@@ -67,10 +87,11 @@ export async function POST(request: Request) {
     const data = await getOrganicReport(
       type,
       domain,
-      body.locationCode ?? project.locationCode,
-      body.languageCode ?? project.languageCode,
-      body.scope !== "domain",
+      locationCode,
+      languageCode,
+      includeSubdomains,
     );
+    setCached(key, data, ORGANIC_TTL_MS);
 
     return NextResponse.json({ type, data });
   } catch (error) {

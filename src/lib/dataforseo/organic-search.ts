@@ -94,7 +94,7 @@ export async function getOrganicKeywords(
   locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
-  limit = 100,
+  limit = 50,
 ): Promise<{ domain: string; keywords: OrganicKeywordRow[] }> {
   const api = labsApi();
   const response = await api.googleRankedKeywordsLive([
@@ -150,7 +150,7 @@ export async function getOrganicPositions(
     } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   ]);
 
-  const overview = taskItems<{
+  const overview = taskResultItems<{
     metrics?: { organic?: OrganicMetrics | null } | null;
   }>(response)[0];
 
@@ -176,7 +176,7 @@ export async function getOrganicTopPages(
   locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
-  limit = 100,
+  limit = 50,
 ): Promise<{ domain: string; pages: OrganicPageRow[] }> {
   const api = labsApi();
   const response = await api.googleRelevantPagesLive([

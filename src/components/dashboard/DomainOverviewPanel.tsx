@@ -6,20 +6,31 @@ import { BadgeCheck, ChevronDown } from "lucide-react";
 export type DomainOverviewPanelData = {
   domain: string;
   scopeLabel: string;
-  health: {
-    score: number | null;
-    crawled: number | null;
-    redirects: number | null;
-    broken: number | null;
-    blocked: number | null;
-  };
+  marketLabel?: string | null;
   domainRating: MetricBlock;
+  backlinks?: MetricBlock & { allTime?: number | null };
   referringDomains: MetricBlock;
   googleVisitors: MetricBlock & { connected: boolean };
-  organicTraffic: MetricBlock & { valueUsd: number | null };
-  organicKeywords: MetricBlock & {
-    byCountry: Array<{ code: string; count: number | null; change: number | null }>;
+  organicTraffic: MetricBlock & {
+    valueUsd: number | null;
+    valueChange?: number | null;
   };
+  organicKeywords: MetricBlock & {
+    top3?: number | null;
+    byCountry: Array<{
+      code: string;
+      count: number | null;
+      change: number | null;
+      traffic?: number | null;
+    }>;
+  };
+  topKeywords?: Array<{
+    keyword: string;
+    rank: number | null;
+    etv?: number | null;
+    searchVolume?: number | null;
+    url?: string | null;
+  }>;
 };
 
 type MetricBlock = {
@@ -38,16 +49,14 @@ function formatCompact(value: number | null, currency = false): string {
   if (abs >= 1_000) {
     return `${prefix}${(value / 1_000).toFixed(1)}K`;
   }
-  return `${prefix}${value.toLocaleString()}`;
+  if (currency) {
+    return `${prefix}${value.toFixed(value < 10 ? 2 : 0)}`;
+  }
+  return `${prefix}${Math.round(value).toLocaleString()}`;
 }
 
-function formatStat(value: number | null): string {
-  if (value === null || value === undefined) return "—";
-  return value.toLocaleString();
-}
-
-function ChangeBadge({ change }: { change: number | null }) {
-  if (change === null || change === 0) return null;
+function ChangeBadge({ change }: { change: number | null | undefined }) {
+  if (change === null || change === undefined || change === 0) return null;
   const positive = change > 0;
   return (
     <span
@@ -61,175 +70,77 @@ function ChangeBadge({ change }: { change: number | null }) {
   );
 }
 
-function Sparkline({
-  values,
-  color = "var(--color-accent)",
-  filled = false,
-}: {
-  values: number[];
-  color?: string;
-  filled?: boolean;
-}) {
-  if (values.length < 2) {
-    return (
-      <svg viewBox="0 0 120 32" className="h-8 w-full opacity-40" aria-hidden>
-        <line x1="0" y1="16" x2="120" y2="16" stroke={color} strokeWidth="1.5" />
-      </svg>
-    );
-  }
-
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const points = values
-    .map((value, index) => {
-      const x = (index / (values.length - 1)) * 120;
-      const y = 30 - ((value - min) / range) * 26;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  const fillPath =
-    filled && values.length > 1
-      ? `M0,32 L${points.replace(/ /g, " L")} L120,32 Z`
-      : null;
-
-  return (
-    <svg viewBox="0 0 120 32" className="h-8 w-full" aria-hidden>
-      {fillPath ? (
-        <path d={fillPath} fill={color} fillOpacity="0.15" stroke="none" />
-      ) : null}
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        points={points}
-      />
-    </svg>
-  );
-}
-
-function MetricColumn({
+function MetricTile({
   title,
-  subtitle,
   value,
   change,
-  trend,
-  trendColor,
-  filledTrend = false,
   footer,
-  children,
-  className = "",
+  accent = false,
 }: {
   title: string;
-  subtitle?: string;
   value: ReactNode;
   change?: number | null;
-  trend?: number[];
-  trendColor?: string;
-  filledTrend?: boolean;
   footer?: ReactNode;
-  children?: ReactNode;
-  className?: string;
+  accent?: boolean;
 }) {
-  const showTrend = Boolean(trend && trend.length > 0);
-
   return (
-    <div
-      className={`flex min-h-[12.5rem] flex-col px-4 py-5 sm:px-5 lg:min-h-[13.5rem] ${className}`}
-    >
-      <div>
-        <p className="text-xs font-medium text-ink-muted">{title}</p>
-        {subtitle ? (
-          <p className="mt-1 text-[11px] leading-snug text-ink-muted/80">{subtitle}</p>
-        ) : null}
-      </div>
-
-      <div className="mt-4 flex items-end gap-2">
-        <div className="font-display text-3xl font-semibold tabular-nums leading-none text-snow">
+    <div className="min-w-0">
+      <p className="text-xs font-medium text-ink-muted">{title}</p>
+      <div className="mt-2 flex items-end gap-2">
+        <div
+          className={`font-display text-3xl font-semibold tabular-nums leading-none ${
+            accent ? "text-accent" : "text-snow"
+          }`}
+        >
           {value}
         </div>
-        {change !== undefined ? <ChangeBadge change={change ?? null} /> : null}
+        <ChangeBadge change={change} />
       </div>
-
       {footer ? <div className="mt-2 text-xs leading-relaxed text-ink-muted">{footer}</div> : null}
-      {children ? <div className="mt-3 flex-1">{children}</div> : null}
-
-      {showTrend ? (
-        <div className="mt-auto pt-4">
-          <Sparkline values={trend!} color={trendColor} filled={filledTrend} />
-        </div>
-      ) : null}
     </div>
   );
 }
 
-function HealthScoreRing({ score }: { score: number | null }) {
-  const display = score ?? "—";
-  const color =
-    score == null
-      ? "text-ink-muted"
-      : score >= 80
-        ? "text-emerald-400"
-        : score >= 50
-          ? "text-amber-400"
-          : "text-red-400";
+function RatingRing({ value, label }: { value: number | null; label: string }) {
+  const score = value ?? 0;
+  const pct = Math.max(0, Math.min(100, score));
+  const radius = 34;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (pct / 100) * circumference;
 
   return (
-    <div
-      className={`flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-full border-[5px] bg-bg/40 font-display text-2xl font-bold tabular-nums ${color} ${
-        score != null && score >= 80
-          ? "border-emerald-500/40"
-          : score != null && score >= 50
-            ? "border-amber-500/40"
-            : "border-line"
-      }`}
-    >
-      {display}
-    </div>
-  );
-}
-
-function HealthScoreColumn({
-  health,
-  className = "",
-}: {
-  health: DomainOverviewPanelData["health"];
-  className?: string;
-}) {
-  const stats = [
-    { label: "Crawled", value: health.crawled },
-    { label: "Redirects", value: health.redirects },
-    { label: "Broken", value: health.broken },
-    { label: "Blocked", value: health.blocked },
-  ];
-
-  return (
-    <div
-      className={`flex min-h-[12.5rem] flex-col px-4 py-5 sm:px-5 lg:min-h-[13.5rem] ${className}`}
-    >
-      <p className="text-xs font-medium text-ink-muted">Health Score</p>
-
-      <div className="mt-4 flex flex-col gap-4">
-        <HealthScoreRing score={health.score} />
-
-        <div className="grid grid-cols-2 gap-2.5">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg border border-line/70 bg-bg/60 px-3 py-2.5"
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-ink-muted">
-                {stat.label}
-              </p>
-              <p className="mt-1.5 font-display text-lg font-semibold tabular-nums leading-none text-snow">
-                {formatStat(stat.value)}
-              </p>
-            </div>
-          ))}
-        </div>
+    <div className="flex items-center gap-3">
+      <div className="relative flex h-[5.25rem] w-[5.25rem] items-center justify-center">
+        <svg viewBox="0 0 80 80" className="absolute inset-0 h-full w-full -rotate-90">
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="6"
+            className="text-line"
+          />
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            className="text-violet-400"
+          />
+        </svg>
+        <span className="font-display text-2xl font-bold tabular-nums text-snow">
+          {value ?? "—"}
+        </span>
+      </div>
+      <div>
+        <p className="text-xs font-medium text-ink-muted">{label}</p>
+        <p className="mt-1 text-[11px] text-ink-muted/80">out of 100</p>
       </div>
     </div>
   );
@@ -237,6 +148,10 @@ function HealthScoreColumn({
 
 export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData }) {
   const siteLabel = data.domain.replace(/^www\./i, "");
+  const topKeywords = (data.topKeywords ?? []).slice(0, 8);
+  const countryRows = data.organicKeywords.byCountry
+    .filter((row) => (row.count ?? 0) > 0 || (row.traffic ?? 0) > 0)
+    .slice(0, 5);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-bg-elevated shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]">
@@ -261,81 +176,184 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
             </button>
           </div>
         </div>
-        <span className="rounded-full border border-line bg-bg px-3 py-1 text-xs text-ink-muted">
-          Overview
-        </span>
+        <div className="flex items-center gap-2">
+          {data.marketLabel ? (
+            <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs text-accent">
+              Market: {data.marketLabel}
+            </span>
+          ) : null}
+          <span className="rounded-full border border-line bg-bg px-3 py-1 text-xs text-ink-muted">
+            Overview
+          </span>
+        </div>
       </div>
 
-      <div className="divide-y divide-line xl:grid xl:grid-cols-[minmax(13rem,1.35fr)_repeat(5,minmax(0,1fr))] xl:divide-x xl:divide-y-0">
-        <HealthScoreColumn health={data.health} />
+      <div className="grid divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+        {/* Backlink profile — Ahrefs-style */}
+        <div className="space-y-5 p-5 md:p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+            Backlink profile
+          </p>
+          <RatingRing value={data.domainRating.value} label="Domain Rating" />
+          <div className="grid grid-cols-2 gap-5">
+            <MetricTile
+              title="Backlinks"
+              value={formatCompact(data.backlinks?.value ?? null)}
+              change={data.backlinks?.change}
+              accent
+              footer={
+                data.backlinks?.allTime != null
+                  ? `All time ${formatCompact(data.backlinks.allTime)}`
+                  : undefined
+              }
+            />
+            <MetricTile
+              title="Ref. domains"
+              value={formatCompact(data.referringDomains.value)}
+              change={data.referringDomains.change}
+              accent
+            />
+          </div>
+        </div>
 
-        <MetricColumn
-          title="Domain Rating"
-          value={data.domainRating.value ?? "—"}
-          change={data.domainRating.change}
-          trend={data.domainRating.trend}
-          trendColor="#a78bfa"
-        />
+        {/* Search — Ahrefs-style */}
+        <div className="space-y-5 p-5 md:p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+            Search
+          </p>
+          <div className="grid grid-cols-2 gap-5">
+            <MetricTile
+              title="Organic keywords"
+              value={formatCompact(data.organicKeywords.value)}
+              change={data.organicKeywords.change}
+              accent
+              footer={
+                data.organicKeywords.top3 != null
+                  ? `Top 3 ${formatCompact(data.organicKeywords.top3)}`
+                  : undefined
+              }
+            />
+            <MetricTile
+              title="Organic traffic"
+              value={formatCompact(data.organicTraffic.value)}
+              change={data.organicTraffic.change}
+              accent
+              footer={
+                data.organicTraffic.valueUsd != null ? (
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    <span>Value {formatCompact(data.organicTraffic.valueUsd, true)}</span>
+                    <ChangeBadge change={data.organicTraffic.valueChange} />
+                  </span>
+                ) : (
+                  "Est. monthly visits"
+                )
+              }
+            />
+          </div>
 
-        <MetricColumn
-          title="Referring domains"
-          value={formatCompact(data.referringDomains.value)}
-          change={data.referringDomains.change}
-          trend={data.referringDomains.trend}
-          trendColor="#60a5fa"
-          filledTrend
-        />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-xs font-medium text-ink-muted">
+                {data.googleVisitors.connected ? "GSC visitors (28d)" : "Google visitors"}
+              </p>
+              <p className="mt-2 font-display text-xl font-semibold tabular-nums text-snow">
+                {formatCompact(data.googleVisitors.value)}
+              </p>
+              {!data.googleVisitors.connected ? (
+                <p className="mt-1 text-[11px] text-ink-muted">Connect GSC for real clicks</p>
+              ) : null}
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-medium text-ink-muted">Keywords by country</p>
+              {countryRows.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {countryRows.map((row) => (
+                    <li
+                      key={row.code}
+                      className="flex items-center justify-between gap-3 text-[11px] leading-none"
+                    >
+                      <span className="font-medium text-ink-muted">{row.code}</span>
+                      <span className="tabular-nums text-snow">
+                        {row.count?.toLocaleString() ?? "—"}
+                        {row.traffic != null ? (
+                          <span className="ml-2 text-ink-muted">
+                            · {formatCompact(row.traffic)} traf.
+                          </span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[11px] text-ink-muted">No country rankings yet</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <MetricColumn
-          title="Total visitors"
-          subtitle="Google Search Console"
-          value={formatCompact(data.googleVisitors.value)}
-          change={data.googleVisitors.change}
-          trend={data.googleVisitors.trend}
-          trendColor="#fb923c"
-          footer={
-            data.googleVisitors.connected
-              ? "Last 28 days"
-              : "Connect GSC for real traffic"
-          }
-        />
+      {/* Top traffic keywords — what drives visits */}
+      <div className="border-t border-line px-5 py-5 md:px-6">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+              Top keywords by traffic
+            </p>
+            <p className="mt-1 text-xs text-ink-muted">
+              Keywords sending the most estimated organic visits
+            </p>
+          </div>
+        </div>
 
-        <MetricColumn
-          title="Organic traffic"
-          value={formatCompact(data.organicTraffic.value)}
-          change={data.organicTraffic.change}
-          trend={data.organicTraffic.trend}
-          trendColor="#fb923c"
-          filledTrend
-          footer={
-            data.organicTraffic.valueUsd != null
-              ? `Value: ${formatCompact(data.organicTraffic.valueUsd, true)}`
-              : undefined
-          }
-        />
-
-        <MetricColumn
-          title="Organic keywords"
-          value={formatCompact(data.organicKeywords.value)}
-          change={data.organicKeywords.change}
-          trend={data.organicKeywords.trend}
-          trendColor="#fb923c"
-        >
-          <ul className="space-y-2.5">
-            {data.organicKeywords.byCountry.map((row) => (
-              <li
-                key={row.code}
-                className="flex items-center justify-between gap-3 text-[11px] leading-none"
-              >
-                <span className="min-w-[1.75rem] font-medium text-ink-muted">{row.code}</span>
-                <span className="flex items-center gap-2 tabular-nums text-snow">
-                  {row.count?.toLocaleString() ?? "—"}
-                  <ChangeBadge change={row.change} />
-                </span>
-              </li>
-            ))}
-          </ul>
-        </MetricColumn>
+        {topKeywords.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-sm text-ink-muted">
+            No ranking keywords found for this market yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-line">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-line bg-bg/50 text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Keyword</th>
+                  <th className="px-4 py-2.5 font-medium">Traffic</th>
+                  <th className="px-4 py-2.5 font-medium">Volume</th>
+                  <th className="px-4 py-2.5 font-medium">Rank</th>
+                  <th className="px-4 py-2.5 font-medium">Page</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {topKeywords.map((row) => (
+                  <tr key={`${row.keyword}-${row.url ?? ""}`} className="hover:bg-bg/40">
+                    <td className="px-4 py-2.5 font-medium text-snow">{row.keyword}</td>
+                    <td className="px-4 py-2.5 tabular-nums text-accent">
+                      {formatCompact(row.etv ?? null)}
+                    </td>
+                    <td className="px-4 py-2.5 tabular-nums text-ink-muted">
+                      {row.searchVolume?.toLocaleString() ?? "—"}
+                    </td>
+                    <td className="px-4 py-2.5 tabular-nums text-ink-muted">
+                      {row.rank != null ? `#${row.rank}` : "—"}
+                    </td>
+                    <td className="max-w-[14rem] truncate px-4 py-2.5 text-xs text-ink-muted">
+                      {row.url ? (
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-accent hover:underline"
+                        >
+                          {row.url.replace(/^https?:\/\//i, "")}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </section>
   );

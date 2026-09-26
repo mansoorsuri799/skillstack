@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, ExternalLink, Link2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DomainOverviewToolbar } from "@/components/dashboard/DomainOverviewToolbar";
 import { TabBar, TabPanel } from "@/components/dashboard/SearchToolbar";
 import {
@@ -404,6 +404,7 @@ export function BacklinksDashboard({
   const [recent, setRecent] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(DEFAULT_ROWS_PER_PAGE);
+  const autoLoadedKey = useRef<string | null>(null);
 
   useEffect(() => {
     if (initialDomain) {
@@ -424,20 +425,20 @@ export function BacklinksDashboard({
 
   const hasOverview = overview != null;
 
-  async function fetchTab(nextTab: BacklinksTab, mode = linkMode) {
+  const fetchTab = useCallback(async (nextTab: BacklinksTab, mode = linkMode, targetDomain = domain) => {
     setLoadingTab(true);
     setError("");
     try {
       const res = await fetch("/api/dashboard/backlinks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain, scope, tab: nextTab, mode }),
+        body: JSON.stringify({ domain: targetDomain, scope, tab: nextTab, mode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
       const rows = data.rows ?? [];
-      const blKey = getBacklinksCacheKey(domain, scope);
+      const blKey = getBacklinksCacheKey(targetDomain, scope);
       const existing = backlinksMemoryCache.get(blKey) || { overview: overview! };
 
       if (nextTab === "backlinks") {
@@ -461,10 +462,10 @@ export function BacklinksDashboard({
     } finally {
       setLoadingTab(false);
     }
-  }
+  }, [domain, linkMode, overview, scope]);
 
-  async function onAnalyze() {
-    const nextDomain = domain.trim();
+  const onAnalyze = useCallback(async (overrideDomain?: string) => {
+    const nextDomain = (overrideDomain ?? domain).trim();
     if (!nextDomain) return;
 
     const blKey = getBacklinksCacheKey(nextDomain, scope);
@@ -505,13 +506,21 @@ export function BacklinksDashboard({
       pushRecent(nextDomain);
       setRecent(readRecent());
       setLoadedTabs(new Set(["overview"]));
-      await fetchTab("backlinks", linkMode);
+      await fetchTab("backlinks", linkMode, nextDomain);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
       setLoadingOverview(false);
     }
-  }
+  }, [domain, fetchTab, linkMode, scope]);
+
+  useEffect(() => {
+    if (!initialDomain.trim()) return;
+    const autoKey = `${initialDomain}|${scope}`;
+    if (autoLoadedKey.current === autoKey) return;
+    autoLoadedKey.current = autoKey;
+    void onAnalyze(initialDomain);
+  }, [initialDomain, scope, onAnalyze]);
 
   function switchTab(next: BacklinksTab) {
     setTab(next);

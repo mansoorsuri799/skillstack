@@ -1,30 +1,29 @@
 import {
-  BacklinksHistoryLiveRequestInfo,
   BacklinksSummaryLiveRequestInfo,
   DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   DataforseoLabsGoogleHistoricalRankOverviewLiveRequestInfo,
-  OnPagePagesRequestInfo,
-  OnPageTaskPostRequestInfo,
 } from "dataforseo-client";
 import {
   backlinksApi,
   labsApi,
-  normalizeDomain,
-  onPageApi,
   taskItems,
+  taskResultItems,
 } from "@/lib/dataforseo/client";
 import {
   resolveDomainTarget,
   type DomainScope,
 } from "@/lib/dashboard/domain-overview-config";
 import { getDomainOverview } from "@/lib/dataforseo/services";
+import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
+
+const DOMAIN_DASHBOARD_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const COUNTRY_MARKETS = [
   { code: "US", locationCode: 2840 },
-  { code: "CA", locationCode: 2124 },
-  { code: "IT", locationCode: 2380 },
   { code: "GB", locationCode: 2826 },
-  { code: "ES", locationCode: 2724 },
+  { code: "CA", locationCode: 2124 },
+  { code: "IN", locationCode: 2356 },
+  { code: "PK", locationCode: 2586 },
 ] as const;
 
 export type DomainMetricSeries = {
@@ -37,11 +36,23 @@ export type DomainCountryKeywords = {
   code: string;
   count: number | null;
   change: number | null;
+  traffic: number | null;
+};
+
+export type DomainTopKeyword = {
+  keyword: string;
+  searchVolume: number | null;
+  cpc: number | null;
+  rank: number | null;
+  url: string | null;
+  etv: number | null;
+  difficulty: number | null;
 };
 
 export type DomainDashboard = {
   domain: string;
   scopeLabel: string;
+  marketLabel: string | null;
   health: {
     score: number | null;
     crawled: number | null;
@@ -50,23 +61,21 @@ export type DomainDashboard = {
     blocked: number | null;
   };
   domainRating: DomainMetricSeries;
+  backlinks: DomainMetricSeries & { allTime: number | null };
   referringDomains: DomainMetricSeries;
   googleVisitors: DomainMetricSeries & { connected: boolean };
-  organicTraffic: DomainMetricSeries & { valueUsd: number | null };
-  organicKeywords: DomainMetricSeries & { byCountry: DomainCountryKeywords[] };
+  organicTraffic: DomainMetricSeries & {
+    valueUsd: number | null;
+    valueChange: number | null;
+  };
+  organicKeywords: DomainMetricSeries & {
+    top3: number | null;
+    byCountry: DomainCountryKeywords[];
+  };
   topPositions: { pos1: number | null; pos2_3: number | null; pos4_10: number | null };
-  topKeywords: Awaited<ReturnType<typeof getDomainOverview>>["topKeywords"];
+  topKeywords: DomainTopKeyword[];
   topPages: Awaited<ReturnType<typeof getDomainOverview>>["topPages"];
 };
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function onPageTaskResult<T>(response: unknown): T | null {
-  const data = response as { tasks?: Array<{ result?: T[] | null }> | null };
-  return data?.tasks?.[0]?.result?.[0] ?? null;
-}
 
 function deltaFromSeries(values: number[]): number | null {
   if (values.length < 2) return null;
@@ -80,11 +89,15 @@ function monthsAgo(months: number): string {
 }
 
 function organicMetricsFromOverview(response: unknown) {
-  const item = taskItems<{
+  // Domain Rank Overview: tasks[0].result[0].items[0].metrics.organic
+  const item = taskResultItems<{
     metrics?: {
       organic?: {
         etv?: number | null;
         count?: number | null;
+        pos_1?: number | null;
+        pos_2_3?: number | null;
+        pos_4_10?: number | null;
         estimated_paid_traffic_cost?: number | null;
       } | null;
     } | null;
@@ -93,29 +106,38 @@ function organicMetricsFromOverview(response: unknown) {
 }
 
 function organicSeriesFromHistorical(response: unknown) {
-  const items = taskItems<{
+  const items = taskResultItems<{
     year?: number | null;
     month?: number | null;
-    metrics?: { organic?: {
-      etv?: number | null;
-      count?: number | null;
-      estimated_paid_traffic_cost?: number | null;
-    } | null } | null;
+    metrics?: {
+      organic?: {
+        etv?: number | null;
+        count?: number | null;
+        estimated_paid_traffic_cost?: number | null;
+      } | null;
+    } | null;
   }>(response);
 
   return items
     .slice()
-    .sort((a, b) => (a.year ?? 0) * 100 + (a.month ?? 0) - ((b.year ?? 0) * 100 + (b.month ?? 0)))
+    .sort(
+      (a, b) =>
+        (a.year ?? 0) * 100 + (a.month ?? 0) - ((b.year ?? 0) * 100 + (b.month ?? 0)),
+    )
     .map((item) => item.metrics?.organic);
 }
 
-async function fetchDomainRankOverview(domain: string, locationCode: number) {
+async function fetchDomainRankOverview(
+  domain: string,
+  locationCode: number,
+  languageCode: string,
+) {
   const api = labsApi();
   return api.googleDomainRankOverviewLive([
     {
       target: domain,
       location_code: locationCode,
-      language_code: "en",
+      language_code: languageCode,
     } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   ]);
 }
@@ -139,50 +161,24 @@ async function fetchHistoricalOverview(
 
 async function getBacklinksMetrics(domain: string, includeSubdomains: boolean) {
   const api = backlinksApi();
-  const [summaryRes, historyRes] = await Promise.all([
-    api.summaryLive([
-      {
-        target: domain,
-        include_subdomains: includeSubdomains,
-        rank_scale: "one_hundred",
-      } as BacklinksSummaryLiveRequestInfo,
-    ]),
-    api.historyLive([
-      {
-        target: domain,
-        date_from: monthsAgo(6),
-        rank_scale: "one_hundred",
-      } as BacklinksHistoryLiveRequestInfo,
-    ]),
+  const summaryRes = await api.summaryLive([
+    {
+      target: domain,
+      include_subdomains: includeSubdomains,
+      rank_scale: "one_hundred",
+    } as BacklinksSummaryLiveRequestInfo,
   ]);
 
   const summary = taskItems<{
     rank?: number | null;
+    backlinks?: number | null;
     referring_domains?: number | null;
   }>(summaryRes)[0];
 
-  const historyItems = taskItems<{
-    date?: string | null;
-    rank?: number | null;
-    referring_domains?: number | null;
-  }>(historyRes)
-    .filter((item) => item.date)
-    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
-
-  const rankTrend = historyItems
-    .map((item) => item.rank)
-    .filter((value): value is number => typeof value === "number");
-  const referringTrend = historyItems
-    .map((item) => item.referring_domains)
-    .filter((value): value is number => typeof value === "number");
-
   return {
     domainRating: summary?.rank ?? null,
-    domainRatingChange: deltaFromSeries(rankTrend),
-    domainRatingTrend: rankTrend.slice(-12),
+    backlinks: summary?.backlinks ?? null,
     referringDomains: summary?.referring_domains ?? null,
-    referringDomainsChange: deltaFromSeries(referringTrend),
-    referringDomainsTrend: referringTrend.slice(-12),
   };
 }
 
@@ -190,105 +186,27 @@ async function getCountryKeywordBreakdown(domain: string, languageCode: string) 
   const results = await Promise.all(
     COUNTRY_MARKETS.map(async ({ code, locationCode }) => {
       try {
-        const [currentRes, historicalRes] = await Promise.all([
-          fetchDomainRankOverview(domain, locationCode),
-          fetchHistoricalOverview(domain, locationCode, languageCode),
-        ]);
-
+        const currentRes = await fetchDomainRankOverview(domain, locationCode, languageCode);
         const organic = organicMetricsFromOverview(currentRes);
-        const history = organicSeriesFromHistorical(historicalRes);
-        const counts = history
-          .map((metrics) => metrics?.count)
-          .filter((value): value is number => typeof value === "number");
-
         return {
           code,
           count: organic?.count ?? null,
-          change: deltaFromSeries(counts),
+          change: null as number | null,
+          traffic: organic?.etv ?? null,
         };
       } catch {
-        return { code, count: null, change: null };
+        return { code, count: null, change: null, traffic: null };
       }
     }),
   );
 
-  return results;
+  return results
+    .slice()
+    .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0) || (b.count ?? 0) - (a.count ?? 0));
 }
 
-async function getDomainHealth(domain: string) {
-  try {
-    const api = onPageApi();
-    const postResponse = await api.taskPost([
-      {
-        target: normalizeDomain(domain),
-        max_crawl_pages: 25,
-        max_crawl_depth: 3,
-      } as OnPageTaskPostRequestInfo,
-    ]);
-
-    const taskId = postResponse?.tasks?.[0]?.id;
-    if (!taskId) {
-      return {
-        score: null,
-        crawled: null,
-        redirects: null,
-        broken: null,
-        blocked: null,
-      };
-    }
-
-    for (let i = 0; i < 24; i += 1) {
-      const summaryResponse = await api.summary(taskId);
-      const summary = onPageTaskResult<{
-        crawl_progress?: string | null;
-        crawl_status?: { pages_crawled?: number | null } | null;
-        page_metrics?: {
-          onpage_score?: number | null;
-          broken_links?: number | null;
-          non_indexable?: number | null;
-          checks?: Record<string, number> | null;
-        } | null;
-      }>(summaryResponse);
-
-      if (summary?.crawl_progress === "finished") {
-        const pagesResponse = await api.pages([
-          {
-            id: taskId,
-            limit: 1000,
-          } as OnPagePagesRequestInfo,
-        ]);
-
-        const pages = onPageTaskResult<{
-          items?: Array<{ status_code?: number | null }> | null;
-        }>(pagesResponse)?.items ?? [];
-
-        let redirects = 0;
-        let brokenPages = 0;
-        for (const page of pages) {
-          const code = page.status_code ?? 0;
-          if (code >= 300 && code < 400) redirects += 1;
-          if (code >= 400) brokenPages += 1;
-        }
-
-        const metrics = summary.page_metrics;
-        return {
-          score:
-            metrics?.onpage_score != null
-              ? Math.round(metrics.onpage_score)
-              : null,
-          crawled: summary.crawl_status?.pages_crawled ?? pages.length,
-          redirects: redirects || metrics?.checks?.redirect || null,
-          broken: brokenPages || metrics?.broken_links || null,
-          blocked: metrics?.non_indexable ?? null,
-        };
-      }
-
-      await sleep(2500);
-    }
-  } catch {
-    // Health crawl is best-effort; other metrics still render.
-  }
-
+/** Health crawl is slow (OnPage poll). Skip on domain overview for fast first paint. */
+async function getDomainHealth(_domain: string) {
   return {
     score: null,
     crawled: null,
@@ -296,6 +214,11 @@ async function getDomainHealth(domain: string) {
     broken: null,
     blocked: null,
   };
+}
+
+function marketLabelFor(locationCode: number): string | null {
+  const match = COUNTRY_MARKETS.find((m) => m.locationCode === locationCode);
+  return match?.code ?? null;
 }
 
 export async function getDomainDashboard(
@@ -307,45 +230,130 @@ export async function getDomainDashboard(
   const resolved = resolveDomainTarget(targetInput, scope);
   const { target, hostDomain, includeSubdomains, scopeLabel } = resolved;
 
-  const [
-    overview,
-    backlinks,
-    historicalRes,
-    health,
-    countryBreakdown,
-  ] = await Promise.all([
-    getDomainOverview(target, locationCode, languageCode, includeSubdomains),
-    getBacklinksMetrics(hostDomain, includeSubdomains),
-    fetchHistoricalOverview(hostDomain, locationCode, languageCode),
-    getDomainHealth(hostDomain),
-    getCountryKeywordBreakdown(hostDomain, languageCode),
+  const key = cacheKey([
+    "domain-dashboard-v3",
+    target,
+    hostDomain,
+    locationCode,
+    languageCode,
+    includeSubdomains,
+    scopeLabel,
   ]);
+  const cached = getCached<DomainDashboard>(key);
+  if (cached) return cached;
 
-  const historicalOrganic = organicSeriesFromHistorical(historicalRes);
+  const [overview, backlinks, historicalRes, health, countryBreakdown] =
+    await Promise.all([
+      getDomainOverview(target, locationCode, languageCode, includeSubdomains),
+      getBacklinksMetrics(hostDomain, includeSubdomains),
+      fetchHistoricalOverview(hostDomain, locationCode, languageCode).catch(() => null),
+      getDomainHealth(hostDomain),
+      getCountryKeywordBreakdown(hostDomain, languageCode),
+    ]);
+
+  const historicalOrganic = historicalRes
+    ? organicSeriesFromHistorical(historicalRes)
+    : [];
   const trafficTrend = historicalOrganic
     .map((metrics) => metrics?.etv)
     .filter((value): value is number => typeof value === "number");
   const keywordTrend = historicalOrganic
     .map((metrics) => metrics?.count)
     .filter((value): value is number => typeof value === "number");
+  const valueTrend = historicalOrganic
+    .map((metrics) => metrics?.estimated_paid_traffic_cost)
+    .filter((value): value is number => typeof value === "number");
 
   const latestOrganic = historicalOrganic[historicalOrganic.length - 1];
-  const trafficValue =
-    overview.organicTrafficValue ?? latestOrganic?.estimated_paid_traffic_cost ?? null;
 
-  return {
+  // If selected location has no Labs rankings, fall back to the strongest market
+  // so the overview still shows Ahrefs-style traffic (common for PK-only projects).
+  let organicTraffic = overview.organicTraffic;
+  let organicKeywords = overview.organicKeywords;
+  let trafficValue =
+    overview.organicTrafficValue ??
+    latestOrganic?.estimated_paid_traffic_cost ??
+    null;
+  let topPositions = overview.topPositions;
+  let topKeywords = overview.topKeywords.map((k) => ({
+    keyword: k.keyword,
+    searchVolume: k.searchVolume,
+    cpc: k.cpc,
+    rank: k.rank,
+    url: k.url,
+    etv: k.etv ?? null,
+    difficulty: k.difficulty ?? null,
+  }));
+  let marketLabel = marketLabelFor(locationCode);
+  let topPages = overview.topPages;
+
+  const primaryEmpty =
+    (organicTraffic == null || organicTraffic === 0) &&
+    (organicKeywords == null || organicKeywords === 0);
+
+  if (primaryEmpty) {
+    const best = countryBreakdown.find(
+      (row) => (row.traffic != null && row.traffic > 0) || (row.count != null && row.count > 0),
+    );
+    if (best) {
+      const fallbackMarket = COUNTRY_MARKETS.find((m) => m.code === best.code);
+      if (fallbackMarket && fallbackMarket.locationCode !== locationCode) {
+        const fallback = await getDomainOverview(
+          target,
+          fallbackMarket.locationCode,
+          languageCode,
+          includeSubdomains,
+        );
+        organicTraffic = fallback.organicTraffic ?? best.traffic;
+        organicKeywords = fallback.organicKeywords ?? best.count;
+        trafficValue = fallback.organicTrafficValue ?? trafficValue;
+        topPositions = fallback.topPositions;
+        topKeywords = fallback.topKeywords.map((k) => ({
+          keyword: k.keyword,
+          searchVolume: k.searchVolume,
+          cpc: k.cpc,
+          rank: k.rank,
+          url: k.url,
+          etv: k.etv ?? null,
+          difficulty: k.difficulty ?? null,
+        }));
+        topPages = fallback.topPages;
+        marketLabel = best.code;
+      } else {
+        organicTraffic = best.traffic;
+        organicKeywords = best.count;
+        marketLabel = best.code;
+      }
+    }
+  }
+
+  // Prefer keywords ordered by estimated traffic (Ahrefs-style).
+  topKeywords = topKeywords
+    .slice()
+    .sort((a, b) => (b.etv ?? 0) - (a.etv ?? 0) || (b.searchVolume ?? 0) - (a.searchVolume ?? 0));
+
+  const top3Count = (topPositions.pos1 ?? 0) + (topPositions.pos2_3 ?? 0);
+
+  const dashboard: DomainDashboard = {
     domain: overview.domain,
     scopeLabel,
+    marketLabel,
     health,
     domainRating: {
       value: backlinks.domainRating,
-      change: backlinks.domainRatingChange,
-      trend: backlinks.domainRatingTrend,
+      change: null,
+      trend: [],
+    },
+    backlinks: {
+      value: backlinks.backlinks,
+      change: null,
+      trend: [],
+      allTime: backlinks.backlinks,
     },
     referringDomains: {
       value: backlinks.referringDomains,
-      change: backlinks.referringDomainsChange,
-      trend: backlinks.referringDomainsTrend,
+      change: null,
+      trend: [],
     },
     googleVisitors: {
       value: null,
@@ -354,21 +362,26 @@ export async function getDomainDashboard(
       connected: false,
     },
     organicTraffic: {
-      value: overview.organicTraffic,
+      value: organicTraffic,
       change: deltaFromSeries(trafficTrend),
       trend: trafficTrend.slice(-12),
       valueUsd: trafficValue,
+      valueChange: deltaFromSeries(valueTrend),
     },
     organicKeywords: {
-      value: overview.organicKeywords,
+      value: organicKeywords,
       change: deltaFromSeries(keywordTrend),
       trend: keywordTrend.slice(-12),
+      top3: top3Count > 0 ? top3Count : null,
       byCountry: countryBreakdown,
     },
-    topPositions: overview.topPositions,
-    topKeywords: overview.topKeywords,
-    topPages: overview.topPages,
+    topPositions,
+    topKeywords,
+    topPages,
   };
+
+  setCached(key, dashboard, DOMAIN_DASHBOARD_TTL_MS);
+  return dashboard;
 }
 
 export async function attachGscVisitors(

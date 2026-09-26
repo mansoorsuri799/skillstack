@@ -405,6 +405,7 @@ async function getDomainOverviewInternal(
       language_code: languageCode,
       limit: 25,
       include_subdomains: includeSubdomains,
+      order_by: ["ranked_serp_element.serp_item.etv,desc"],
     } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   ]);
   const pagesReq = includePages
@@ -425,7 +426,7 @@ async function getDomainOverviewInternal(
     pagesReq,
   ]);
 
-  const overview = taskItems<{
+  const overview = taskResultItems<{
     metrics?: {
       organic?: {
         etv?: number | null;

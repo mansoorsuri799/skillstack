@@ -15,7 +15,7 @@ import {
   queryGscAnalytics,
 } from "@/lib/google/gsc";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -42,6 +42,8 @@ export async function POST(request: Request) {
       scope,
     );
 
+    // GSC is optional — attach in parallel-safe try without blocking core Labs data.
+    // Use country dimension with a small row limit for a fast clicks total.
     if (project.gscConnected && project.gscSiteUrl) {
       try {
         const tokenResult = await getValidGscAccessToken(project);
@@ -61,9 +63,9 @@ export async function POST(request: Request) {
         const rows = await queryGscAnalytics(
           accessToken,
           project.gscSiteUrl,
-          "query",
+          "country",
           28,
-          1000,
+          50,
         );
         const totalClicks = rows.reduce((sum, row) => sum + row.clicks, 0);
         overview = await attachGscVisitors(overview, totalClicks, true);

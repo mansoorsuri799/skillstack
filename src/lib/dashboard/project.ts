@@ -7,6 +7,17 @@ import { User } from "@/models/User";
 
 type ProjectModel = HydratedDocument<ProjectDocument>;
 
+const PLACEHOLDER_DOMAIN = "example.com";
+
+export function isPlaceholderDomain(domain?: string | null) {
+  return !domain || domain === PLACEHOLDER_DOMAIN;
+}
+
+/** Remove legacy placeholder "My Site / example.com" projects. */
+async function purgePlaceholderProjects(userId: string) {
+  await Project.deleteMany({ userId, domain: PLACEHOLDER_DOMAIN });
+}
+
 let droppedOldIndex = false;
 async function ensureProjectIndexes() {
   if (droppedOldIndex) return;
@@ -20,27 +31,35 @@ async function ensureProjectIndexes() {
 
 export function formatDomainToProjectName(domainInput: string): string {
   const clean = normalizeDomain(domainInput);
-  if (!clean) return "My Site";
+  if (!clean) return "New Project";
   const mainPart = clean.split(".")[0];
   if (!mainPart) return clean;
   return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
 }
 
+async function findLatestRealProject(userId: string): Promise<ProjectModel | null> {
+  return Project.findOne({
+    userId,
+    domain: { $ne: PLACEHOLDER_DOMAIN },
+  }).sort({ updatedAt: -1 });
+}
+
 export async function getOrCreateProject(userId: string): Promise<ProjectModel> {
   await connectDB();
   await ensureProjectIndexes();
+  await purgePlaceholderProjects(userId);
 
   const user = await User.findById(userId);
   if (user?.activeProjectId) {
     const active = await Project.findOne({
       _id: user.activeProjectId,
       userId,
+      domain: { $ne: PLACEHOLDER_DOMAIN },
     });
     if (active) return active;
   }
 
-  // Fallback: pick the latest updated project for this user
-  let project = await Project.findOne({ userId }).sort({ updatedAt: -1 });
+  const project = await findLatestRealProject(userId);
   if (project) {
     if (user && String(user.activeProjectId) !== String(project._id)) {
       user.activeProjectId = project._id;
@@ -49,25 +68,19 @@ export async function getOrCreateProject(userId: string): Promise<ProjectModel> 
     return project;
   }
 
-  // Create initial default project
-  project = await Project.create({
-    userId,
-    name: "My Site",
-    domain: "example.com",
-  });
-
-  if (user) {
-    user.activeProjectId = project._id;
-    await user.save();
-  }
-
-  return project;
+  throw new Error(
+    "No project yet. Create one with a real domain from the Projects + button.",
+  );
 }
 
 export async function listProjectsForUser(userId: string): Promise<ProjectDto[]> {
   await connectDB();
   await ensureProjectIndexes();
-  const projects = await Project.find({ userId }).sort({ updatedAt: -1 });
+  await purgePlaceholderProjects(userId);
+  const projects = await Project.find({
+    userId,
+    domain: { $ne: PLACEHOLDER_DOMAIN },
+  }).sort({ updatedAt: -1 });
   return projects.map(toProjectDto);
 }
 
@@ -84,8 +97,8 @@ export async function createProjectForUser(
   await ensureProjectIndexes();
 
   const domain = normalizeDomain(data.domain);
-  if (!domain || !domain.includes(".")) {
-    throw new Error("Enter a valid domain (e.g. example.com)");
+  if (!domain || !domain.includes(".") || isPlaceholderDomain(domain)) {
+    throw new Error("Enter a valid domain (e.g. yoursite.com)");
   }
 
   const name = data.name?.trim() || formatDomainToProjectName(domain);
@@ -193,7 +206,7 @@ export async function updateProjectById(
 export async function deleteProjectById(
   userId: string,
   projectId: string,
-): Promise<{ activeProject: ProjectDto; projects: ProjectDto[] }> {
+): Promise<{ activeProject: ProjectDto | null; projects: ProjectDto[] }> {
   await connectDB();
   await ensureProjectIndexes();
 
@@ -202,21 +215,19 @@ export async function deleteProjectById(
   }
 
   await Project.deleteOne({ _id: projectId, userId });
+  await purgePlaceholderProjects(userId);
 
-  // Get next active project
-  const remaining = await Project.find({ userId }).sort({ updatedAt: -1 });
-  let nextActive: ProjectModel;
+  const remaining = await Project.find({
+    userId,
+    domain: { $ne: PLACEHOLDER_DOMAIN },
+  }).sort({ updatedAt: -1 });
 
   if (remaining.length === 0) {
-    nextActive = await Project.create({
-      userId,
-      name: "My Site",
-      domain: "example.com",
-    });
-  } else {
-    nextActive = remaining[0];
+    await User.updateOne({ _id: userId }, { $unset: { activeProjectId: 1 } });
+    return { activeProject: null, projects: [] };
   }
 
+  const nextActive = remaining[0];
   await User.updateOne({ _id: userId }, { activeProjectId: nextActive._id });
 
   const all = await listProjectsForUser(userId);
@@ -245,19 +256,24 @@ export async function updateProjectDomain(
 ) {
   await connectDB();
   const domain = normalizeDomain(domainInput);
-  if (!domain || !domain.includes(".")) {
-    throw new Error("Enter a valid domain (e.g. example.com)");
+  if (!domain || !domain.includes(".") || isPlaceholderDomain(domain)) {
+    throw new Error("Enter a valid domain (e.g. yoursite.com)");
   }
 
-  const project = await getOrCreateProject(userId);
-  project.domain = domain;
-  if (name?.trim()) {
-    project.name = name.trim();
-  } else if (project.name === "My Site" || !project.name) {
-    project.name = formatDomainToProjectName(domain);
+  try {
+    const project = await getOrCreateProject(userId);
+    project.domain = domain;
+    if (name?.trim()) {
+      project.name = name.trim();
+    } else if (project.name === "My Site" || !project.name) {
+      project.name = formatDomainToProjectName(domain);
+    }
+    await project.save();
+    return toProjectDto(project);
+  } catch {
+    const created = await createProjectForUser(userId, { domain, name });
+    return created.activeProject;
   }
-  await project.save();
-  return toProjectDto(project);
 }
 
 export async function updateProjectSettings(
@@ -412,7 +428,7 @@ export async function disconnectGsc(userId: string) {
   return toProjectDto(project);
 }
 
-export async function getProjectForUser(userId: string) {
+export async function getProjectForUser(userId: string): Promise<ProjectDto> {
   await connectDB();
   const project = await getOrCreateProject(userId);
   return toProjectDto(project);

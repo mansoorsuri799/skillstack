@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
 import type { OrganicReportType } from "@/lib/dataforseo/organic-search";
 
@@ -52,27 +52,22 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const autoLoadedKey = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (project) {
-      setDomain(project.domain);
-      setLocationCode(project.locationCode);
-      const cacheKey = getCacheKey(type, project.domain, project.locationCode, scope);
-      const cached = readCachedData<T>(cacheKey);
-      if (cached) {
-        setData(cached);
-      }
-    }
-  }, [project, scope, type]);
-
-  const analyze = useCallback(async () => {
-    const targetDomain = domain.trim();
+  const analyze = useCallback(async (override?: {
+    domain?: string;
+    locationCode?: number;
+    scope?: string;
+  }) => {
+    const targetDomain = (override?.domain ?? domain).trim();
     if (!targetDomain) {
       setError("Enter a domain to analyze.");
       return;
     }
 
-    const cacheKey = getCacheKey(type, targetDomain, locationCode, scope);
+    const nextLocation = override?.locationCode ?? locationCode;
+    const nextScope = override?.scope ?? scope;
+    const cacheKey = getCacheKey(type, targetDomain, nextLocation, nextScope);
     const cached = readCachedData<T>(cacheKey);
     if (cached) {
       setData(cached);
@@ -84,7 +79,12 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
       const res = await fetch("/api/dashboard/organic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, domain: targetDomain, locationCode, scope }),
+        body: JSON.stringify({
+          type,
+          domain: targetDomain,
+          locationCode: nextLocation,
+          scope: nextScope,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
@@ -97,6 +97,24 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
       setLoading(false);
     }
   }, [domain, locationCode, scope, type]);
+
+  useEffect(() => {
+    if (!project?.domain) return;
+    setDomain(project.domain);
+    setLocationCode(project.locationCode);
+    const cacheKey = getCacheKey(type, project.domain, project.locationCode, scope);
+    const cached = readCachedData<T>(cacheKey);
+    if (cached) setData(cached);
+
+    const autoKey = `${type}|${project.domain}|${project.locationCode}|${scope}`;
+    if (autoLoadedKey.current === autoKey) return;
+    autoLoadedKey.current = autoKey;
+    void analyze({
+      domain: project.domain,
+      locationCode: project.locationCode,
+      scope,
+    });
+  }, [project, scope, type, analyze]);
 
   return {
     domain,

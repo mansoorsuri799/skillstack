@@ -42,14 +42,18 @@ const CACHE_PROJECTS_KEY = "ss-projects-list";
 
 export const DEFAULT_FALLBACK_PROJECT: DashboardProject = {
   id: "default",
-  name: "My Project",
-  domain: "example.com",
+  name: "New Project",
+  domain: "",
   locationCode: 2586,
   languageCode: "en",
   gscConnected: false,
   gscSiteUrl: null,
   mcpConnected: false,
 };
+
+function isRealProject(p: DashboardProject | null | undefined): p is DashboardProject {
+  return Boolean(p?.domain && p.domain !== "example.com" && p.id !== "default");
+}
 
 function readCachedProject(): DashboardProject | null {
   if (typeof window === "undefined") return null;
@@ -79,9 +83,7 @@ export function DashboardProjectProvider({
 }: {
   children: ReactNode;
 }) {
-  const [project, setProject] = useState<DashboardProject | null>(
-    DEFAULT_FALLBACK_PROJECT
-  );
+  const [project, setProject] = useState<DashboardProject | null>(null);
   const [projects, setProjects] = useState<DashboardProject[]>([]);
   const [dataForSeoConfigured, setDataForSeoConfigured] = useState(true);
   const [firecrawlConfigured, setFirecrawlConfigured] = useState(true);
@@ -94,8 +96,12 @@ export function DashboardProjectProvider({
       const res = await fetch("/api/dashboard/projects");
       if (!res.ok) throw new Error("Could not load projects");
       const data = await res.json();
-      const nextActive = data.activeProject ?? data.project ?? null;
-      const nextList = Array.isArray(data.projects) ? data.projects : [];
+      const nextList = (Array.isArray(data.projects) ? data.projects : []).filter(
+        isRealProject,
+      );
+      const nextActive = isRealProject(data.activeProject ?? data.project)
+        ? (data.activeProject ?? data.project)
+        : nextList[0] ?? null;
 
       setProject(nextActive);
       setProjects(nextList);
@@ -105,6 +111,8 @@ export function DashboardProjectProvider({
       if (typeof window !== "undefined") {
         if (nextActive) {
           localStorage.setItem(CACHE_PROJECT_KEY, JSON.stringify(nextActive));
+        } else {
+          localStorage.removeItem(CACHE_PROJECT_KEY);
         }
         localStorage.setItem(CACHE_PROJECTS_KEY, JSON.stringify(nextList));
       }
@@ -116,13 +124,12 @@ export function DashboardProjectProvider({
   }, []);
 
   useEffect(() => {
-    // Hydrate cached project state safely on client mount
     const cachedP = readCachedProject();
-    if (cachedP) {
+    if (isRealProject(cachedP)) {
       setProject(cachedP);
     }
-    const cachedList = readCachedProjects();
-    if (cachedList && cachedList.length > 0) {
+    const cachedList = readCachedProjects().filter(isRealProject);
+    if (cachedList.length > 0) {
       setProjects(cachedList);
     }
     void refresh();

@@ -13,10 +13,13 @@ export async function GET(request: Request) {
   if ("response" in result) return result.response;
   const { user } = result;
 
-  const [activeProject, projects] = await Promise.all([
-    getProjectForUser(user.id),
-    listProjectsForUser(user.id),
-  ]);
+  const projects = await listProjectsForUser(user.id);
+  let activeProject = null;
+  try {
+    activeProject = await getProjectForUser(user.id);
+  } catch {
+    activeProject = projects[0] ?? null;
+  }
 
   return NextResponse.json({
     activeProject,
