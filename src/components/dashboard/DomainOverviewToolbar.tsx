@@ -53,16 +53,11 @@ export function DomainOverviewToolbar({
           <div className="relative">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
             <input
-              className={`${inputClass} w-full pl-10 ${loading ? "cursor-not-allowed opacity-70" : ""}`}
+              className={`${inputClass} w-full pl-10`}
               value={domain}
-              onChange={(e) => {
-                if (loading) return;
-                onDomainChange(e.target.value);
-              }}
+              onChange={(e) => onDomainChange(e.target.value)}
               placeholder="example.com"
               required
-              disabled={loading}
-              readOnly={loading}
               aria-label="Domain"
             />
           </div>

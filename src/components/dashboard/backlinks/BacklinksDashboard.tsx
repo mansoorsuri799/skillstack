@@ -405,17 +405,19 @@ export function BacklinksDashboard({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(DEFAULT_ROWS_PER_PAGE);
   const autoLoadedKey = useRef<string | null>(null);
+  const syncedInitialDomain = useRef<string | null>(null);
 
   useEffect(() => {
-    if (initialDomain) {
-      setDomain(initialDomain);
-      const cached = backlinksMemoryCache.get(getBacklinksCacheKey(initialDomain, scope));
-      if (cached) {
-        setOverview(cached.overview);
-        if (cached.backlinks) setBacklinkRows(cached.backlinks);
-        if (cached.referring) setReferringRows(cached.referring);
-        if (cached.pages) setTopPages(cached.pages);
-      }
+    if (!initialDomain) return;
+    if (syncedInitialDomain.current === initialDomain) return;
+    syncedInitialDomain.current = initialDomain;
+    setDomain(initialDomain);
+    const cached = backlinksMemoryCache.get(getBacklinksCacheKey(initialDomain, scope));
+    if (cached) {
+      setOverview(cached.overview);
+      if (cached.backlinks) setBacklinkRows(cached.backlinks);
+      if (cached.referring) setReferringRows(cached.referring);
+      if (cached.pages) setTopPages(cached.pages);
     }
   }, [initialDomain, scope]);
 
@@ -520,7 +522,8 @@ export function BacklinksDashboard({
     if (autoLoadedKey.current === autoKey) return;
     autoLoadedKey.current = autoKey;
     void onAnalyze(initialDomain);
-  }, [initialDomain, scope, onAnalyze]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- project domain / scope only
+  }, [initialDomain, scope]);
 
   function switchTab(next: BacklinksTab) {
     setTab(next);

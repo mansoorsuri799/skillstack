@@ -97,6 +97,7 @@ export default function DomainPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const autoLoadedKey = useRef<string | null>(null);
+  const syncedProjectKey = useRef<string | null>(null);
 
   const onLookup = useCallback(async (override?: {
     domain?: string;
@@ -136,15 +137,22 @@ export default function DomainPage() {
     }
   }, [domain, locationCode, scope]);
 
+  // Sync toolbar from project only when the selected project changes — never while typing.
   useEffect(() => {
     if (!project?.domain) return;
+    const projectKey = `${project.id ?? project.domain}|${project.locationCode}`;
+    if (syncedProjectKey.current === projectKey) return;
+    syncedProjectKey.current = projectKey;
     setDomain(project.domain);
     setLocationCode(project.locationCode);
     const cacheKey = getDomainCacheKey(project.domain, project.locationCode, scope);
     const cached = readDomainCache(cacheKey);
     if (cached) setOverview(cached);
+  }, [project, scope]);
 
-    // Auto-load once per domain/location/scope so results appear without a click.
+  // Auto-load project domain once (and when scope changes for that project).
+  useEffect(() => {
+    if (!project?.domain) return;
     const autoKey = `${project.domain}|${project.locationCode}|${scope}`;
     if (autoLoadedKey.current === autoKey) return;
     autoLoadedKey.current = autoKey;
@@ -153,7 +161,9 @@ export default function DomainPage() {
       locationCode: project.locationCode,
       scope,
     });
-  }, [project, scope, onLookup]);
+    // Intentionally omit onLookup — it changes when the user types.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- project/scope driven auto-load only
+  }, [project?.domain, project?.locationCode, scope]);
 
   const sortedKeywords = useMemo(() => {
     if (!overview) return [];
