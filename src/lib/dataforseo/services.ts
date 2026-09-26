@@ -396,6 +396,8 @@ async function getDomainOverviewInternal(
       target,
       location_code: locationCode,
       language_code: languageCode,
+      // Dedupe near-duplicate keywords so ETV is closer to Ahrefs-style estimates.
+      ignore_synonyms: true,
     } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   ]);
   const keywordsReq = api.googleRankedKeywordsLive([
@@ -405,6 +407,7 @@ async function getDomainOverviewInternal(
       language_code: languageCode,
       limit: 25,
       include_subdomains: includeSubdomains,
+      ignore_synonyms: true,
       order_by: ["ranked_serp_element.serp_item.etv,desc"],
     } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   ]);
@@ -416,6 +419,7 @@ async function getDomainOverviewInternal(
           language_code: languageCode,
           limit: 25,
           include_subdomains: includeSubdomains,
+          ignore_synonyms: true,
         } as unknown as DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
       ])
     : Promise.resolve(null);

@@ -52,7 +52,7 @@ type DomainTab = "keywords" | "pages";
 const domainMemoryCache = new Map<string, Overview>();
 
 function getDomainCacheKey(domain: string, locationCode: number, scope: string) {
-  return `ss_domain_v3_${domain.toLowerCase()}_${locationCode}_${scope}`;
+  return `ss_domain_v4_${domain.toLowerCase()}_${locationCode}_${scope}`;
 }
 
 function readDomainCache(key: string): Overview | null {

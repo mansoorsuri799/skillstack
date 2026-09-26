@@ -147,6 +147,7 @@ export async function getOrganicPositions(
       target: domain,
       location_code: locationCode,
       language_code: languageCode,
+      ignore_synonyms: true,
     } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   ]);
 

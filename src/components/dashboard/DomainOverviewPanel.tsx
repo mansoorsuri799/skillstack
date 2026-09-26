@@ -239,14 +239,19 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
               change={data.organicTraffic.change}
               accent
               footer={
-                data.organicTraffic.valueUsd != null ? (
-                  <span className="inline-flex flex-wrap items-center gap-2">
-                    <span>Value {formatCompact(data.organicTraffic.valueUsd, true)}</span>
-                    <ChangeBadge change={data.organicTraffic.valueChange} />
+                <span className="inline-flex flex-col gap-0.5">
+                  {data.organicTraffic.valueUsd != null ? (
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      <span>Value {formatCompact(data.organicTraffic.valueUsd, true)}</span>
+                      <ChangeBadge change={data.organicTraffic.valueChange} />
+                    </span>
+                  ) : null}
+                  <span>
+                    Est. monthly
+                    {data.marketLabel ? ` · ${data.marketLabel}` : ""}
+                    {" "}· DataForSEO ETV
                   </span>
-                ) : (
-                  "Est. monthly visits"
-                )
+                </span>
               }
             />
           </div>

@@ -138,6 +138,7 @@ async function fetchDomainRankOverview(
       target: domain,
       location_code: locationCode,
       language_code: languageCode,
+      ignore_synonyms: true,
     } as DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   ]);
 }
@@ -155,6 +156,7 @@ async function fetchHistoricalOverview(
       language_code: languageCode,
       date_from: monthsAgo(6),
       correlate: true,
+      ignore_synonyms: true,
     } as DataforseoLabsGoogleHistoricalRankOverviewLiveRequestInfo,
   ]);
 }
@@ -231,7 +233,7 @@ export async function getDomainDashboard(
   const { target, hostDomain, includeSubdomains, scopeLabel } = resolved;
 
   const key = cacheKey([
-    "domain-dashboard-v3",
+    "domain-dashboard-v4",
     target,
     hostDomain,
     locationCode,
