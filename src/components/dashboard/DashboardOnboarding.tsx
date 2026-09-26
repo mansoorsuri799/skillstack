@@ -121,16 +121,29 @@ export default function DashboardOnboarding({
     }
   }
 
+  function focusStep(id: StepId) {
+    setFocusedStep(id);
+    document.getElementById(`setup-step-${id}`)?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }
+
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Workspace header */}
-      <div className="relative overflow-hidden rounded-2xl border border-line bg-bg-elevated/90 p-5 sm:p-7 md:p-8 shadow-sm">
+      {/* Workspace overview — large + interactive */}
+      <div className="group/overview relative overflow-hidden rounded-2xl border border-line bg-bg-elevated/90 p-5 sm:p-7 md:p-8 shadow-sm transition hover:border-accent/25">
         <div
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent/10 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent/10 blur-3xl transition duration-700 group-hover/overview:bg-accent/20"
           aria-hidden
         />
+        <div
+          className="pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-teal-500/5 blur-3xl opacity-0 transition duration-700 group-hover/overview:opacity-100"
+          aria-hidden
+        />
+
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2 max-w-2xl">
+          <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
               <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
               <span>Project Workspace</span>
@@ -160,9 +173,49 @@ export default function DashboardOnboarding({
                 " All steps are ready."
               )}
             </p>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {nextStep ? (
+                nextStep.href ? (
+                  <Link
+                    href={nextStep.href}
+                    prefetch
+                    className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
+                  >
+                    Continue: {nextStep.title}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => focusStep(nextStep.id)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
+                  >
+                    Continue: {nextStep.title}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )
+              ) : (
+                <Link
+                  href="/dashboard/chat"
+                  prefetch
+                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
+                >
+                  Open Suri
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => focusStep(nextStep?.id ?? "agent")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white/5 px-3.5 py-2 text-xs font-medium text-snow transition hover:border-accent/40 hover:text-accent"
+              >
+                Jump to pipeline
+              </button>
+            </div>
           </div>
 
-          <div className="rounded-xl border border-line/80 bg-bg p-3.5 sm:p-4 font-mono text-xs w-full lg:w-72 shrink-0 space-y-2">
+          <div className="rounded-xl border border-line/80 bg-bg p-3.5 sm:p-4 font-mono text-xs w-full lg:w-72 shrink-0 space-y-1">
             <div className="flex items-center justify-between border-b border-line/60 pb-2 text-[11px] text-ink-muted">
               <span className="font-sans font-semibold text-snow">Workspace Status</span>
               <span className="flex items-center gap-1.5 text-accent font-medium">
@@ -170,88 +223,53 @@ export default function DashboardOnboarding({
                 ONLINE
               </span>
             </div>
-            <div className="space-y-1.5 text-[11px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-ink-muted">DOMAIN</span>
-                <span className="text-snow truncate max-w-[140px]">
-                  {hasCustomDomain ? project.domain : "UNASSIGNED"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-ink-muted">GSC LINK</span>
-                <span className={gscConnected ? "text-emerald-400 font-semibold" : "text-amber-400"}>
-                  {gscConnected ? "CONNECTED" : "UNLINKED"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-ink-muted">SURI</span>
-                <span className="text-accent font-medium">READY</span>
-              </div>
-            </div>
+
+            <button
+              type="button"
+              onClick={() => focusStep("domain")}
+              className="flex w-full items-center justify-between gap-2 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-white/5"
+            >
+              <span className="text-ink-muted">DOMAIN</span>
+              <span className="text-snow truncate max-w-[140px] font-medium">
+                {hasCustomDomain ? project.domain : "UNASSIGNED"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => (gscConnected ? router.push("/dashboard/gsc") : focusStep("gsc"))}
+              className="flex w-full items-center justify-between gap-2 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-white/5"
+            >
+              <span className="text-ink-muted">GSC LINK</span>
+              <span className={gscConnected ? "text-emerald-400 font-semibold" : "text-amber-400"}>
+                {gscConnected ? "CONNECTED" : "UNLINKED →"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/chat")}
+              className="flex w-full items-center justify-between gap-2 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-white/5"
+            >
+              <span className="text-ink-muted">SURI</span>
+              <span className="text-accent font-medium">READY →</span>
+            </button>
           </div>
         </div>
 
-        <div className="relative mt-6 pt-5 border-t border-line/60 space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-snow flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-accent" />
-              Setup Pipeline
-            </span>
-            <span className="font-mono font-semibold text-accent tabular-nums">
-              {completedCount}/{SETUP_STEPS.length} · {progressPercent}%
-            </span>
-          </div>
-
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/5 border border-white/10">
+        {/* Slim progress only — no large step buttons */}
+        <div className="relative mt-5 flex items-center gap-3 border-t border-line/60 pt-4">
+          <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-ink-muted">
+            <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+            Setup
+          </span>
+          <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/5">
             <div
               className="h-full rounded-full bg-gradient-to-r from-accent-deep to-accent transition-all duration-700 ease-out"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-
-          {/* Step dots — click to focus card */}
-          <div className="flex items-center justify-between gap-2 pt-1">
-            {SETUP_STEPS.map((step, index) => {
-              const done = completedMap[step.id];
-              const isNext = nextStep?.id === step.id;
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => {
-                    setFocusedStep(step.id);
-                    document.getElementById(`setup-step-${step.id}`)?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "nearest",
-                    });
-                  }}
-                  className={`flex flex-1 flex-col items-center gap-1.5 rounded-lg px-1 py-2 transition ${
-                    focusedStep === step.id ? "bg-white/5" : "hover:bg-white/[0.03]"
-                  }`}
-                >
-                  <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-mono font-bold transition ${
-                      done
-                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
-                        : isNext
-                          ? "border-accent/50 bg-accent/15 text-accent ring-2 ring-accent/20"
-                          : "border-line bg-bg text-ink-muted"
-                    }`}
-                  >
-                    {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : step.stepNumber}
-                  </span>
-                  <span
-                    className={`hidden sm:block text-[10px] font-medium truncate max-w-full ${
-                      done || isNext ? "text-snow" : "text-ink-muted"
-                    }`}
-                  >
-                    {step.title.split(" ")[0]}
-                  </span>
-                  {index < SETUP_STEPS.length - 1 ? null : null}
-                </button>
-              );
-            })}
-          </div>
+          <span className="shrink-0 font-mono text-[11px] font-semibold tabular-nums text-accent">
+            {completedCount}/{SETUP_STEPS.length}
+          </span>
         </div>
       </div>
 
