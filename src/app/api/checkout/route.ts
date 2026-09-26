@@ -58,7 +58,7 @@ export async function POST(request: Request) {
             product_data: {
               name: `SkillStack · ${plan.name}`,
               description: plan.tagline,
-              images: [`${baseUrl}/og-image.webp`],
+              images: [`${baseUrl}/og-image.jpg`],
             },
           },
         },

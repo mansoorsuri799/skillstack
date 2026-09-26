@@ -68,15 +68,15 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
         title: "SkillStack app icon",
       },
       {
-        loc: `${SITE_URL}/og-image.webp`,
+        loc: `${SITE_URL}/og-image.jpg`,
         title: "SkillStack Open Graph image",
       },
       {
-        loc: `${SITE_URL}/og-image-square.webp`,
+        loc: `${SITE_URL}/og-image-square.jpg`,
         title: "SkillStack square social image",
       },
       {
-        loc: `${SITE_URL}/twitter-card.webp`,
+        loc: `${SITE_URL}/twitter-card.jpg`,
         title: "SkillStack Twitter / X card",
       },
       {

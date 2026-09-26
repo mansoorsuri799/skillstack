@@ -15,28 +15,28 @@ export const FOUNDER_NAME = "Mansoor Khan";
 export const LINKEDIN_URL = "https://www.linkedin.com/company/skillstack-co/";
 export const X_URL = "https://x.com/skillstack_co";
 
-/** Shared social / Google preview images (static WebP in /public). */
+/** Shared social / Google preview images (JPEG for LinkedIn/Facebook compatibility). */
 export const OG_IMAGE = {
-  url: `${SITE_URL}/og-image.webp`,
+  url: `${SITE_URL}/og-image.jpg`,
   width: 1200,
   height: 630,
-  type: "image/webp",
+  type: "image/jpeg",
   alt: "SkillStack — Web Development & SEO for Pakistan & Beyond",
 } as const;
 
 export const OG_IMAGE_SQUARE = {
-  url: `${SITE_URL}/og-image-square.webp`,
+  url: `${SITE_URL}/og-image-square.jpg`,
   width: 1200,
   height: 1200,
-  type: "image/webp",
+  type: "image/jpeg",
   alt: "SkillStack",
 } as const;
 
 export const TWITTER_CARD_IMAGE = {
-  url: `${SITE_URL}/twitter-card.webp`,
+  url: `${SITE_URL}/twitter-card.jpg`,
   width: 1200,
   height: 628,
-  type: "image/webp",
+  type: "image/jpeg",
   alt: "SkillStack — Keyword research, ranking, content, backlinks",
 } as const;
 
@@ -64,6 +64,8 @@ export function pageOpenGraph({
     type: "website",
     siteName: SITE_NAME,
     locale: "en_PK",
+    // Absolute JPEG so LinkedIn / Facebook previews always get a supported image.
+    images: [OG_IMAGE, OG_IMAGE_SQUARE],
   };
 }
 
@@ -79,6 +81,7 @@ export function pageTwitter({
     card: "summary_large_image",
     title,
     description,
+    images: [TWITTER_CARD_IMAGE.url],
   };
 }
 
@@ -182,9 +185,9 @@ export function faqJsonLd(
 /** Core entity graph for branded search, AEO, and AI citation clarity. */
 export function siteGraphJsonLd() {
   const logo = absoluteUrl("/brand/skill-stack.webp");
-  const ogImage = absoluteUrl("/og-image.webp");
-  const ogSquare = absoluteUrl("/og-image-square.webp");
-  const twitterCard = absoluteUrl("/twitter-card.webp");
+  const ogImage = absoluteUrl("/og-image.jpg");
+  const ogSquare = absoluteUrl("/og-image-square.jpg");
+  const twitterCard = absoluteUrl("/twitter-card.jpg");
 
   const offerCatalog = {
     "@type": "OfferCatalog",
