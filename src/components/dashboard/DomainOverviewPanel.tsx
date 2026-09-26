@@ -1,11 +1,27 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { BadgeCheck, ChevronDown } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
+
+const COUNTRY_META: Record<string, { flag: string; name: string }> = {
+  US: { flag: "🇺🇸", name: "United States" },
+  GB: { flag: "🇬🇧", name: "United Kingdom" },
+  CA: { flag: "🇨🇦", name: "Canada" },
+  IN: { flag: "🇮🇳", name: "India" },
+  PK: { flag: "🇵🇰", name: "Pakistan" },
+  AU: { flag: "🇦🇺", name: "Australia" },
+  DE: { flag: "🇩🇪", name: "Germany" },
+  FR: { flag: "🇫🇷", name: "France" },
+  ES: { flag: "🇪🇸", name: "Spain" },
+  IT: { flag: "🇮🇹", name: "Italy" },
+  AE: { flag: "🇦🇪", name: "United Arab Emirates" },
+  BR: { flag: "🇧🇷", name: "Brazil" },
+  MX: { flag: "🇲🇽", name: "Mexico" },
+};
 
 export type DomainOverviewPanelData = {
   domain: string;
-  scopeLabel: string;
+  scopeLabel?: string;
   marketLabel?: string | null;
   domainRating: MetricBlock;
   backlinks?: MetricBlock & { allTime?: number | null };
@@ -167,13 +183,7 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
               </h2>
               <BadgeCheck className="h-4 w-4 shrink-0 text-accent" aria-hidden />
             </div>
-            <button
-              type="button"
-              className="mt-0.5 flex items-center gap-1 text-xs text-ink-muted"
-            >
-              <span className="truncate">{data.scopeLabel}</span>
-              <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            </button>
+            <p className="mt-0.5 truncate text-xs text-ink-muted">{siteLabel}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -271,23 +281,32 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
             <div>
               <p className="mb-2 text-xs font-medium text-ink-muted">Keywords by country</p>
               {countryRows.length > 0 ? (
-                <ul className="space-y-1.5">
-                  {countryRows.map((row) => (
-                    <li
-                      key={row.code}
-                      className="flex items-center justify-between gap-3 text-[11px] leading-none"
-                    >
-                      <span className="font-medium text-ink-muted">{row.code}</span>
-                      <span className="tabular-nums text-snow">
-                        {row.count?.toLocaleString() ?? "—"}
-                        {row.traffic != null ? (
-                          <span className="ml-2 text-ink-muted">
-                            · {formatCompact(row.traffic)} traf.
+                <ul className="space-y-2">
+                  {countryRows.map((row) => {
+                    const meta = COUNTRY_META[row.code];
+                    return (
+                      <li
+                        key={row.code}
+                        className="flex items-center justify-between gap-3 text-[11px] leading-none"
+                        title={meta?.name ?? row.code}
+                      >
+                        <span className="flex min-w-0 items-center gap-2 font-medium text-ink-muted">
+                          <span className="text-sm leading-none" aria-hidden>
+                            {meta?.flag ?? "🌐"}
                           </span>
-                        ) : null}
-                      </span>
-                    </li>
-                  ))}
+                          <span className="truncate">{row.code}</span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2 tabular-nums">
+                          <span className="text-snow">
+                            {(row.count ?? 0).toLocaleString()} kw
+                          </span>
+                          <span className="text-accent">
+                            {formatCompact(row.traffic ?? null)} traf.
+                          </span>
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p className="text-[11px] text-ink-muted">No country rankings yet</p>

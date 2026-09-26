@@ -636,7 +636,7 @@ export function BacklinksDashboard({
       {hasOverview && overview ? (
         <>
           <div className="rounded-2xl border border-line bg-bg-elevated px-4 py-3 text-sm text-ink-muted md:px-5">
-            {overview.scopeLabel} | Target:{" "}
+            Target:{" "}
             <span className="font-medium text-snow">{overview.domain}</span>
             {updatedLabel ? ` · Updated ${updatedLabel}` : null}
           </div>
