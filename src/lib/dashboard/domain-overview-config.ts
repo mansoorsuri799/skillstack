@@ -39,6 +39,7 @@ export const DOMAIN_KEYWORD_SORTS = [
 
 /** Common markets for searchable country picker */
 export const DOMAIN_OVERVIEW_LOCATIONS = [
+  { code: 0, label: "All locations" },
   { code: 2586, label: "Pakistan" },
   { code: 2840, label: "United States" },
   { code: 2826, label: "United Kingdom" },
@@ -155,6 +156,7 @@ export function sortLabelFor(value: DomainKeywordSort) {
 }
 
 export function locationLabelFor(code: number) {
+  if (code === 0) return "All locations";
   return (
     DOMAIN_OVERVIEW_LOCATIONS.find((l) => l.code === code)?.label ??
     `Location ${code}`

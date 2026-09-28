@@ -72,8 +72,9 @@ export default function ProfileEditor() {
   const { update: updateSession } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
-  const skipInitialSaveRef = useRef(true);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedFingerprintRef = useRef<string>("");
+  const persistInFlightRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
@@ -99,26 +100,49 @@ export default function ProfileEditor() {
   const formRef = useRef(form);
   formRef.current = form;
 
+  function profileFingerprint(snapshot: typeof form) {
+    return JSON.stringify({
+      name: snapshot.name,
+      username: snapshot.username,
+      headline: snapshot.headline,
+      bio: snapshot.bio,
+      skills: snapshot.skills,
+      location: snapshot.location,
+      company: snapshot.company,
+      website: snapshot.website,
+      linkedin: snapshot.linkedin,
+      xProfile: snapshot.xProfile,
+      availableForWork: snapshot.availableForWork,
+    });
+  }
+
+  function applyProfileToForm(p: PublicProfile, emailValue?: string) {
+    const next = {
+      name: p.name || "",
+      username: p.username || "",
+      headline: p.headline || "",
+      bio: p.bio || "",
+      skills: p.skills || [],
+      location: p.location || "",
+      company: p.company || "",
+      website: p.website || "",
+      linkedin: p.linkedin || "",
+      xProfile: p.xProfile || "",
+      availableForWork: p.availableForWork ?? false,
+      image: p.image || null,
+    };
+    setForm(next);
+    lastSavedFingerprintRef.current = profileFingerprint(next);
+    if (emailValue != null) setEmail(emailValue);
+  }
+
   useEffect(() => {
     const cached = readCachedProfile();
     if (cached) {
-      setEmail(cached.email || "");
-      setForm({
-        name: cached.profile.name || "",
-        username: cached.profile.username || "",
-        headline: cached.profile.headline || "",
-        bio: cached.profile.bio || "",
-        skills: cached.profile.skills || [],
-        location: cached.profile.location || "",
-        company: cached.profile.company || "",
-        website: cached.profile.website || "",
-        linkedin: cached.profile.linkedin || "",
-        xProfile: cached.profile.xProfile || "",
-        availableForWork: cached.profile.availableForWork ?? false,
-        image: cached.profile.image || null,
-      });
+      applyProfileToForm(cached.profile, cached.email || "");
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once from cache
   }, []);
 
   useEffect(() => {
@@ -137,21 +161,7 @@ export default function ProfileEditor() {
         }
         if (cancelled) return;
         const p = data.profile as PublicProfile;
-        setEmail(data.email || "");
-        setForm({
-          name: p.name || "",
-          username: p.username || "",
-          headline: p.headline || "",
-          bio: p.bio || "",
-          skills: p.skills || [],
-          location: p.location || "",
-          company: p.company || "",
-          website: p.website || "",
-          linkedin: p.linkedin || "",
-          xProfile: p.xProfile || "",
-          availableForWork: p.availableForWork,
-          image: p.image,
-        });
+        applyProfileToForm(p, data.email || "");
         loadedRef.current = true;
         try {
           sessionStorage.setItem(
@@ -170,13 +180,26 @@ export default function ProfileEditor() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
   }, []);
 
   const persistProfile = useCallback(
     async (options?: { silent?: boolean }) => {
       const snapshot = formRef.current;
+      const fingerprint = profileFingerprint(snapshot);
+
+      // Nothing changed since last successful save — never spam the API.
+      if (
+        options?.silent &&
+        fingerprint === lastSavedFingerprintRef.current
+      ) {
+        return true;
+      }
+      if (persistInFlightRef.current) return false;
+      persistInFlightRef.current = true;
+
       setError("");
-      if (!options?.silent) setOk("");
+      setOk("");
       setSaving(true);
       setSaveState("idle");
       try {
@@ -204,48 +227,69 @@ export default function ProfileEditor() {
           return false;
         }
         const p = data.profile as PublicProfile;
+        const next = {
+          name: p.name || "",
+          username: p.username || "",
+          headline: p.headline || "",
+          bio: p.bio || "",
+          skills: p.skills || [],
+          location: p.location || "",
+          company: p.company || "",
+          website: p.website || "",
+          linkedin: p.linkedin || "",
+          xProfile: p.xProfile || "",
+          availableForWork: p.availableForWork ?? false,
+          image: p.image ?? snapshot.image,
+        };
+        lastSavedFingerprintRef.current = profileFingerprint(next);
+
+        // Only sync form from server on explicit Save — silent autosave must not
+        // rewrite form state (that retriggers the autosave effect).
         if (!options?.silent) {
-          setForm((f) => ({
-            ...f,
-            name: p.name,
-            username: p.username || "",
-            headline: p.headline,
-            bio: p.bio,
-            skills: p.skills,
-            location: p.location,
-            company: p.company,
-            website: p.website,
-            linkedin: p.linkedin,
-            xProfile: p.xProfile,
-            availableForWork: p.availableForWork,
-            image: p.image,
-          }));
+          setForm((f) => ({ ...next, image: f.image ?? next.image }));
+          setOk("Profile saved.");
         }
-        await updateSession({ user: { name: p.name, image: p.image } });
+
+        const nameChanged = snapshot.name !== (p.name || "");
+        const imageChanged = (snapshot.image || null) !== (p.image || null);
+        if (nameChanged || imageChanged) {
+          await updateSession({ user: { name: p.name, image: p.image } });
+        }
+
+        try {
+          sessionStorage.setItem(
+            CACHE_PROFILE_KEY,
+            JSON.stringify({ profile: p, email }),
+          );
+        } catch {
+          // Ignore
+        }
+
         setSaveState("saved");
-        if (!options?.silent) setOk("Profile saved.");
         return true;
       } catch {
         setError("Something went wrong.");
         setSaveState("error");
         return false;
       } finally {
+        persistInFlightRef.current = false;
         setSaving(false);
       }
     },
-    [updateSession],
+    [email, updateSession],
   );
 
+  // Autosave only when the user actually edits profile fields.
   useEffect(() => {
     if (!loadedRef.current) return;
-    if (skipInitialSaveRef.current) {
-      skipInitialSaveRef.current = false;
-      return;
-    }
+    const fingerprint = profileFingerprint(form);
+    if (fingerprint === lastSavedFingerprintRef.current) return;
+
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       void persistProfile({ silent: true });
     }, 1200);
+
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
@@ -564,7 +608,7 @@ export default function ProfileEditor() {
       </label>
 
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
-      {ok ? <p className="text-sm text-accent">{ok}</p> : null}
+      {ok && !saving ? <p className="text-sm text-accent">{ok}</p> : null}
       {!ok && saveState === "saved" && !saving ? (
         <p className="text-sm text-ink-muted">Changes saved to your account.</p>
       ) : null}

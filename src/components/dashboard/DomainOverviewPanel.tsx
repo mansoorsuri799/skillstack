@@ -17,6 +17,7 @@ const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   AE: { flag: "🇦🇪", name: "United Arab Emirates" },
   BR: { flag: "🇧🇷", name: "Brazil" },
   MX: { flag: "🇲🇽", name: "Mexico" },
+  ALL: { flag: "🌍", name: "All locations" },
 };
 
 export type DomainOverviewPanelData = {
@@ -189,7 +190,9 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
         <div className="flex items-center gap-2">
           {data.marketLabel ? (
             <span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs text-accent">
-              Market: {data.marketLabel}
+              {data.marketLabel === "ALL"
+                ? "🌍 All locations"
+                : `Market: ${data.marketLabel}`}
             </span>
           ) : null}
           <span className="rounded-full border border-line bg-bg px-3 py-1 text-xs text-ink-muted">
@@ -258,7 +261,11 @@ export function DomainOverviewPanel({ data }: { data: DomainOverviewPanelData })
                   ) : null}
                   <span>
                     Est. monthly
-                    {data.marketLabel ? ` · ${data.marketLabel}` : ""}
+                    {data.marketLabel === "ALL"
+                      ? " · All locations"
+                      : data.marketLabel
+                        ? ` · ${data.marketLabel}`
+                        : ""}
                     {" "}· DataForSEO ETV
                   </span>
                 </span>
