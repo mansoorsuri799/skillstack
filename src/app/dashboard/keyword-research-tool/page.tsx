@@ -7,7 +7,7 @@ import {
   type KeywordResearchRow,
 } from "@/components/dashboard/keyword-research/KeywordResearchPanel";
 import { DataForSeoBanner, FirecrawlBanner } from "@/components/dashboard/ProjectDomainBanner";
-import { LoadingBlock, PageStack } from "@/components/dashboard/ui";
+import { PageStack } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
 import type {
   SeedKeywordInsights,
@@ -22,24 +22,29 @@ import {
 } from "@/lib/dashboard/keyword-research-session";
 import { type KeywordMode, DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 
-function applySessionPrefs(
+function applySession(
   session: KeywordResearchSession,
   setters: {
     setSeed: (value: string) => void;
     setLocationCode: (value: number) => void;
     setLimit: (value: number) => void;
     setMode: (value: KeywordMode) => void;
+    setResults: (value: KeywordResearchRow[]) => void;
+    setSeedInsights: (value: SeedKeywordInsights | null) => void;
+    setSerpResults: (value: SerpResultRow[]) => void;
   },
 ) {
   setters.setSeed(session.seed);
   setters.setLocationCode(session.locationCode);
   setters.setLimit(session.limit);
   setters.setMode(session.mode);
+  setters.setResults(session.results ?? []);
+  setters.setSeedInsights(session.seedInsights ?? null);
+  setters.setSerpResults(session.serpResults ?? []);
 }
 
 export default function KeywordsPage() {
-  const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
-    useDashboardProject();
+  const { dataForSeoConfigured, firecrawlConfigured } = useDashboardProject();
   const [seed, setSeed] = useState("");
   const [locationCode, setLocationCode] = useState<number>(DEFAULT_LOCATION_CODE);
   const [limit, setLimit] = useState<number>(150);
@@ -51,34 +56,31 @@ export default function KeywordsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      // Prefill seed/settings only — never restore result tables until the user searches.
+      const setters = {
+        setSeed,
+        setLocationCode,
+        setLimit,
+        setMode,
+        setResults,
+        setSeedInsights,
+        setSerpResults,
+      };
+
+      // Restore last search + results so refresh keeps the overview/table.
       const local = readLocalKeywordSession();
       if (local && !cancelled) {
-        applySessionPrefs(local, {
-          setSeed,
-          setLocationCode,
-          setLimit,
-          setMode,
-        });
+        applySession(local, setters);
       }
 
       const server = await loadKeywordResearchSession();
       if (server && !cancelled) {
-        applySessionPrefs(server, {
-          setSeed,
-          setLocationCode,
-          setLimit,
-          setMode,
-        });
+        applySession(server, setters);
       }
-
-      if (!cancelled) setSessionReady(true);
     })();
 
     return () => {
@@ -118,21 +120,19 @@ export default function KeywordsPage() {
       setSerpResults(nextSerp);
       setSerpLive(data.serpSource === "firecrawl");
 
-      if (nextResults.length > 0) {
-        void saveKeywordResearchSession({
-          seed: keyword,
-          locationCode,
-          limit,
-          mode,
-          useClickstream: true,
-          results: nextResults,
-          seedInsights: nextInsights,
-          serpResults: nextSerp,
-          savedAt: new Date().toISOString(),
-        });
-      }
+      void saveKeywordResearchSession({
+        seed: keyword,
+        locationCode,
+        limit,
+        mode,
+        useClickstream: true,
+        results: nextResults,
+        seedInsights: nextInsights,
+        serpResults: nextSerp,
+        savedAt: new Date().toISOString(),
+      });
 
-      if (nextResults.length === 0) {
+      if (nextResults.length === 0 && !nextInsights) {
         setError("No keywords found for that seed. Try a different keyword or mode.");
       }
     } catch (err) {

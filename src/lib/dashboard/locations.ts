@@ -44,6 +44,16 @@ export function resolveLabsLocationCode(code: number) {
   return isAllLocations(code) ? DEFAULT_COUNTRY_LOCATION_CODE : code;
 }
 
+/** Prefer the market's native Labs language so location+language pairs stay valid. */
+export function resolveLanguageForLocation(
+  locationCode: number,
+  fallback = "en",
+) {
+  if (isAllLocations(locationCode)) return fallback;
+  const match = RESEARCH_LOCATIONS.find((l) => l.code === locationCode);
+  return match?.lang ?? fallback;
+}
+
 export const KEYWORD_LIMITS = [25, 50, 100, 150] as const;
 
 export const LOCATION_FLAGS: Record<number, string> = {
