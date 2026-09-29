@@ -24,21 +24,23 @@ const columns = [
   {
     heading: "Services",
     links: [
-      { href: "/services/keyword-research", label: "Keyword research" },
+      { href: "/services/keyword-research", label: "Keyword research service" },
       { href: "/services/seo-ranking", label: "SEO ranking" },
       { href: "/services/websites-from-scratch", label: "Websites" },
-      { href: "/services/backlinking", label: "Backlinking" },
+      { href: "/services/backlinking", label: "Backlinking service" },
       { href: "/services/content-writing", label: "Content writing" },
       { href: "/services/ad-monetization", label: "Ad monetization" },
     ],
   },
   {
-    heading: "Pricing",
+    heading: "Features",
     links: [
-      { href: "/pricing", label: "SkillStack Pro ($20)" },
-      { href: "/dashboard", label: "SEO Dashboard" },
-      { href: "/dashboard/keywords", label: "Keyword Research" },
-      { href: "/dashboard/backlinks", label: "Backlinks Dashboard" },
+      { href: "/features", label: "All features" },
+      { href: "/features/keyword-research-tool", label: "Keyword research tool" },
+      { href: "/features/domain-overview-tool", label: "Domain overview tool" },
+      { href: "/features/backlink-checker", label: "Backlink checker" },
+      { href: "/features/rank-tracker", label: "Rank tracker" },
+      { href: "/pricing", label: "SkillStack Pro" },
     ],
   },
   {

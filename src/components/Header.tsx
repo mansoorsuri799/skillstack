@@ -8,6 +8,7 @@ import { HEADER_HEIGHT_CLASS } from "@/lib/layout";
 
 const links = [
   { href: "/services", label: "Services" },
+  { href: "/features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
   { href: "/process", label: "Process" },
   { href: "/about", label: "About" },

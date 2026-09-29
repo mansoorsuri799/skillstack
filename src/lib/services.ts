@@ -11,6 +11,9 @@ export type Service = {
   shortTitle: string;
   summary: string;
   details: string[];
+  /** Matching dashboard feature when intent overlaps (service vs self-serve tool). */
+  relatedFeatureSlug?: string;
+  relatedFeatureLabel?: string;
   guide: {
     intro: string;
     sections: ServiceSection[];
@@ -22,19 +25,21 @@ export const services: Service[] = [
   {
     n: "01",
     slug: "keyword-research",
-    title: "Keyword research",
+    title: "Keyword research service",
     shortTitle: "Keyword research",
     summary:
-      "Low-competition, high-volume keywords from any country — plus AI-query and People Also Ask mining so you rank on Google and get cited by ChatGPT, Perplexity, and Google AI Overviews.",
+      "Done-for-you keyword lists — low-competition, high-volume terms from any country, plus AI-query and People Also Ask mining so you rank on Google and get cited by ChatGPT, Perplexity, and Google AI Overviews.",
     details: [
       "Multi-tool research across Ahrefs, Semrush, Moz, and Google Keyword Planner.",
       "AI-query research — the questions ChatGPT, Perplexity, and Gemini actually answer.",
       "People Also Ask and voice-search intent mapped alongside traditional keywords.",
       "Parent keywords grouped with supporting terms and AEO-ready question clusters.",
     ],
+    relatedFeatureSlug: "keyword-research-tool",
+    relatedFeatureLabel: "Keyword Research Tool",
     guide: {
       intro:
-        "Keyword research in 2026 has two layers. The first is traditional: find terms people type into Google that you can realistically rank for. The second is new: find the questions AI assistants like ChatGPT, Perplexity, and Google Gemini answer every day — because the sources those tools cite get traffic even without a top-10 Google rank. SkillStack maps both layers so your content wins on every search surface.",
+        "This is SkillStack’s done-for-you keyword research service — our team delivers the list. (Want to run research yourself in the dashboard? Use the Keyword Research Tool under Features.) Keyword research in 2026 has two layers. The first is traditional: find terms people type into Google that you can realistically rank for. The second is new: find the questions AI assistants like ChatGPT, Perplexity, and Google Gemini answer every day — because the sources those tools cite get traffic even without a top-10 Google rank. SkillStack maps both layers so your content wins on every search surface.",
       sections: [
         {
           title: "The tools we use — and why each matters",
@@ -209,19 +214,21 @@ export const services: Service[] = [
   {
     n: "04",
     slug: "backlinking",
-    title: "Backlinking",
+    title: "Backlinking service",
     shortTitle: "Backlinking",
     summary:
-      "After Search Console insights land, our link experts build high-authority backlinks and brand citations that lift rankings, DA, and DR — and signal trust to AI systems.",
+      "Done-for-you link building — after Search Console insights land, our experts place high-authority backlinks and brand citations that lift rankings, DA, and DR — and signal trust to AI systems.",
     details: [
       "Timed after early Search Console analysis — not random blasts on day one.",
       "Foundational links through to editorial citations and brand mentions.",
       "Spam-score and Ahrefs health checked before links are counted as done.",
       "Authority work aimed at Google rankings plus AI citation signals.",
     ],
+    relatedFeatureSlug: "backlink-checker",
+    relatedFeatureLabel: "Backlink Checker",
     guide: {
       intro:
-        "In 2026, backlinks serve two masters: Google's PageRank algorithm and the AI trust signals that determine which sources ChatGPT, Perplexity, and Google AI Overviews cite. SkillStack's backlinking service builds high-authority links and brand citations that satisfy both — timed correctly and screened for quality.",
+        "This is SkillStack’s done-for-you backlinking service — we build and place links. (Need to inspect a domain’s existing link profile yourself? Use the Backlink Checker under Features.) In 2026, backlinks serve two masters: Google's PageRank algorithm and the AI trust signals that determine which sources ChatGPT, Perplexity, and Google AI Overviews cite. SkillStack builds high-authority links and brand citations that satisfy both — timed correctly and screened for quality.",
       sections: [
         {
           title: "Why we wait on Search Console first",
@@ -427,16 +434,18 @@ export const services: Service[] = [
     title: "Technical SEO & site audits",
     shortTitle: "Technical SEO",
     summary:
-      "Crawlability, Core Web Vitals, entity-rich schema, and AI-ready structure — so Google can rank your pages and AI tools can cite them.",
+      "Done-for-you technical SEO — crawlability, Core Web Vitals, entity-rich schema, and AI-ready structure, with implementation support so Google can rank your pages and AI tools can cite them.",
     details: [
       "Full technical audit with prioritized fix list for Google and AI readiness.",
       "Index coverage, canonicals, redirects, and sitemap hygiene.",
       "Core Web Vitals and PageSpeed-minded recommendations.",
       "Entity-rich schema and structured data for rich results and AI citation eligibility.",
     ],
+    relatedFeatureSlug: "site-audit-tool",
+    relatedFeatureLabel: "Site Audit Tool",
     guide: {
       intro:
-        "Technical SEO in 2026 has expanded beyond crawl paths and sitemaps. Your site must be readable by Google's crawlers, understandable by AI knowledge graphs, and fast enough to pass Core Web Vitals. SkillStack audits all three layers — then helps implement fixes on WordPress or Next.js.",
+        "This is SkillStack’s done-for-you technical SEO service — we audit and help fix. (Want a self-serve scan in the dashboard first? Use the Site Audit Tool under Features.) Technical SEO in 2026 has expanded beyond crawl paths and sitemaps. Your site must be readable by Google's crawlers, understandable by AI knowledge graphs, and fast enough to pass Core Web Vitals. SkillStack audits all three layers — then helps implement fixes on WordPress or Next.js.",
       sections: [
         {
           title: "Audit coverage — Google and AI readiness",

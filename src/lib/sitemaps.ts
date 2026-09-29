@@ -1,3 +1,4 @@
+import { productFeatures } from "@/lib/features";
 import { services } from "@/lib/services";
 import { SITE_URL } from "@/lib/seo";
 
@@ -20,6 +21,12 @@ export const pageSitemapEntries: PageSitemapEntry[] = [
   { path: "/services", priority: 0.9, changeFrequency: "monthly" },
   ...services.map((service) => ({
     path: `/services/${service.slug}`,
+    priority: 0.85,
+    changeFrequency: "monthly" as const,
+  })),
+  { path: "/features", priority: 0.9, changeFrequency: "monthly" },
+  ...productFeatures.map((feature) => ({
+    path: `/features/${feature.slug}`,
     priority: 0.85,
     changeFrequency: "monthly" as const,
   })),
@@ -105,6 +112,19 @@ export const imageSitemapEntries: ImageSitemapEntry[] = [
       pageFeatureImage(
         `/services/${service.slug}`,
         `SkillStack — ${service.title}`,
+      ),
+    ],
+  })),
+  {
+    pagePath: "/features",
+    images: [pageFeatureImage("/features", "SkillStack features")],
+  },
+  ...productFeatures.map((feature) => ({
+    pagePath: `/features/${feature.slug}`,
+    images: [
+      pageFeatureImage(
+        `/features/${feature.slug}`,
+        `SkillStack — ${feature.title}`,
       ),
     ],
   })),
