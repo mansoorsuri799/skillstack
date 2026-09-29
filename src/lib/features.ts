@@ -46,6 +46,34 @@ export const productFeatures: ProductFeature[] = [
     ],
   },
   {
+    slug: "keyword-difficulty-checker",
+    title: "Keyword Difficulty Checker",
+    shortTitle: "KD Checker",
+    group: "Research",
+    summary:
+      "Paste keywords and get KD, search volume, and CPC in one bulk check.",
+    description:
+      "The Keyword Difficulty Checker scores how hard it is to rank for each keyword you already have — ideal for prioritizing content and SEO briefs without running full keyword discovery.",
+    dashboardHref: "/dashboard/keyword-difficulty-checker",
+    highlights: [
+      "Bulk paste up to 200 keywords",
+      "KD score with Easy / Medium / Hard badges",
+      "Search volume and CPC alongside difficulty",
+      "All locations mode averages major markets",
+    ],
+    outcomes: [
+      "Prioritize winnable keywords faster",
+      "Filter hard terms before briefing writers",
+      "Export KD lists for content planning",
+    ],
+    keywords: [
+      "keyword difficulty checker",
+      "KD checker tool",
+      "keyword difficulty finder",
+      "SkillStack keyword difficulty",
+    ],
+  },
+  {
     slug: "domain-overview-tool",
     title: "Domain Overview Tool",
     shortTitle: "Domain",

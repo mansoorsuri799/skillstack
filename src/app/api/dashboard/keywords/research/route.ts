@@ -84,7 +84,7 @@ export async function POST(request: Request) {
       : locationCode;
 
     const researchCacheKey = cacheKey([
-      "keyword-research",
+      "keyword-research-v2",
       seed.toLowerCase(),
       locationCode,
       languageCode,

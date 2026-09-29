@@ -53,6 +53,11 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
         icon: Search,
       },
       {
+        href: "/dashboard/keyword-difficulty-checker",
+        label: "Keyword Difficulty",
+        icon: BarChart3,
+      },
+      {
         href: "/dashboard/domain-overview-tool",
         label: "Domain Overview",
         icon: Globe,

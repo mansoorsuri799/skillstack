@@ -10,7 +10,6 @@ import {
 } from "@/components/dashboard/SearchToolbar";
 import {
   DashboardAlert,
-  LoadingBlock,
   PageStack,
 } from "@/components/dashboard/ui";
 import { DOMAIN_SCOPES, KEYWORD_RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
@@ -96,8 +95,6 @@ export function OrganicSearchLayout({
             ) : null}
           </SearchToolbar>
         </SearchPanel>
-
-        {loading ? <LoadingBlock label={`Loading ${title.toLowerCase()}...`} /> : null}
 
         {children}
       </PageStack>

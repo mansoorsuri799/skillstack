@@ -37,6 +37,7 @@ const columns = [
     links: [
       { href: "/features", label: "All features" },
       { href: "/features/keyword-research-tool", label: "Keyword research tool" },
+      { href: "/features/keyword-difficulty-checker", label: "Keyword difficulty checker" },
       { href: "/features/domain-overview-tool", label: "Domain overview tool" },
       { href: "/features/backlink-checker", label: "Backlink checker" },
       { href: "/features/rank-tracker", label: "Rank tracker" },

@@ -228,9 +228,9 @@ export async function fetchSeedKeywordInsights(
   const isGlobal = locationCode === ALL_LOCATIONS_CODE;
 
   // Country breakdown for Global Volume card — all research markets
-  const countryVolumes = await fetchGlobalCountryVolumes(seed, languageCode);
+  let countryVolumes = await fetchGlobalCountryVolumes(seed, languageCode);
 
-  const topCountry = countryVolumes[0];
+  let topCountry = countryVolumes[0];
   const overviewLocationCode = isGlobal
     ? (topCountry?.countryCode ?? INSIGHTS_FALLBACK_LOCATION.code)
     : locationCode;
@@ -302,10 +302,69 @@ export async function fetchSeedKeywordInsights(
   const standard = primaryItem?.keyword_info;
   const clickstream = primaryItem?.keyword_info_normalized_with_clickstream;
 
-  // Worldwide Ads when All locations; otherwise selected market
+  // Always merge core markets for All locations so a failed parallel call
+  // cannot drop a dominant market (e.g. Pakistan 40.5K → worldwide 50).
+  if (isGlobal) {
+    const coreMarkets = [
+      { code: 2586, label: "Pakistan", flag: "🇵🇰" },
+      { code: 2840, label: "United States", flag: "🇺🇸" },
+      { code: 2826, label: "United Kingdom", flag: "🇬🇧" },
+      { code: 2356, label: "India", flag: "🇮🇳" },
+    ] as const;
+    const missingOrWeak = coreMarkets.filter((loc) => {
+      const existing = countryVolumes.find((c) => c.countryCode === loc.code);
+      return !existing || existing.volume <= 0;
+    });
+    if (missingOrWeak.length > 0 || countryVolumes.length === 0) {
+      const retries = await Promise.all(
+        (missingOrWeak.length > 0 ? missingOrWeak : coreMarkets).map(async (loc) => {
+          try {
+            const map = await fetchGoogleAdsSearchVolumes(
+              [seed],
+              loc.code,
+              languageCode,
+            );
+            const row = map.get(seed.trim().toLowerCase());
+            return {
+              countryCode: loc.code,
+              countryName: loc.label,
+              flag: loc.flag,
+              volume: row?.searchVolume ?? 0,
+            };
+          } catch {
+            return {
+              countryCode: loc.code,
+              countryName: loc.label,
+              flag: loc.flag,
+              volume: 0,
+            };
+          }
+        }),
+      );
+      for (const row of retries) {
+        if (row.volume <= 0) continue;
+        const existing = countryVolumes.find((c) => c.countryCode === row.countryCode);
+        if (existing) {
+          existing.volume = Math.max(existing.volume, row.volume);
+        } else {
+          countryVolumes.push(row);
+        }
+      }
+      countryVolumes = countryVolumes
+        .filter((c) => c.volume > 0)
+        .sort((a, b) => b.volume - a.volume);
+    }
+  }
+
+  topCountry = countryVolumes[0];
+
+  // Ads metrics for CPC / monthly trend: use strongest market when All locations.
+  // Do NOT use worldwide Ads (location=null) — it undercounts niche markets (e.g. 50 vs PK 40.5K).
   const adsPrimary = await fetchGoogleAdsSearchVolumes(
     [seed],
-    isGlobal ? null : locationCode,
+    isGlobal
+      ? (topCountry?.countryCode ?? overviewLocationCode)
+      : locationCode,
     languageCode,
   );
   const adsRow = adsPrimary.get(seed.trim().toLowerCase());
@@ -365,9 +424,19 @@ export async function fetchSeedKeywordInsights(
       }
       countryVolumes.sort((a, b) => b.volume - a.volume);
     }
+  } else if (
+    searchVolumeAds != null &&
+    searchVolumeAds > 0 &&
+    topCountry &&
+    searchVolumeAds > topCountry.volume
+  ) {
+    // Keep top-country Ads volume in sync if the follow-up fetch is higher.
+    topCountry.volume = searchVolumeAds;
+    countryVolumes.sort((a, b) => b.volume - a.volume);
   }
 
   const totalGlobalVolume = countryVolumes.reduce((acc, c) => acc + c.volume, 0);
+  const topCountryVolume = countryVolumes[0]?.volume ?? 0;
 
   const globalBreakdown: GlobalVolumeCountry[] = countryVolumes.map((c) => ({
     ...c,
@@ -375,9 +444,12 @@ export async function fetchSeedKeywordInsights(
       totalGlobalVolume > 0 ? Math.round((c.volume / totalGlobalVolume) * 100) : 0,
   }));
 
-  // All locations Volume = worldwide Ads (KE-style); Global card = sum of markets
+  // All locations Volume = sum of country Ads volumes (never prefer weak worldwide Ads).
+  // Also never show less than the strongest single market (e.g. PK 40.5K).
   const searchVol = isGlobal
-    ? (searchVolumeAds ?? (totalGlobalVolume || metrics.searchVolume || null))
+    ? totalGlobalVolume > 0
+      ? Math.max(totalGlobalVolume, topCountryVolume)
+      : (searchVolumeAds ?? metrics.searchVolume ?? null)
     : (searchVolumeAds ?? metrics.searchVolume);
   const kd = primaryItem?.keyword_properties?.keyword_difficulty ?? null;
   const cpc = cpcAds ?? metrics.cpc;
