@@ -21,12 +21,12 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl("/about") },
   openGraph: pageOpenGraph({
     url: absoluteUrl("/about"),
-    title: "About SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
+    title: "About SkillStack",
     description:
       "Built in Gilgit-Baltistan. Serving Pakistan and international clients. Led by CEO Mansoor Khan.",
   }),
   twitter: pageTwitter({
-    title: "About SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
+    title: "About SkillStack",
     description: "Built in Gilgit-Baltistan. Serving Pakistan and international clients. Led by CEO Mansoor Khan.",
   }),
 };

@@ -31,12 +31,12 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl("/contact") },
   openGraph: pageOpenGraph({
     url: absoluteUrl("/contact"),
-    title: "Contact SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
+    title: "Contact SkillStack",
     description:
       "Tell us your niche and goals — hello@skillstack.com.pk · Gilgit-Baltistan, Pakistan.",
   }),
   twitter: pageTwitter({
-    title: "Contact SkillStack — Gilgit-Baltistan, Pakistan & Worldwide",
+    title: "Contact SkillStack",
     description: "Tell us your niche and goals — hello@skillstack.com.pk · Gilgit-Baltistan, Pakistan.",
   }),
 };

@@ -46,9 +46,9 @@ export default function ServicesPage() {
         data={[
           webPageJsonLd({
             path: "/services",
-            title: "SkillStack Services — SEO in Gilgit-Baltistan, Pakistan & Worldwide",
+            title: "SkillStack Services — SEO, Keywords, Content & Backlinks",
             description:
-              "Keyword research, Google ranking, content writing, blogging, backlinks, and websites from Gilgit-Baltistan for Pakistan and international clients.",
+              "Keyword research, Google ranking, content writing, blogging, backlinks, and websites from SkillStack for Pakistan and international clients.",
             type: "CollectionPage",
           }),
           {

@@ -30,29 +30,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const service = getServiceBySlug(slug);
   if (!service) return {};
 
-  const title = `${service.title} in Gilgit-Baltistan, Pakistan & Worldwide`;
-  const description = `${service.summary} Available from SkillStack in Gilgit-Baltistan for clients across Pakistan and internationally.`;
+  const title = service.title;
+  const description = `${service.summary} Available from SkillStack for clients across Pakistan and internationally.`;
   const url = absoluteUrl(`/services/${service.slug}`);
 
   return {
     title,
     description,
     keywords: [
-      `${service.title} Gilgit-Baltistan`,
       `${service.title} Pakistan`,
-      `${service.title} international`,
+      `${service.title} SEO`,
       "SkillStack",
-      "SEO Gilgit-Baltistan",
+      "SEO Pakistan",
       "international SEO",
     ],
     alternates: { canonical: url },
     openGraph: pageOpenGraph({
       url,
-      title: `${service.title} · SkillStack Worldwide`,
+      title: `${service.title} · SkillStack`,
       description,
     }),
     twitter: pageTwitter({
-      title: `${service.title} · SkillStack Worldwide`,
+      title: `${service.title} · SkillStack`,
       description,
     }),
   };
@@ -71,13 +70,13 @@ export default async function ServiceDetailPage({ params }: Props) {
         data={[
           webPageJsonLd({
             path,
-            title: `${service.title} in Gilgit-Baltistan, Pakistan & Worldwide · SkillStack`,
-            description: `${service.summary} From SkillStack in Gilgit-Baltistan for clients across Pakistan and worldwide.`,
+            title: `${service.title} · SkillStack`,
+            description: `${service.summary} From SkillStack for clients across Pakistan and worldwide.`,
           }),
           {
             "@context": "https://schema.org",
             "@type": "Service",
-            name: `${service.title} — Gilgit-Baltistan, Pakistan & Worldwide`,
+            name: service.title,
             description: service.summary,
             url: absoluteUrl(path),
             provider: { "@id": `${SITE_URL}/#organization` },
