@@ -10,7 +10,7 @@ import {
   LOCATION_FLAGS,
   RESEARCH_LOCATIONS,
 } from "@/lib/dashboard/locations";
-import { resolveVolumeMetrics, fetchGoogleAdsSearchVolumes } from "@/lib/dataforseo/volume";
+import { resolveVolumeMetrics, fetchGoogleAdsSearchVolumes, type GoogleAdsVolumeRow } from "@/lib/dataforseo/volume";
 
 export type KeywordIntent =
   | "informational"
@@ -176,18 +176,21 @@ const INSIGHTS_FALLBACK_LOCATION = { code: 2840, label: "United States", flag: "
 
 /**
  * Google Ads volume for cost-efficient markets only (not every RESEARCH_LOCATIONS entry).
+ * Each market = 1 paid Ads Live request (~$0.05–0.07), so keep this list tiny.
  */
 async function fetchGlobalCountryVolumes(
   seed: string,
   languageCode: string,
-): Promise<
-  Array<{
+): Promise<{
+  countries: Array<{
     countryCode: number;
     countryName: string;
     flag: string;
     volume: number;
-  }>
-> {
+  }>;
+  /** Ads row for the strongest market (for trends/CPC without a second billed call). */
+  topAdsRow: GoogleAdsVolumeRow | null;
+}> {
   const settled = await Promise.all(
     COST_EFFICIENT_MARKETS.map(async (loc) => {
       const countryCode = loc.code;
@@ -199,22 +202,65 @@ async function fetchGlobalCountryVolumes(
           countryCode,
           languageCode,
         );
-        const row = map.get(seed.trim().toLowerCase());
+        const row = map.get(seed.trim().toLowerCase()) ?? null;
         return {
           countryCode,
           countryName,
           flag,
           volume: row?.searchVolume ?? 0,
+          adsRow: row,
         };
       } catch {
-        return { countryCode, countryName, flag, volume: 0 };
+        return {
+          countryCode,
+          countryName,
+          flag,
+          volume: 0,
+          adsRow: null as GoogleAdsVolumeRow | null,
+        };
       }
     }),
   );
 
-  return settled
+  const countries = settled
     .filter((row) => row.volume > 0)
-    .sort((a, b) => b.volume - a.volume);
+    .sort((a, b) => b.volume - a.volume)
+    .map(({ countryCode, countryName, flag, volume }) => ({
+      countryCode,
+      countryName,
+      flag,
+      volume,
+    }));
+
+  const top = settled
+    .filter((row) => row.volume > 0)
+    .sort((a, b) => b.volume - a.volume)[0];
+
+  return { countries, topAdsRow: top?.adsRow ?? null };
+}
+
+/** Single-market Ads volume for the seed (1 paid request). */
+async function fetchSelectedCountryVolume(
+  seed: string,
+  locationCode: number,
+  languageCode: string,
+): Promise<{
+  countryCode: number;
+  countryName: string;
+  flag: string;
+  volume: number;
+  adsRow: GoogleAdsVolumeRow | null;
+}> {
+  const matchedMeta = RESEARCH_LOCATIONS.find((r) => r.code === locationCode);
+  const map = await fetchGoogleAdsSearchVolumes([seed], locationCode, languageCode);
+  const adsRow = map.get(seed.trim().toLowerCase()) ?? null;
+  return {
+    countryCode: locationCode,
+    countryName: matchedMeta?.label || "Target Region",
+    flag: matchedMeta?.flag || LOCATION_FLAGS[locationCode] || "🌐",
+    volume: adsRow?.searchVolume ?? 0,
+    adsRow,
+  };
 }
 
 export async function fetchSeedKeywordInsights(
@@ -226,10 +272,42 @@ export async function fetchSeedKeywordInsights(
   const api = labsApi();
   const isGlobal = locationCode === ALL_LOCATIONS_CODE;
 
-  // Global breakdown uses the small cost-efficient set (4 Ads calls).
-  // Single-country research still needs this for the Global Volume card,
-  // and as a fallback when the primary Ads/Labs volume is missing.
-  let countryVolumes = await fetchGlobalCountryVolumes(seed, languageCode);
+  // Ads Live ≈ $0.05–0.07 PER REQUEST (same for 1 or 1000 keywords).
+  // All locations → 4 markets. Single country → exactly 1 Ads request.
+  let countryVolumes: Array<{
+    countryCode: number;
+    countryName: string;
+    flag: string;
+    volume: number;
+  }> = [];
+  let adsRow: GoogleAdsVolumeRow | null = null;
+
+  if (isGlobal) {
+    const global = await fetchGlobalCountryVolumes(seed, languageCode);
+    countryVolumes = global.countries;
+    adsRow = global.topAdsRow;
+  } else {
+    try {
+      const selected = await fetchSelectedCountryVolume(
+        seed,
+        locationCode,
+        languageCode,
+      );
+      adsRow = selected.adsRow;
+      if (selected.volume > 0) {
+        countryVolumes = [
+          {
+            countryCode: selected.countryCode,
+            countryName: selected.countryName,
+            flag: selected.flag,
+            volume: selected.volume,
+          },
+        ];
+      }
+    } catch {
+      countryVolumes = [];
+    }
+  }
 
   let topCountry = countryVolumes[0];
   const overviewLocationCode = isGlobal
@@ -237,8 +315,8 @@ export async function fetchSeedKeywordInsights(
     : locationCode;
   const overviewLanguageCode = languageCode;
 
-  // Single-market Labs overview for KD / intent / monthly trend fallback.
-  // Clickstream on one seed keyword is cheap and often the only Labs volume source.
+  // One Labs overview for the seed only (KD / intent / monthly fallback).
+  // Clickstream doubles Labs cost — keep off.
   let rawResponse: unknown;
   try {
     rawResponse = await api.googleKeywordOverviewLive([
@@ -246,7 +324,7 @@ export async function fetchSeedKeywordInsights(
         keywords: [seed],
         location_code: overviewLocationCode,
         language_code: overviewLanguageCode,
-        include_clickstream_data: true,
+        include_clickstream_data: false,
       } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
     ]);
   } catch {
@@ -304,20 +382,9 @@ export async function fetchSeedKeywordInsights(
 
   topCountry = countryVolumes[0];
 
-  // Ads metrics for CPC / monthly trend: use strongest market when All locations.
-  // Cached — often a cache hit after fetchGlobalCountryVolumes.
-  const adsPrimary = await fetchGoogleAdsSearchVolumes(
-    [seed],
-    isGlobal
-      ? (topCountry?.countryCode ?? overviewLocationCode)
-      : locationCode,
-    languageCode,
-  );
-  const adsRow = adsPrimary.get(seed.trim().toLowerCase());
-
-  const searchVolumeAds = adsRow?.searchVolume;
-  const cpcAds = adsRow?.cpc;
-  const competitionAds = adsRow?.competition;
+  const searchVolumeAds = adsRow?.searchVolume ?? null;
+  const cpcAds = adsRow?.cpc ?? null;
+  const competitionAds = adsRow?.competition ?? null;
 
   const monthly =
     (adsRow?.monthlySearches?.length ? adsRow.monthlySearches : null) ??

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import {
-  fetchKeywordIntents,
   fetchSeedKeywordInsights,
   fetchSerpResults,
   type CategorizedKeywordIdeas,
@@ -131,11 +130,11 @@ export async function POST(request: Request) {
     ]);
     const serpResults = serp.rows;
 
-    // Intent only for the first page of results — keeps the Labs call small.
-    const intentMap = await fetchKeywordIntents(
-      results.slice(0, 25).map((row) => row.keyword),
-      languageCode,
-    ).catch(() => new Map<string, KeywordIntent>());
+    // Intent from seed overview only — skip a separate Search Intent Labs call (~$0.012+).
+    const intentMap = new Map<string, KeywordIntent>();
+    if (seedInsights?.intent) {
+      intentMap.set(seed.toLowerCase(), seedInsights.intent);
+    }
 
     const enriched = results.map((row) => ({
       ...row,

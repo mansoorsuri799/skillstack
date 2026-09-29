@@ -4,7 +4,6 @@ import {
   DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
   DataforseoLabsGoogleKeywordIdeasLiveRequestInfo,
-  DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
   DataforseoLabsGoogleRelevantPagesLiveRequestInfo,
   BacklinksSummaryLiveRequestInfo,
   BacklinksBacklinksLiveRequestInfo,
@@ -19,10 +18,9 @@ import {
   resolveLabsLocationCode,
   resolveLanguageForLocation,
 } from "@/lib/dashboard/locations";
-import { fetchGoogleAdsSearchVolumes, resolveVolumeMetrics } from "@/lib/dataforseo/volume";
+import { resolveVolumeMetrics } from "@/lib/dataforseo/volume";
 import {
   aiOptimizationApi,
-  allTasksResultItems,
   backlinksApi,
   labsApi,
   onPageApi,
@@ -78,127 +76,17 @@ function mapKeywordItems(
 }
 
 /**
- * Prefer live Google Ads Keyword Planner volumes (Keywords Everywhere–style),
- * then Labs Overview for difficulty / missing Ads rows.
+ * Prefer volumes already returned by suggestions/ideas/related.
+ * Do NOT call Google Ads Search Volume or Labs Overview here — those are
+ * billed per request and were the main driver of ~$0.5/search spend.
+ * Seed-level Ads (1 request) still runs in fetchSeedKeywordInsights.
  */
 async function enrichKeywordVolumes(
   rows: KeywordResult[],
-  locationCode: number,
-  languageCode: string,
+  _locationCode: number,
+  _languageCode: string,
 ): Promise<KeywordResult[]> {
-  if (rows.length === 0) return rows;
-
-  const keywords = [...new Set(rows.map((r) => r.keyword))].slice(0, 700);
-  const volumeByKeyword = new Map<
-    string,
-    {
-      searchVolume: number | null;
-      cpc: number | null;
-      competition: number | null;
-      difficulty: number | null;
-    }
-  >();
-
-  // Keep KD already returned by suggestions/ideas/related (avoids a full Labs Overview).
-  for (const row of rows) {
-    volumeByKeyword.set(row.keyword.toLowerCase(), {
-      searchVolume: row.searchVolume,
-      cpc: row.cpc,
-      competition: row.competition,
-      difficulty: row.difficulty,
-    });
-  }
-
-  const adsVolumes = await fetchGoogleAdsSearchVolumes(
-    keywords,
-    locationCode,
-    languageCode,
-  );
-
-  for (const [key, ads] of adsVolumes) {
-    const existing = volumeByKeyword.get(key);
-    volumeByKeyword.set(key, {
-      searchVolume: ads.searchVolume ?? existing?.searchVolume ?? null,
-      cpc: ads.cpc ?? existing?.cpc ?? null,
-      competition: ads.competition ?? existing?.competition ?? null,
-      difficulty: existing?.difficulty ?? null,
-    });
-  }
-
-  // Labs Overview only for keywords still missing difficulty (paid per batch).
-  const stillNeed = keywords.filter(
-    (k) => volumeByKeyword.get(k.toLowerCase())?.difficulty == null,
-  );
-
-  if (stillNeed.length > 0) {
-    const api = labsApi();
-    const chunks: string[][] = [];
-    for (let i = 0; i < stillNeed.length; i += 100) {
-      chunks.push(stillNeed.slice(i, i + 100));
-    }
-
-    await Promise.all(
-      chunks.map(async (chunk) => {
-        try {
-          const response = await api.googleKeywordOverviewLive([
-            {
-              keywords: chunk,
-              location_code: locationCode,
-              language_code: languageCode,
-              include_clickstream_data: false,
-            } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
-          ]);
-
-          type OverviewItem = {
-            keyword?: string | null;
-            location_code?: number | null;
-            keyword_info?: VolumeFields & { keyword_difficulty?: number | null } | null;
-            keyword_info_normalized_with_clickstream?: VolumeFields | null;
-            keyword_info_normalized_with_bing?: VolumeFields | null;
-            keyword_properties?: { keyword_difficulty?: number | null } | null;
-          };
-
-          const items = allTasksResultItems<OverviewItem>(response);
-          for (const item of items) {
-            const key = item.keyword?.toLowerCase();
-            if (!key) continue;
-            const metrics = resolveVolumeMetrics(
-              item.keyword_info,
-              item.keyword_info_normalized_with_clickstream,
-              item.keyword_info_normalized_with_bing,
-            );
-            const existing = volumeByKeyword.get(key);
-            volumeByKeyword.set(key, {
-              searchVolume: existing?.searchVolume ?? metrics.searchVolume,
-              cpc: existing?.cpc ?? metrics.cpc,
-              competition: existing?.competition ?? metrics.competition,
-              difficulty:
-                item.keyword_properties?.keyword_difficulty ??
-                item.keyword_info?.keyword_difficulty ??
-                existing?.difficulty ??
-                null,
-            });
-          }
-        } catch {
-          // Keep Ads / suggestion volumes if overview fails
-        }
-      }),
-    );
-  }
-
-  if (volumeByKeyword.size === 0) return rows;
-
-  return rows.map((row) => {
-    const enriched = volumeByKeyword.get(row.keyword.toLowerCase());
-    if (!enriched) return row;
-    return {
-      ...row,
-      searchVolume: enriched.searchVolume ?? row.searchVolume,
-      cpc: enriched.cpc ?? row.cpc,
-      competition: enriched.competition ?? row.competition,
-      difficulty: enriched.difficulty ?? row.difficulty,
-    };
-  });
+  return rows;
 }
 
 export async function researchKeywords(
