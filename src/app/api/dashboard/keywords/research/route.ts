@@ -11,7 +11,7 @@ import {
 import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
 import { researchKeywords } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
-import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE, resolveLabsLocationCode, resolveLanguageForLocation } from "@/lib/dashboard/locations";
+import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE, resolveLabsLocationCode } from "@/lib/dashboard/locations";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { FIRST_PAGE_SIZE, searchLiveSerp } from "@/lib/firecrawl/live-serp";
@@ -70,15 +70,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Enter a seed keyword." }, { status: 400 });
     }
 
-    const locationCode = Number(
-      body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE,
-    );
-    const languageCode =
-      body.languageCode ??
-      resolveLanguageForLocation(
-        locationCode,
-        project.languageCode ?? "en",
-      );
+    const locationCode = body.locationCode ?? project.locationCode;
+    const languageCode = body.languageCode ?? project.languageCode;
     const limit = Math.min(Number(body.limit ?? 80) || 80, 100);
     const mode = body.mode ?? "auto";
     const useClickstream = body.useClickstream !== false;
@@ -88,7 +81,7 @@ export async function POST(request: Request) {
       : locationCode;
     const serpLocation = isAllLocations(locationCode)
       ? resolveLabsLocationCode(project.locationCode ?? DEFAULT_LOCATION_CODE)
-      : resolveLabsLocationCode(locationCode);
+      : locationCode;
 
     const researchCacheKey = cacheKey([
       "keyword-research-v2",
