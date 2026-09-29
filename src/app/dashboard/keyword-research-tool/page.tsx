@@ -47,7 +47,7 @@ export default function KeywordsPage() {
   const { dataForSeoConfigured, firecrawlConfigured } = useDashboardProject();
   const [seed, setSeed] = useState("");
   const [locationCode, setLocationCode] = useState<number>(DEFAULT_LOCATION_CODE);
-  const [limit, setLimit] = useState<number>(150);
+  const [limit, setLimit] = useState<number>(50);
   const [mode, setMode] = useState<KeywordMode>("auto");
   const [results, setResults] = useState<KeywordResearchRow[]>([]);
   const [seedInsights, setSeedInsights] = useState<SeedKeywordInsights | null>(null);
@@ -105,7 +105,7 @@ export default function KeywordsPage() {
           locationCode,
           limit,
           mode,
-          useClickstream: true,
+          useClickstream: false,
         }),
       });
       const data = await res.json();
@@ -125,7 +125,7 @@ export default function KeywordsPage() {
         locationCode,
         limit,
         mode,
-        useClickstream: true,
+        useClickstream: false,
         results: nextResults,
         seedInsights: nextInsights,
         serpResults: nextSerp,

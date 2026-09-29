@@ -15,6 +15,7 @@ import {
 } from "dataforseo-client";
 import {
   ALL_LOCATIONS_CODE,
+  COST_EFFICIENT_MARKETS,
   resolveLabsLocationCode,
   resolveLanguageForLocation,
 } from "@/lib/dashboard/locations";
@@ -88,12 +89,6 @@ async function enrichKeywordVolumes(
   if (rows.length === 0) return rows;
 
   const keywords = [...new Set(rows.map((r) => r.keyword))].slice(0, 700);
-  const adsVolumes = await fetchGoogleAdsSearchVolumes(
-    keywords,
-    locationCode,
-    languageCode,
-  );
-
   const volumeByKeyword = new Map<
     string,
     {
@@ -104,20 +99,36 @@ async function enrichKeywordVolumes(
     }
   >();
 
-  for (const [key, ads] of adsVolumes) {
-    volumeByKeyword.set(key, {
-      searchVolume: ads.searchVolume,
-      cpc: ads.cpc,
-      competition: ads.competition,
-      difficulty: null,
+  // Keep KD already returned by suggestions/ideas/related (avoids a full Labs Overview).
+  for (const row of rows) {
+    volumeByKeyword.set(row.keyword.toLowerCase(), {
+      searchVolume: row.searchVolume,
+      cpc: row.cpc,
+      competition: row.competition,
+      difficulty: row.difficulty,
     });
   }
 
-  // Fill difficulty (and any keywords Ads skipped) from Labs Overview
-  const stillNeed = keywords.filter((k) => {
-    const row = volumeByKeyword.get(k.toLowerCase());
-    return !row || row.difficulty == null;
-  });
+  const adsVolumes = await fetchGoogleAdsSearchVolumes(
+    keywords,
+    locationCode,
+    languageCode,
+  );
+
+  for (const [key, ads] of adsVolumes) {
+    const existing = volumeByKeyword.get(key);
+    volumeByKeyword.set(key, {
+      searchVolume: ads.searchVolume ?? existing?.searchVolume ?? null,
+      cpc: ads.cpc ?? existing?.cpc ?? null,
+      competition: ads.competition ?? existing?.competition ?? null,
+      difficulty: existing?.difficulty ?? null,
+    });
+  }
+
+  // Labs Overview only for keywords still missing difficulty (paid per batch).
+  const stillNeed = keywords.filter(
+    (k) => volumeByKeyword.get(k.toLowerCase())?.difficulty == null,
+  );
 
   if (stillNeed.length > 0) {
     const api = labsApi();
@@ -134,7 +145,7 @@ async function enrichKeywordVolumes(
               keywords: chunk,
               location_code: locationCode,
               language_code: languageCode,
-              include_clickstream_data: true,
+              include_clickstream_data: false,
             } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
           ]);
 
@@ -196,7 +207,7 @@ export async function researchKeywords(
   languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
-  useClickstream = true,
+  useClickstream = false,
 ): Promise<KeywordResult[]> {
   if (locationCode === ALL_LOCATIONS_CODE) {
     return researchKeywordsAllLocations(
@@ -215,9 +226,8 @@ export async function researchKeywords(
   const api = labsApi();
   const resolvedMode =
     mode === "auto" ? "suggestions" : mode;
-  // Always request clickstream fields so Bing/clickstream-normalized volumes are available
-  const includeClickstream = true;
-  const safeLimit = Math.min(Math.max(Math.round(limit) || 50, 1), 1000);
+  const includeClickstream = useClickstream;
+  const safeLimit = Math.min(Math.max(Math.round(limit) || 50, 1), 75);
 
   let rows: KeywordResult[] = [];
 
@@ -338,51 +348,30 @@ export async function researchKeywords(
 }
 
 /** Markets used for All locations keyword ideas (valid Labs location+language pairs). */
-const KEYWORD_ALL_MARKETS = [
-  { code: 2586, lang: "en" }, // Pakistan
-  { code: 2840, lang: "en" }, // United States
-  { code: 2826, lang: "en" }, // United Kingdom
-  { code: 2124, lang: "en" }, // Canada
-  { code: 2036, lang: "en" }, // Australia
-  { code: 2356, lang: "en" }, // India
-  { code: 2250, lang: "fr" }, // France
-  { code: 2080, lang: "de" }, // Germany
-] as const;
+const KEYWORD_ALL_MARKETS = COST_EFFICIENT_MARKETS;
 
+/**
+ * All locations keyword ideas: fetch from the primary market only, then stop.
+ * Multi-market fan-out for idea discovery is extremely expensive; volume across
+ * countries is handled separately in seed insights (4 markets × 1 seed keyword).
+ */
 export async function researchKeywordsAllLocations(
   seed: string,
   _languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
-  useClickstream = true,
+  useClickstream = false,
 ): Promise<KeywordResult[]> {
-  const batches = await Promise.all(
-    KEYWORD_ALL_MARKETS.map((location) =>
-      researchKeywords(
-        seed,
-        location.code,
-        location.lang,
-        limit,
-        mode,
-        useClickstream,
-      ).catch(() => [] as KeywordResult[]),
-    ),
-  );
-
-  const merged = new Map<string, KeywordResult>();
-  for (const batch of batches) {
-    for (const row of batch) {
-      const key = row.keyword.toLowerCase();
-      const existing = merged.get(key);
-      if (!existing || (row.searchVolume ?? 0) > (existing.searchVolume ?? 0)) {
-        merged.set(key, row);
-      }
-    }
-  }
-
-  return [...merged.values()]
-    .sort((a, b) => (b.searchVolume ?? 0) - (a.searchVolume ?? 0))
-    .slice(0, limit);
+  const primary = KEYWORD_ALL_MARKETS[0];
+  const safeLimit = Math.min(Math.max(Math.round(limit) || 50, 1), 75);
+  return researchKeywords(
+    seed,
+    primary.code,
+    primary.lang,
+    safeLimit,
+    mode,
+    useClickstream,
+  ).catch(() => [] as KeywordResult[]);
 }
 
 export async function getDomainOverview(

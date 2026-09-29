@@ -13,25 +13,29 @@ import {
   resolveDomainTarget,
   type DomainScope,
 } from "@/lib/dashboard/domain-overview-config";
-import { isAllLocations } from "@/lib/dashboard/locations";
+import { isAllLocations, COST_EFFICIENT_MARKETS } from "@/lib/dashboard/locations";
 import { getDomainOverview } from "@/lib/dataforseo/services";
-import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
+import {
+  cacheKey,
+  getCached,
+  setCached,
+  DATAFORSEO_CACHE_TTL_MS,
+} from "@/lib/dataforseo/cache";
 
-const DOMAIN_DASHBOARD_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const DOMAIN_DASHBOARD_TTL_MS = DATAFORSEO_CACHE_TTL_MS;
+
+const MARKET_CODE_BY_LOCATION: Record<number, string> = {
+  2586: "PK",
+  2840: "US",
+  2826: "GB",
+  2356: "IN",
+};
 
 /** Major markets used for All locations aggregation + country breakdown. */
-const COUNTRY_MARKETS = [
-  { code: "US", locationCode: 2840 },
-  { code: "GB", locationCode: 2826 },
-  { code: "CA", locationCode: 2124 },
-  { code: "AU", locationCode: 2036 },
-  { code: "DE", locationCode: 2080 },
-  { code: "IN", locationCode: 2356 },
-  { code: "PK", locationCode: 2586 },
-  { code: "AE", locationCode: 2784 },
-  { code: "FR", locationCode: 2250 },
-  { code: "BR", locationCode: 2076 },
-] as const;
+const COUNTRY_MARKETS = COST_EFFICIENT_MARKETS.map((m) => ({
+  code: MARKET_CODE_BY_LOCATION[m.code] ?? String(m.code),
+  locationCode: m.code,
+}));
 
 export type DomainMetricSeries = {
   value: number | null;

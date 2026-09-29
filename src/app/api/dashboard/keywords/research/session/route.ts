@@ -19,15 +19,15 @@ function sanitizeSession(input: unknown): KeywordResearchSession | null {
       : DEFAULT_LOCATION_CODE;
   const limit =
     typeof body.limit === "number" && Number.isFinite(body.limit)
-      ? Math.min(Math.max(Math.round(body.limit), 1), 150)
-      : 150;
+      ? Math.min(Math.max(Math.round(body.limit), 1), 100)
+      : 50;
   const mode =
     typeof body.mode === "string" && VALID_MODES.has(body.mode as never)
       ? (body.mode as KeywordResearchSession["mode"])
       : "auto";
-  const useClickstream = body.useClickstream !== false;
+  const useClickstream = body.useClickstream === true;
 
-  const results = Array.isArray(body.results) ? body.results.slice(0, 150) : [];
+  const results = Array.isArray(body.results) ? body.results.slice(0, 100) : [];
   const serpResults = Array.isArray(body.serpResults) ? body.serpResults.slice(0, 40) : [];
   const seedInsights =
     body.seedInsights && typeof body.seedInsights === "object"

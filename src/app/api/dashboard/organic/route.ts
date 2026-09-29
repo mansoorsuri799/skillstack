@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
-import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
+import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import {
   getOrganicReport,
   type OrganicReportType,
@@ -21,7 +21,7 @@ const REPORT_TYPES = new Set<OrganicReportType>([
   "competitors",
 ]);
 
-const ORGANIC_TTL_MS = 10 * 60 * 1000;
+const ORGANIC_TTL_MS = DATAFORSEO_CACHE_TTL_MS;
 
 export async function POST(request: Request) {
   const result = await requireUser(request);

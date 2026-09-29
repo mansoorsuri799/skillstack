@@ -6,6 +6,7 @@ import {
 import { labsApi, serpApi, taskResult, taskResultItems, allTasksResultItems } from "@/lib/dataforseo/client";
 import {
   ALL_LOCATIONS_CODE,
+  COST_EFFICIENT_MARKETS,
   LOCATION_FLAGS,
   RESEARCH_LOCATIONS,
 } from "@/lib/dashboard/locations";
@@ -174,9 +175,7 @@ export async function fetchKeywordIntents(
 const INSIGHTS_FALLBACK_LOCATION = { code: 2840, label: "United States", flag: "🇺🇸", lang: "en" };
 
 /**
- * Google Ads volume per research country (parallel).
- * Uses the seed language for every market so English keywords like
- * "pdf extractor" return US/UK/IN volumes instead of only FR-lang markets.
+ * Google Ads volume for cost-efficient markets only (not every RESEARCH_LOCATIONS entry).
  */
 async function fetchGlobalCountryVolumes(
   seed: string,
@@ -190,8 +189,8 @@ async function fetchGlobalCountryVolumes(
   }>
 > {
   const settled = await Promise.all(
-    RESEARCH_LOCATIONS.map(async (loc) => {
-      const countryCode = loc.code as number;
+    COST_EFFICIENT_MARKETS.map(async (loc) => {
+      const countryCode = loc.code;
       const countryName = loc.label;
       const flag = loc.flag || LOCATION_FLAGS[countryCode] || "🌐";
       try {
@@ -227,18 +226,19 @@ export async function fetchSeedKeywordInsights(
   const api = labsApi();
   const isGlobal = locationCode === ALL_LOCATIONS_CODE;
 
-  // Country breakdown for Global Volume card — all research markets
+  // Global breakdown uses the small cost-efficient set (4 Ads calls).
+  // Single-country research still needs this for the Global Volume card,
+  // and as a fallback when the primary Ads/Labs volume is missing.
   let countryVolumes = await fetchGlobalCountryVolumes(seed, languageCode);
 
   let topCountry = countryVolumes[0];
   const overviewLocationCode = isGlobal
     ? (topCountry?.countryCode ?? INSIGHTS_FALLBACK_LOCATION.code)
     : locationCode;
-  const overviewLanguageCode = isGlobal
-    ? languageCode
-    : languageCode;
+  const overviewLanguageCode = languageCode;
 
-  // Single-market Labs overview for KD / intent / monthly trend fallback
+  // Single-market Labs overview for KD / intent / monthly trend fallback.
+  // Clickstream on one seed keyword is cheap and often the only Labs volume source.
   let rawResponse: unknown;
   try {
     rawResponse = await api.googleKeywordOverviewLive([
@@ -302,64 +302,10 @@ export async function fetchSeedKeywordInsights(
   const standard = primaryItem?.keyword_info;
   const clickstream = primaryItem?.keyword_info_normalized_with_clickstream;
 
-  // Always merge core markets for All locations so a failed parallel call
-  // cannot drop a dominant market (e.g. Pakistan 40.5K → worldwide 50).
-  if (isGlobal) {
-    const coreMarkets = [
-      { code: 2586, label: "Pakistan", flag: "🇵🇰" },
-      { code: 2840, label: "United States", flag: "🇺🇸" },
-      { code: 2826, label: "United Kingdom", flag: "🇬🇧" },
-      { code: 2356, label: "India", flag: "🇮🇳" },
-    ] as const;
-    const missingOrWeak = coreMarkets.filter((loc) => {
-      const existing = countryVolumes.find((c) => c.countryCode === loc.code);
-      return !existing || existing.volume <= 0;
-    });
-    if (missingOrWeak.length > 0 || countryVolumes.length === 0) {
-      const retries = await Promise.all(
-        (missingOrWeak.length > 0 ? missingOrWeak : coreMarkets).map(async (loc) => {
-          try {
-            const map = await fetchGoogleAdsSearchVolumes(
-              [seed],
-              loc.code,
-              languageCode,
-            );
-            const row = map.get(seed.trim().toLowerCase());
-            return {
-              countryCode: loc.code,
-              countryName: loc.label,
-              flag: loc.flag,
-              volume: row?.searchVolume ?? 0,
-            };
-          } catch {
-            return {
-              countryCode: loc.code,
-              countryName: loc.label,
-              flag: loc.flag,
-              volume: 0,
-            };
-          }
-        }),
-      );
-      for (const row of retries) {
-        if (row.volume <= 0) continue;
-        const existing = countryVolumes.find((c) => c.countryCode === row.countryCode);
-        if (existing) {
-          existing.volume = Math.max(existing.volume, row.volume);
-        } else {
-          countryVolumes.push(row);
-        }
-      }
-      countryVolumes = countryVolumes
-        .filter((c) => c.volume > 0)
-        .sort((a, b) => b.volume - a.volume);
-    }
-  }
-
   topCountry = countryVolumes[0];
 
   // Ads metrics for CPC / monthly trend: use strongest market when All locations.
-  // Do NOT use worldwide Ads (location=null) — it undercounts niche markets (e.g. 50 vs PK 40.5K).
+  // Cached — often a cache hit after fetchGlobalCountryVolumes.
   const adsPrimary = await fetchGoogleAdsSearchVolumes(
     [seed],
     isGlobal
@@ -437,6 +383,8 @@ export async function fetchSeedKeywordInsights(
 
   const totalGlobalVolume = countryVolumes.reduce((acc, c) => acc + c.volume, 0);
   const topCountryVolume = countryVolumes[0]?.volume ?? 0;
+  const selectedCountryVolume =
+    countryVolumes.find((c) => c.countryCode === locationCode)?.volume ?? null;
 
   const globalBreakdown: GlobalVolumeCountry[] = countryVolumes.map((c) => ({
     ...c,
@@ -444,13 +392,16 @@ export async function fetchSeedKeywordInsights(
       totalGlobalVolume > 0 ? Math.round((c.volume / totalGlobalVolume) * 100) : 0,
   }));
 
-  // All locations Volume = sum of country Ads volumes (never prefer weak worldwide Ads).
-  // Also never show less than the strongest single market (e.g. PK 40.5K).
+  // Prefer Ads → Labs → selected-country Ads → strongest country.
+  // Never leave Volume empty when Global Volume already has market data.
   const searchVol = isGlobal
     ? totalGlobalVolume > 0
       ? Math.max(totalGlobalVolume, topCountryVolume)
       : (searchVolumeAds ?? metrics.searchVolume ?? null)
-    : (searchVolumeAds ?? metrics.searchVolume);
+    : (searchVolumeAds ??
+        metrics.searchVolume ??
+        selectedCountryVolume ??
+        (topCountryVolume > 0 ? topCountryVolume : null));
   const kd = primaryItem?.keyword_properties?.keyword_difficulty ?? null;
   const cpc = cpcAds ?? metrics.cpc;
   const competition = competitionAds ?? metrics.competition;

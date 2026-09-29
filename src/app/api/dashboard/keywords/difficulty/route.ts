@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
-import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
+import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import {
   getKeywordDifficulty,
   parseKeywordList,
@@ -13,7 +13,7 @@ import {
   RESEARCH_LOCATIONS,
 } from "@/lib/dashboard/locations";
 
-const TTL_MS = 10 * 60 * 1000;
+const TTL_MS = DATAFORSEO_CACHE_TTL_MS;
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {

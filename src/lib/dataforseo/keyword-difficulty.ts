@@ -6,6 +6,7 @@ import {
   allTasksResultItems,
 } from "@/lib/dataforseo/client";
 import {
+  COST_EFFICIENT_MARKETS,
   isAllLocations,
   resolveLabsLocationCode,
 } from "@/lib/dashboard/locations";
@@ -19,17 +20,11 @@ export type KeywordDifficultyRow = {
   competition: number | null;
 };
 
-const MAX_KEYWORDS = 200;
+const MAX_KEYWORDS = 100;
 const CHUNK_SIZE = 100;
 
-/** Markets used when Location = All locations (keep small for API cost). */
-const KD_ALL_MARKETS = [
-  { code: 2586, lang: "en" }, // Pakistan
-  { code: 2840, lang: "en" }, // United States
-  { code: 2826, lang: "en" }, // United Kingdom
-  { code: 2356, lang: "en" }, // India
-  { code: 2036, lang: "en" }, // Australia
-] as const;
+/** All locations KD: use primary market only (KD is location-scoped; multi-market averages burn credits). */
+const KD_PRIMARY_MARKET = COST_EFFICIENT_MARKETS[0];
 
 export function parseKeywordList(input: string): string[] {
   const seen = new Set<string>();
@@ -59,7 +54,7 @@ async function fetchOverviewChunk(
       keywords,
       location_code: locationCode,
       language_code: languageCode,
-      include_clickstream_data: true,
+      include_clickstream_data: false,
     } as DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
   ]);
 
@@ -108,35 +103,6 @@ async function fetchOverviewChunk(
   return map;
 }
 
-function mergeRows(
-  current: KeywordDifficultyRow | undefined,
-  next: KeywordDifficultyRow,
-): KeywordDifficultyRow {
-  if (!current) return next;
-  return {
-    keyword: current.keyword || next.keyword,
-    difficulty:
-      current.difficulty == null
-        ? next.difficulty
-        : next.difficulty == null
-          ? current.difficulty
-          : Math.round((current.difficulty + next.difficulty) / 2),
-    searchVolume: Math.max(current.searchVolume ?? 0, next.searchVolume ?? 0) || null,
-    cpc:
-      current.cpc == null
-        ? next.cpc
-        : next.cpc == null
-          ? current.cpc
-          : Number(((current.cpc + next.cpc) / 2).toFixed(2)),
-    competition:
-      current.competition == null
-        ? next.competition
-        : next.competition == null
-          ? current.competition
-          : Number(((current.competition + next.competition) / 2).toFixed(2)),
-  };
-}
-
 export async function getKeywordDifficulty(
   keywordsInput: string[] | string,
   locationCode = 2586,
@@ -158,21 +124,22 @@ export async function getKeywordDifficulty(
   const byKeyword = new Map<string, KeywordDifficultyRow>();
 
   if (isAllLocations(locationCode)) {
-    // Average KD across major markets; keep strongest volume signal.
-    const markets = KD_ALL_MARKETS;
+    // Single primary market — multi-market KD averages multiply Labs cost.
     await Promise.all(
-      markets.flatMap((market) =>
-        chunks.map(async (chunk) => {
-          try {
-            const batch = await fetchOverviewChunk(chunk, market.code, market.lang);
-            for (const [key, row] of batch) {
-              byKeyword.set(key, mergeRows(byKeyword.get(key), row));
-            }
-          } catch {
-            // Skip failed market/chunk
+      chunks.map(async (chunk) => {
+        try {
+          const batch = await fetchOverviewChunk(
+            chunk,
+            KD_PRIMARY_MARKET.code,
+            KD_PRIMARY_MARKET.lang,
+          );
+          for (const [key, row] of batch) {
+            byKeyword.set(key, row);
           }
-        }),
-      ),
+        } catch {
+          // Skip failed chunk
+        }
+      }),
     );
   } else {
     const labsLocation = resolveLabsLocationCode(locationCode);

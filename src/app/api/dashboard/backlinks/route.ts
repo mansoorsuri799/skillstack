@@ -6,11 +6,11 @@ import {
   fetchReferringDomainRows,
   fetchTopPageRows,
 } from "@/lib/dataforseo/backlinks-dashboard";
-import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
+import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import { getProjectForUser } from "@/lib/dashboard/project";
 
-const BACKLINKS_TTL_MS = 10 * 60 * 1000;
+const BACKLINKS_TTL_MS = DATAFORSEO_CACHE_TTL_MS;
 const TABLE_LIMIT = 200;
 
 export async function POST(request: Request) {

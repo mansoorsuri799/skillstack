@@ -1,5 +1,11 @@
 import { KeywordsDataGoogleAdsSearchVolumeLiveRequestInfo } from "dataforseo-client";
 import { keywordsDataApi, taskItems } from "@/lib/dataforseo/client";
+import {
+  cacheKey,
+  DATAFORSEO_CACHE_TTL_MS,
+  getCached,
+  setCached,
+} from "@/lib/dataforseo/cache";
 
 type VolumeFields = {
   search_volume?: number | null;
@@ -54,6 +60,7 @@ export function resolveVolumeMetrics(
 /**
  * Live Google Ads Keyword Planner volumes — same source Keywords Everywhere uses.
  * Omit location_code for worldwide; otherwise pass a country location code.
+ * Results are cached to avoid repeat paid Ads calls for the same seed/market.
  */
 export async function fetchGoogleAdsSearchVolumes(
   keywords: string[],
@@ -70,6 +77,18 @@ export async function fetchGoogleAdsSearchVolumes(
   ].slice(0, 1000);
 
   if (unique.length === 0) return out;
+
+  const sortedKey = [...unique].sort().join(",");
+  const key = cacheKey([
+    "ads-volume-v1",
+    locationCode ?? "ww",
+    languageCode,
+    sortedKey,
+  ]);
+  const cached = getCached<Array<[string, GoogleAdsVolumeRow]>>(key);
+  if (cached) {
+    return new Map(cached);
+  }
 
   const api = keywordsDataApi();
   const chunks: string[][] = [];
@@ -105,10 +124,10 @@ export async function fetchGoogleAdsSearchVolumes(
         }>(response);
 
         for (const item of items) {
-          const key = item.keyword?.trim().toLowerCase();
-          if (!key) continue;
-          out.set(key, {
-            keyword: key,
+          const kw = item.keyword?.trim().toLowerCase();
+          if (!kw) continue;
+          out.set(kw, {
+            keyword: kw,
             searchVolume: item.search_volume ?? null,
             cpc: item.cpc ?? null,
             competition:
@@ -123,6 +142,10 @@ export async function fetchGoogleAdsSearchVolumes(
       }
     }),
   );
+
+  if (out.size > 0) {
+    setCached(key, [...out.entries()], DATAFORSEO_CACHE_TTL_MS);
+  }
 
   return out;
 }

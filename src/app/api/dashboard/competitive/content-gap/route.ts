@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import { getContentGap } from "@/lib/dataforseo/competitive-analysis";
+import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import {
   DEFAULT_LOCATION_CODE,
@@ -48,12 +49,29 @@ export async function POST(request: Request) {
     const locationCode = resolveLabsLocationCode(
       Number(body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE),
     );
+    const languageCode = body.languageCode ?? project.languageCode ?? "en";
+    const limit = Math.min(Number(body.limit ?? 50) || 50, 75);
+
+    const key = cacheKey([
+      "content-gap-v1",
+      yourDomain,
+      competitorDomain,
+      locationCode,
+      languageCode,
+      limit,
+    ]);
+    const cached = getCached<{ data: unknown }>(key);
+    if (cached) {
+      return NextResponse.json({ ...cached, cached: true });
+    }
+
     const [data, live] = await Promise.all([
       getContentGap(
         yourDomain,
         competitorDomain,
         locationCode,
-        body.languageCode ?? project.languageCode,
+        languageCode,
+        limit,
       ),
       isFirecrawlConfigured()
         ? liveSerpForDomain(competitorDomain, { locationCode }).catch(() => null)
@@ -75,7 +93,9 @@ export async function POST(request: Request) {
         }
       : null;
 
-    return NextResponse.json({ data: { ...data, liveSerp } });
+    const payload = { data: { ...data, liveSerp } };
+    setCached(key, payload, DATAFORSEO_CACHE_TTL_MS);
+    return NextResponse.json(payload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lookup failed";
     return NextResponse.json({ message }, { status: 500 });

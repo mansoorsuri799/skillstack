@@ -8,7 +8,7 @@ import {
   type KeywordIntent,
   type SerpResultRow,
 } from "@/lib/dataforseo/keyword-research";
-import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
+import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import { researchKeywords } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE, resolveLabsLocationCode, resolveLanguageForLocation } from "@/lib/dashboard/locations";
@@ -16,7 +16,7 @@ import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { FIRST_PAGE_SIZE, searchLiveSerp } from "@/lib/firecrawl/live-serp";
 
-const KEYWORD_RESEARCH_TTL_MS = 10 * 60 * 1000;
+const KEYWORD_RESEARCH_TTL_MS = DATAFORSEO_CACHE_TTL_MS;
 
 async function loadKeywordSerp(
   seed: string,
@@ -40,7 +40,8 @@ async function loadKeywordSerp(
         })),
       };
     } catch {
-      // Fall back to DataForSEO when live search is unavailable.
+      // Prefer empty SERP over a paid DataForSEO SERP fallback when Firecrawl is configured.
+      return { rows: [], source: "firecrawl" };
     }
   }
 
@@ -79,9 +80,10 @@ export async function POST(request: Request) {
         locationCode,
         project.languageCode ?? "en",
       );
-    const limit = Math.min(Number(body.limit ?? 80) || 80, 100);
+    const limit = Math.min(Number(body.limit ?? 50) || 50, 75);
     const mode = body.mode ?? "auto";
-    const useClickstream = body.useClickstream !== false;
+    // Clickstream adds Labs cost — off by default; clients can opt in.
+    const useClickstream = body.useClickstream === true;
     // All locations → fetch multi-market insights (not project country alone)
     const insightLocation = isAllLocations(locationCode)
       ? ALL_LOCATIONS_CODE
@@ -131,7 +133,7 @@ export async function POST(request: Request) {
 
     // Intent only for the first page of results — keeps the Labs call small.
     const intentMap = await fetchKeywordIntents(
-      results.slice(0, 50).map((row) => row.keyword),
+      results.slice(0, 25).map((row) => row.keyword),
       languageCode,
     ).catch(() => new Map<string, KeywordIntent>());
 
@@ -233,13 +235,34 @@ export async function POST(request: Request) {
         categorizedIdeas,
       };
     } else if (insights) {
+      const resolvedVolume =
+        insights.searchVolume ??
+        seedRow?.searchVolume ??
+        insights.globalBreakdown?.find((c) => c.countryCode === locationCode)
+          ?.volume ??
+        (!isAllLocations(locationCode) ? insights.globalVolume : null) ??
+        null;
       insights = {
         ...insights,
         intent: insights.intent ?? seedIntent,
-        searchVolume: insights.searchVolume ?? seedRow?.searchVolume ?? null,
+        searchVolume: resolvedVolume,
         cpc: insights.cpc ?? seedRow?.cpc ?? null,
         competition: insights.competition ?? seedRow?.competition ?? null,
         difficulty: insights.difficulty ?? seedRow?.difficulty ?? null,
+        clicks:
+          insights.clicks ??
+          (resolvedVolume ? Math.round(resolvedVolume * 1.15) : null),
+        parentTopicVolume: insights.parentTopicVolume ?? resolvedVolume,
+        trafficPotential:
+          insights.trafficPotential ??
+          (resolvedVolume ? Math.round(resolvedVolume * 0.42) : null),
+        trafficValue:
+          insights.trafficValue ??
+          (resolvedVolume && (insights.cpc ?? seedRow?.cpc)
+            ? Math.round(
+                resolvedVolume * 0.42 * (insights.cpc ?? seedRow?.cpc ?? 0),
+              )
+            : null),
         topRankingResult: insights.topRankingResult ?? topResult,
         categorizedIdeas,
       };

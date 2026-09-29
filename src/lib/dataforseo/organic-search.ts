@@ -4,8 +4,9 @@ import {
 } from "dataforseo-client";
 import { labsApi, normalizeDomain, taskItems, taskResultItems } from "@/lib/dataforseo/client";
 import {
+  COST_EFFICIENT_MARKETS,
   isAllLocations,
-  RESEARCH_LOCATIONS,
+  resolveLanguageForLocation,
 } from "@/lib/dashboard/locations";
 
 export type OrganicKeywordRow = {
@@ -45,8 +46,10 @@ type OrganicMetrics = {
   etv?: number | null;
 };
 
-/** Markets used when Location = All locations (same set as keyword research). */
-const ORGANIC_ALL_MARKETS = RESEARCH_LOCATIONS;
+/** All locations organic: few markets only (each = paid ranked_keywords call). */
+const ORGANIC_ALL_MARKETS = COST_EFFICIENT_MARKETS;
+const ORGANIC_DEFAULT_LIMIT = 50;
+const ORGANIC_ALL_LOCATIONS_LIMIT = 40;
 
 function preferKeywordRow(
   current: OrganicKeywordRow,
@@ -122,6 +125,7 @@ async function getOrganicKeywordsAllLocations(
   includeSubdomains: boolean,
   limit: number,
 ): Promise<OrganicKeywordRow[]> {
+  const perMarketLimit = Math.min(limit, ORGANIC_ALL_LOCATIONS_LIMIT);
   const batches = await Promise.all(
     ORGANIC_ALL_MARKETS.map((market) =>
       getOrganicKeywordsForLocation(
@@ -129,7 +133,7 @@ async function getOrganicKeywordsAllLocations(
         market.code,
         market.lang,
         includeSubdomains,
-        limit,
+        perMarketLimit,
       ).catch(() => [] as OrganicKeywordRow[]),
     ),
   );
@@ -158,16 +162,20 @@ export async function getOrganicKeywords(
   locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
-  limit = 250,
+  limit = ORGANIC_DEFAULT_LIMIT,
 ): Promise<{ domain: string; keywords: OrganicKeywordRow[] }> {
+  const safeLimit = Math.min(
+    Math.max(Math.round(limit) || ORGANIC_DEFAULT_LIMIT, 1),
+    isAllLocations(locationCode) ? ORGANIC_ALL_LOCATIONS_LIMIT : ORGANIC_DEFAULT_LIMIT,
+  );
   const keywords = isAllLocations(locationCode)
-    ? await getOrganicKeywordsAllLocations(domain, includeSubdomains, limit)
+    ? await getOrganicKeywordsAllLocations(domain, includeSubdomains, safeLimit)
     : await getOrganicKeywordsForLocation(
         domain,
         locationCode,
-        languageCode,
+        resolveLanguageForLocation(locationCode, languageCode),
         includeSubdomains,
-        limit,
+        safeLimit,
       );
 
   return { domain, keywords };
@@ -184,7 +192,7 @@ export async function getOrganicPositions(
     locationCode,
     languageCode,
     includeSubdomains,
-    250,
+    isAllLocations(locationCode) ? ORGANIC_ALL_LOCATIONS_LIMIT : ORGANIC_DEFAULT_LIMIT,
   );
   return { domain, keywords };
 }
@@ -194,14 +202,17 @@ export async function getOrganicTopPages(
   locationCode = 2586,
   languageCode = "en",
   includeSubdomains = true,
-  limit = 100,
+  limit = ORGANIC_DEFAULT_LIMIT,
 ): Promise<{ domain: string; pages: OrganicPageRow[] }> {
+  const fetchLimit = isAllLocations(locationCode)
+    ? ORGANIC_ALL_LOCATIONS_LIMIT
+    : Math.min(Math.max(limit, 1), ORGANIC_DEFAULT_LIMIT);
   const { keywords } = await getOrganicKeywords(
     domain,
     locationCode,
     languageCode,
     includeSubdomains,
-    Math.max(limit * 3, 100),
+    fetchLimit,
   );
 
   const byUrl = new Map<

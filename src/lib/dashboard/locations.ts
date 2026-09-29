@@ -1,11 +1,25 @@
-/** Aggregate across every market in RESEARCH_LOCATIONS */
+/** Aggregate code for multi-market mode */
 export const ALL_LOCATIONS_CODE = 0;
 
-/** DataForSEO location code — SkillStack default market (All locations) */
-export const DEFAULT_LOCATION_CODE = ALL_LOCATIONS_CODE;
+/**
+ * Default market for dashboard tools.
+ * Prefer a single country over All locations to avoid multi-market Labs/Ads spend.
+ */
+export const DEFAULT_LOCATION_CODE = 2586; // Pakistan
 
 /** Country used when Labs/SERP APIs require a real location_code */
-export const DEFAULT_COUNTRY_LOCATION_CODE = 2840; // United States
+export const DEFAULT_COUNTRY_LOCATION_CODE = 2586; // Pakistan (SkillStack primary market)
+
+/**
+ * Markets used for "All locations" aggregation.
+ * Keep this small — each entry is one or more paid DataForSEO calls.
+ */
+export const COST_EFFICIENT_MARKETS = [
+  { code: 2586, label: "Pakistan", flag: "🇵🇰", lang: "en" },
+  { code: 2840, label: "United States", flag: "🇺🇸", lang: "en" },
+  { code: 2826, label: "United Kingdom", flag: "🇬🇧", lang: "en" },
+  { code: 2356, label: "India", flag: "🇮🇳", lang: "en" },
+] as const;
 
 export const RESEARCH_LOCATIONS = [
   { code: 2586, label: "Pakistan", flag: "🇵🇰", lang: "en" },
@@ -54,7 +68,8 @@ export function resolveLanguageForLocation(
   return match?.lang ?? fallback;
 }
 
-export const KEYWORD_LIMITS = [25, 50, 100, 150] as const;
+/** Lower default limits — each extra row costs Labs/Ads enrichment. */
+export const KEYWORD_LIMITS = [25, 50, 75, 100] as const;
 
 export const LOCATION_FLAGS: Record<number, string> = {
   [ALL_LOCATIONS_CODE]: "🌍",

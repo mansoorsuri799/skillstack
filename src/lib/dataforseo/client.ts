@@ -29,6 +29,16 @@ function authenticatedFetch() {
     const response = await fetch(url, { ...init, headers, signal });
     if (!response.ok) {
       const body = await response.text();
+      if (response.status === 402) {
+        throw new Error(
+          "DataForSEO payment required — your account balance is empty or billing is past due. Top up credits at https://app.dataforseo.com/ then try again.",
+        );
+      }
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(
+          "DataForSEO authentication failed — check DATAFORSEO_API_KEY in .env.local.",
+        );
+      }
       throw new Error(
         `DataForSEO HTTP ${response.status}: ${body.slice(0, 400)}`,
       );

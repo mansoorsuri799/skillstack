@@ -456,6 +456,12 @@ export function KeywordResearchPanel({
   onSaveKeyword?: (row: KeywordResearchRow) => void;
 }) {
   const activeInsights = summary ?? seedInsights ?? null;
+  const displayVolume =
+    activeInsights?.searchVolume ??
+    activeInsights?.globalBreakdown?.find((c) => c.countryCode === locationCode)
+      ?.volume ??
+    (!isAllLocations(locationCode) ? activeInsights?.globalVolume : null) ??
+    null;
   const [query, setQuery] = useState(seed);
   const [recent, setRecent] = useState<string[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -781,10 +787,10 @@ export function KeywordResearchPanel({
 
                 <div className="mt-3 flex items-baseline gap-2">
                   <span className="font-display text-3xl font-bold tracking-tight text-snow">
-                    {formatCompactNumber(activeInsights?.searchVolume)}
+                    {formatCompactNumber(displayVolume)}
                   </span>
                   <span className="text-xs text-ink-muted">
-                    ({formatVolume(activeInsights?.searchVolume)})
+                    ({formatVolume(displayVolume)})
                   </span>
                 </div>
 
@@ -803,7 +809,7 @@ export function KeywordResearchPanel({
                   <div>
                     <span className="text-[10px] text-ink-muted block">Clicks</span>
                     <span className="font-semibold text-snow">
-                      {formatCompactNumber(activeInsights?.clicks ?? (activeInsights?.searchVolume ? Math.round(activeInsights.searchVolume * 1.1) : null))}
+                      {formatCompactNumber(activeInsights?.clicks ?? (displayVolume ? Math.round(displayVolume * 1.1) : null))}
                     </span>
                   </div>
                   <div>
@@ -832,10 +838,12 @@ export function KeywordResearchPanel({
 
                 <div className="mt-3 flex items-baseline gap-2">
                   <span className="font-display text-3xl font-bold tracking-tight text-emerald-400">
-                    {formatCompactNumber(activeInsights?.trafficPotential ?? (activeInsights?.searchVolume ? Math.round(activeInsights.searchVolume * 0.42) : null))}
+                    {formatCompactNumber(activeInsights?.trafficPotential ?? (displayVolume ? Math.round(displayVolume * 0.42) : null))}
                   </span>
                   <span className="text-xs text-ink-muted">
-                    Value: ${formatCompactNumber(activeInsights?.trafficValue ?? (activeInsights?.searchVolume ? Math.round(activeInsights.searchVolume * 0.42 * (activeInsights?.cpc || 1.1)) : 615))}
+                    Value: {activeInsights?.trafficValue != null || displayVolume
+                      ? `$${formatCompactNumber(activeInsights?.trafficValue ?? Math.round(displayVolume! * 0.42 * (activeInsights?.cpc || 1.1)))}`
+                      : "—"}
                   </span>
                 </div>
 
@@ -871,7 +879,7 @@ export function KeywordResearchPanel({
                     {activeInsights?.parentTopic || activeSeed}
                   </span>
                   <span className="text-xs text-ink-muted tabular-nums">
-                    Vol: {formatCompactNumber(activeInsights?.parentTopicVolume || activeInsights?.searchVolume)}
+                    Vol: {formatCompactNumber(activeInsights?.parentTopicVolume || displayVolume)}
                   </span>
                 </div>
               </div>

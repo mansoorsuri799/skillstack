@@ -22,7 +22,7 @@ export async function getContentGap(
   competitorDomain: string,
   locationCode = 2586,
   languageCode = "en",
-  limit = 100,
+  limit = 50,
 ): Promise<ContentGapResult> {
   const target1 = normalizeDomain(competitorDomain);
   const target2 = normalizeDomain(yourDomain);
