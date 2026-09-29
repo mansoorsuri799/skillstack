@@ -9,6 +9,10 @@ import {
 import { getOrganicCompetitorsReport } from "@/lib/dashboard/organic-competitors";
 import { getProjectForUser } from "@/lib/dashboard/project";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
+import {
+  DEFAULT_LOCATION_CODE,
+  resolveLabsLocationCode,
+} from "@/lib/dashboard/locations";
 
 const REPORT_TYPES = new Set<OrganicReportType>([
   "keywords",
@@ -41,7 +45,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const locationCode = body.locationCode ?? project.locationCode;
+    const locationCode = resolveLabsLocationCode(
+      Number(body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE),
+    );
     const languageCode = body.languageCode ?? project.languageCode;
     const includeSubdomains = body.scope !== "domain";
     const key = cacheKey([

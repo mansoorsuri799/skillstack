@@ -3,6 +3,10 @@ import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
 import { getContentGap } from "@/lib/dataforseo/competitive-analysis";
 import { getProjectForUser } from "@/lib/dashboard/project";
+import {
+  DEFAULT_LOCATION_CODE,
+  resolveLabsLocationCode,
+} from "@/lib/dashboard/locations";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { liveSerpForDomain } from "@/lib/firecrawl/live-serp";
 
@@ -41,7 +45,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const locationCode = body.locationCode ?? project.locationCode;
+    const locationCode = resolveLabsLocationCode(
+      Number(body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE),
+    );
     const [data, live] = await Promise.all([
       getContentGap(
         yourDomain,

@@ -22,7 +22,11 @@ import {
   type TrackingDevice,
   type TrackingSchedule,
 } from "@/lib/dashboard/rank-tracking-config";
-import { RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import {
+  DEFAULT_COUNTRY_LOCATION_CODE,
+  RESEARCH_LOCATIONS,
+  resolveLabsLocationCode,
+} from "@/lib/dashboard/locations";
 
 export type AddTrackedDomainInput = {
   domain: string;
@@ -39,7 +43,7 @@ export function AddTrackedDomainModal({
   onClose,
   onSubmit,
   defaultDomain = "",
-  defaultLocationCode = 2586,
+  defaultLocationCode = DEFAULT_COUNTRY_LOCATION_CODE,
   defaultLanguageCode = "en",
   submitting = false,
   error = "",
@@ -54,7 +58,9 @@ export function AddTrackedDomainModal({
   error?: string;
 }) {
   const [domain, setDomain] = useState(defaultDomain);
-  const [locationCode, setLocationCode] = useState(defaultLocationCode);
+  const [locationCode, setLocationCode] = useState(
+    resolveLabsLocationCode(defaultLocationCode),
+  );
   const [languageCode, setLanguageCode] = useState(defaultLanguageCode);
   const [searchTargeting, setSearchTargeting] = useState<SearchTargeting>("national");
   const [device, setDevice] = useState<TrackingDevice>("mobile");

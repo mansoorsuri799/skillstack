@@ -35,6 +35,10 @@ import type {
   TrackedDomainDetail,
   TrackedDomainSummary,
 } from "@/lib/dashboard/rank-tracking";
+import {
+  DEFAULT_COUNTRY_LOCATION_CODE,
+  resolveLabsLocationCode,
+} from "@/lib/dashboard/locations";
 
 export default function RankTrackingPage() {
   const { project, dataForSeoConfigured, loading: projectLoading } =
@@ -499,7 +503,9 @@ export default function RankTrackingPage() {
         }}
         onSubmit={handleAddDomain}
         defaultDomain={project?.domain ?? ""}
-        defaultLocationCode={project?.locationCode ?? 2586}
+        defaultLocationCode={resolveLabsLocationCode(
+          project?.locationCode ?? DEFAULT_COUNTRY_LOCATION_CODE,
+        )}
         defaultLanguageCode={project?.languageCode ?? "en"}
         submitting={addSubmitting}
         error={addError}

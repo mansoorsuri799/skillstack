@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { connectDB } from "@/lib/db";
 import type { KeywordResearchSession } from "@/lib/dashboard/keyword-research-session";
-import { KEYWORD_MODE_OPTIONS } from "@/lib/dashboard/locations";
+import { KEYWORD_MODE_OPTIONS, DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 import { User } from "@/models/User";
 
 const VALID_MODES = new Set(KEYWORD_MODE_OPTIONS.map((option) => option.value));
@@ -16,7 +16,7 @@ function sanitizeSession(input: unknown): KeywordResearchSession | null {
   const locationCode =
     typeof body.locationCode === "number" && Number.isFinite(body.locationCode)
       ? body.locationCode
-      : 2586;
+      : DEFAULT_LOCATION_CODE;
   const limit =
     typeof body.limit === "number" && Number.isFinite(body.limit)
       ? Math.min(Math.max(Math.round(body.limit), 1), 150)

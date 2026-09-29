@@ -24,6 +24,7 @@ import {
   type DomainKeywordSort,
   type DomainScope,
 } from "@/lib/dashboard/domain-overview-config";
+import { DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 
 type KeywordRow = {
   keyword: string;
@@ -86,14 +87,12 @@ function writeDomainCache(key: string, data: Overview) {
 export default function DomainPage() {
   const { project, dataForSeoConfigured } = useDashboardProject();
   const [domain, setDomain] = useState(() => project?.domain ?? "");
-  const [locationCode, setLocationCode] = useState(() => project?.locationCode ?? 2586);
+  const [locationCode, setLocationCode] = useState(DEFAULT_LOCATION_CODE);
   const [scope, setScope] = useState<DomainScope>("subdomains");
   const [sortBy, setSortBy] = useState<DomainKeywordSort>("traffic");
   const [tab, setTab] = useState<DomainTab>("keywords");
-  const [overview, setOverview] = useState<Overview | null>(() => {
-    if (!project?.domain) return null;
-    return readDomainCache(getDomainCacheKey(project.domain, project.locationCode ?? 2586, "subdomains"));
-  });
+  // Blank until the user clicks Search — do not restore prior overview on open.
+  const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const syncedProjectKey = useRef<string | null>(null);
@@ -136,18 +135,26 @@ export default function DomainPage() {
     }
   }, [domain, locationCode, scope]);
 
-  // Sync toolbar from project only when the selected project changes — never while typing.
+  // Sync domain from project only — never restore prior results on open.
   useEffect(() => {
     if (!project?.domain) return;
-    const projectKey = `${project.id ?? project.domain}|${project.locationCode}`;
+    const projectKey = `${project.id ?? project.domain}`;
     if (syncedProjectKey.current === projectKey) return;
     syncedProjectKey.current = projectKey;
     setDomain(project.domain);
-    setLocationCode(project.locationCode);
-    const cacheKey = getDomainCacheKey(project.domain, project.locationCode, scope);
-    const cached = readDomainCache(cacheKey);
-    if (cached) setOverview(cached);
-  }, [project, scope]);
+    setOverview(null);
+    setError("");
+  }, [project]);
+
+  // Changing filters clears prior results until the user searches again.
+  const filtersKey = `${locationCode}|${scope}`;
+  const filtersKeyRef = useRef(filtersKey);
+  useEffect(() => {
+    if (filtersKeyRef.current === filtersKey) return;
+    filtersKeyRef.current = filtersKey;
+    setOverview(null);
+    setError("");
+  }, [filtersKey]);
 
   const sortedKeywords = useMemo(() => {
     if (!overview) return [];

@@ -411,14 +411,14 @@ export function BacklinksDashboard({
     if (syncedInitialDomain.current === initialDomain) return;
     syncedInitialDomain.current = initialDomain;
     setDomain(initialDomain);
-    const cached = backlinksMemoryCache.get(getBacklinksCacheKey(initialDomain, scope));
-    if (cached) {
-      setOverview(cached.overview);
-      if (cached.backlinks) setBacklinkRows(cached.backlinks);
-      if (cached.referring) setReferringRows(cached.referring);
-      if (cached.pages) setTopPages(cached.pages);
-    }
-  }, [initialDomain, scope]);
+    // Do not restore prior backlink results on open — wait for Search.
+    setOverview(null);
+    setBacklinkRows([]);
+    setReferringRows([]);
+    setTopPages([]);
+    setLoadedTabs(new Set());
+    setError("");
+  }, [initialDomain]);
 
   useEffect(() => {
     setRecent(readRecent());

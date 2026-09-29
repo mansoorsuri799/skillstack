@@ -11,7 +11,7 @@ import {
 import { cacheKey, getCached, setCached } from "@/lib/dataforseo/cache";
 import { researchKeywords } from "@/lib/dataforseo/services";
 import { getProjectForUser } from "@/lib/dashboard/project";
-import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE } from "@/lib/dashboard/locations";
+import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE, resolveLabsLocationCode } from "@/lib/dashboard/locations";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { FIRST_PAGE_SIZE, searchLiveSerp } from "@/lib/firecrawl/live-serp";
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       ? ALL_LOCATIONS_CODE
       : locationCode;
     const serpLocation = isAllLocations(locationCode)
-      ? project.locationCode || DEFAULT_LOCATION_CODE
+      ? resolveLabsLocationCode(project.locationCode ?? DEFAULT_LOCATION_CODE)
       : locationCode;
 
     const researchCacheKey = cacheKey([

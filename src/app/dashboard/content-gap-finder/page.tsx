@@ -19,7 +19,7 @@ import {
   ResultsPanel,
 } from "@/components/dashboard/ui";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
-import { RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import { KEYWORD_RESEARCH_LOCATIONS, DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 import type { ContentGapResult } from "@/lib/dataforseo/competitive-analysis";
 
 type LiveSerpListing = {
@@ -42,7 +42,7 @@ export default function ContentGapPage() {
     useDashboardProject();
   const [yourDomain, setYourDomain] = useState("");
   const [competitor, setCompetitor] = useState("");
-  const [locationCode, setLocationCode] = useState(2586);
+  const [locationCode, setLocationCode] = useState(DEFAULT_LOCATION_CODE);
   const [data, setData] = useState<ContentGapPageData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -133,7 +133,7 @@ export default function ContentGapPage() {
                 label="Location"
                 value={locationCode}
                 onChange={(v) => setLocationCode(Number(v))}
-                options={RESEARCH_LOCATIONS.map((l) => ({
+                options={KEYWORD_RESEARCH_LOCATIONS.map((l) => ({
                   value: l.code,
                   label: l.label,
                 }))}

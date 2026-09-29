@@ -1,5 +1,11 @@
-/** DataForSEO location code — SkillStack default market */
-export const DEFAULT_LOCATION_CODE = 2586; // Pakistan
+/** Aggregate across every market in RESEARCH_LOCATIONS */
+export const ALL_LOCATIONS_CODE = 0;
+
+/** DataForSEO location code — SkillStack default market (All locations) */
+export const DEFAULT_LOCATION_CODE = ALL_LOCATIONS_CODE;
+
+/** Country used when Labs/SERP APIs require a real location_code */
+export const DEFAULT_COUNTRY_LOCATION_CODE = 2840; // United States
 
 export const RESEARCH_LOCATIONS = [
   { code: 2586, label: "Pakistan", flag: "🇵🇰", lang: "en" },
@@ -24,9 +30,6 @@ export const RESEARCH_LOCATIONS = [
   { code: 2682, label: "Saudi Arabia", flag: "🇸🇦", lang: "ar" },
 ] as const;
 
-/** Aggregate keyword research across every market in RESEARCH_LOCATIONS */
-export const ALL_LOCATIONS_CODE = 0;
-
 export const KEYWORD_RESEARCH_LOCATIONS = [
   { code: ALL_LOCATIONS_CODE, label: "All locations", flag: "🌍", lang: "en" },
   ...RESEARCH_LOCATIONS,
@@ -34,6 +37,11 @@ export const KEYWORD_RESEARCH_LOCATIONS = [
 
 export function isAllLocations(code: number) {
   return code === ALL_LOCATIONS_CODE;
+}
+
+/** Labs endpoints need a country — map All locations to the default country. */
+export function resolveLabsLocationCode(code: number) {
+  return isAllLocations(code) ? DEFAULT_COUNTRY_LOCATION_CODE : code;
 }
 
 export const KEYWORD_LIMITS = [25, 50, 100, 150] as const;

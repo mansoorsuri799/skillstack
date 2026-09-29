@@ -16,6 +16,10 @@ import {
   type TrackingDevice,
   type TrackingSchedule,
 } from "@/lib/dashboard/rank-tracking-config";
+import {
+  DEFAULT_COUNTRY_LOCATION_CODE,
+  resolveLabsLocationCode,
+} from "@/lib/dashboard/locations";
 import { TrackedDomain } from "@/models/TrackedDomain";
 
 export async function GET(request: Request) {
@@ -93,7 +97,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Enter a domain to track." }, { status: 400 });
     }
 
-    const locationCode = Number(body.locationCode ?? project.locationCode ?? 2586);
+    const locationCode = resolveLabsLocationCode(
+      Number(body.locationCode ?? project.locationCode ?? DEFAULT_COUNTRY_LOCATION_CODE),
+    );
     const languageCode = String(body.languageCode ?? project.languageCode ?? "en");
     const searchTargeting = String(
       body.searchTargeting ?? "national",

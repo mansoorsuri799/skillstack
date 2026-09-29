@@ -8,7 +8,6 @@ import {
   Download,
   ExternalLink,
   FileText,
-  Globe,
   Search,
 } from "lucide-react";
 import { OrganicSearchLayout } from "@/components/dashboard/OrganicSearchLayout";
@@ -29,7 +28,7 @@ type PagesData = {
   pages: OrganicPageRow[];
 };
 
-type SortField = "traffic" | "keywords" | "url";
+type SortField = "url" | "keyword" | "searchVolume" | "position";
 type SortOrder = "asc" | "desc";
 
 export default function OrganicTopPagesPage() {
@@ -48,18 +47,16 @@ export default function OrganicTopPagesPage() {
     dataForSeoConfigured,
   } = useOrganicSearch<PagesData>("pages");
 
-  const [sortField, setSortField] = useState<SortField>("traffic");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [sortField, setSortField] = useState<SortField>("position");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [searchQuery, setSearchQuery] = useState("");
-
-  const totalTraffic = data?.pages.reduce((sum, p) => sum + (p.traffic ?? 0), 0) ?? null;
 
   function handleSort(field: SortField) {
     if (sortField === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
-      setSortOrder(field === "url" ? "asc" : "desc");
+      setSortOrder(field === "searchVolume" ? "desc" : "asc");
     }
   }
 
@@ -69,24 +66,30 @@ export default function OrganicTopPagesPage() {
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      list = list.filter((p) => p.url.toLowerCase().includes(q));
+      list = list.filter(
+        (p) =>
+          p.url.toLowerCase().includes(q) ||
+          p.keyword.toLowerCase().includes(q),
+      );
     }
 
     list.sort((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-
-      if (sortField === "url") {
+      if (sortField === "url" || sortField === "keyword") {
+        const aVal = a[sortField].toLowerCase();
+        const bVal = b[sortField].toLowerCase();
         return sortOrder === "asc"
-          ? a.url.localeCompare(b.url)
-          : b.url.localeCompare(a.url);
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
       }
 
+      const aVal = a[sortField];
+      const bVal = b[sortField];
       if (aVal == null && bVal == null) return 0;
       if (aVal == null) return 1;
       if (bVal == null) return -1;
-
-      return sortOrder === "asc" ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal);
+      return sortOrder === "asc"
+        ? Number(aVal) - Number(bVal)
+        : Number(bVal) - Number(aVal);
     });
 
     return list;
@@ -94,13 +97,16 @@ export default function OrganicTopPagesPage() {
 
   function exportCsv() {
     if (!filteredPages.length) return;
-    const header = ["URL", "Est. Traffic", "Ranked Keywords"];
+    const header = ["URL", "Keyword", "Vol", "Position"];
     const rows = filteredPages.map((p) => [
       `"${(p.url || "").replace(/"/g, '""')}"`,
-      p.traffic ?? "",
-      p.keywords ?? "",
+      `"${(p.keyword || "").replace(/"/g, '""')}"`,
+      p.searchVolume ?? "",
+      p.position ?? "",
     ]);
-    const csvContent = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csvContent = [header.join(","), ...rows.map((r) => r.join(","))].join(
+      "\n",
+    );
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -113,8 +119,8 @@ export default function OrganicTopPagesPage() {
   return (
     <OrganicSearchLayout
       title="Top pages"
-      description="Landing pages driving the most organic traffic"
-      searchDescription="See which URLs earn the most organic visibility and keyword coverage."
+      description="Landing pages ranked by best organic position, with top keyword and volume"
+      searchDescription="See ranking URLs with their top keyword, volume, and position."
       domain={domain}
       setDomain={setDomain}
       locationCode={locationCode}
@@ -130,186 +136,153 @@ export default function OrganicTopPagesPage() {
       {loading && !data ? <LoadingBlock label="Loading top pages..." /> : null}
 
       {data ? (
-        <>
-          <MetricGrid className="sm:grid-cols-2">
-            <MetricTile
-              label="Pages returned"
-              value={data.pages.length}
-              icon={FileText}
-              featured
-            />
-            <MetricTile
-              label="Combined est. traffic"
-              value={totalTraffic}
-              icon={Globe}
-              featured
-            />
-          </MetricGrid>
+        data.pages.length === 0 ? (
+          <EmptyBlock
+            icon={FileText}
+            title="No top pages found"
+            description="No ranked pages for this domain in the selected location. Try Pakistan for .pk sites, or check the exact domain."
+          />
+        ) : (
+          <>
+            <MetricGrid className="sm:grid-cols-2">
+              <MetricTile
+                label="Pages returned"
+                value={data.pages.length}
+                icon={FileText}
+                featured
+              />
+              <MetricTile
+                label="Top 10 pages"
+                value={
+                  data.pages.filter((p) => (p.position ?? 999) <= 10).length
+                }
+                icon={FileText}
+              />
+            </MetricGrid>
 
-          <ResultsPanel
-            title={`Top pages for ${data.domain}`}
-            description="Pages ranked by estimated organic traffic with interactive High/Low sorting."
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-bg-soft/60 px-3.5 py-3 md:px-5">
-              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+            <ResultsPanel
+              title={`Top pages for ${data.domain}`}
+              description="URL, top keyword, search volume, and best position."
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-bg-soft/60 px-3.5 py-3 md:px-5">
                 <div className="relative w-full sm:w-auto sm:min-w-[180px] flex-1 max-w-xs">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted" />
                   <input
                     type="text"
-                    placeholder="Filter URLs..."
+                    placeholder="Filter URLs or keywords..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`${inputClass} !py-1.5 !pl-8 !pr-3 text-xs`}
                   />
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <select
-                    value={`${sortField}:${sortOrder}`}
-                    onChange={(e) => {
-                      const [field, order] = e.target.value.split(":") as [SortField, SortOrder];
-                      setSortField(field);
-                      setSortOrder(order);
-                    }}
-                    className="rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none transition focus:border-accent"
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs text-ink-muted tabular-nums">
+                    Showing{" "}
+                    <strong className="text-snow">{filteredPages.length}</strong> of{" "}
+                    {data.pages.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={exportCsv}
+                    disabled={filteredPages.length === 0}
+                    className={`${buttonGhostClass} !py-1.5 !px-2.5 text-xs disabled:opacity-40`}
                   >
-                    <option value="traffic:desc">Traffic: High to Low</option>
-                    <option value="traffic:asc">Traffic: Low to High</option>
-                    <option value="keywords:desc">Keywords: High to Low</option>
-                    <option value="keywords:asc">Keywords: Low to High</option>
-                    <option value="url:asc">URL: A to Z</option>
-                  </select>
+                    <Download className="h-3.5 w-3.5" />
+                    Export CSV
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-ink-muted tabular-nums">
-                  Showing <strong className="text-snow">{filteredPages.length}</strong> of{" "}
-                  {data.pages.length}
-                </span>
-                <button
-                  type="button"
-                  onClick={exportCsv}
-                  disabled={filteredPages.length === 0}
-                  className={`${buttonGhostClass} !py-1.5 !px-2.5 text-xs disabled:opacity-40`}
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Export CSV
-                </button>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm min-w-[640px]">
-                <thead>
-                  <tr className="border-b border-line bg-bg/80">
-                    <th className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleSort("url")}
-                        className={`group inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                          sortField === "url" ? "text-accent" : "text-ink-muted hover:text-snow"
-                        }`}
-                      >
-                        <span>Page</span>
-                        {sortField === "url" ? (
-                          sortOrder === "desc" ? (
-                            <ArrowDown className="h-3.5 w-3.5 text-accent" />
-                          ) : (
-                            <ArrowUp className="h-3.5 w-3.5 text-accent" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 opacity-40 group-hover:opacity-100" />
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 w-36">
-                      <button
-                        type="button"
-                        onClick={() => handleSort("traffic")}
-                        className={`group inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                          sortField === "traffic" ? "text-accent" : "text-ink-muted hover:text-snow"
-                        }`}
-                      >
-                        <span>Est. traffic</span>
-                        {sortField === "traffic" ? (
-                          sortOrder === "desc" ? (
-                            <ArrowDown className="h-3.5 w-3.5 text-accent" />
-                          ) : (
-                            <ArrowUp className="h-3.5 w-3.5 text-accent" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 opacity-40 group-hover:opacity-100" />
-                        )}
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 w-32">
-                      <button
-                        type="button"
-                        onClick={() => handleSort("keywords")}
-                        className={`group inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                          sortField === "keywords" ? "text-accent" : "text-ink-muted hover:text-snow"
-                        }`}
-                      >
-                        <span>Keywords</span>
-                        {sortField === "keywords" ? (
-                          sortOrder === "desc" ? (
-                            <ArrowDown className="h-3.5 w-3.5 text-accent" />
-                          ) : (
-                            <ArrowUp className="h-3.5 w-3.5 text-accent" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 opacity-40 group-hover:opacity-100" />
-                        )}
-                      </button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPages.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className="py-12 text-center text-sm text-ink-muted">
-                        No pages match the filter.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredPages.map((row, idx) => (
-                      <tr
-                        key={`${row.url}-${idx}`}
-                        className="border-b border-line/50 transition hover:bg-white/[0.02] last:border-0"
-                      >
-                        <td className="px-4 py-3.5">
-                          <a
-                            href={row.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 max-w-lg truncate text-accent hover:underline"
-                            title={row.url}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-line bg-bg/80">
+                      {(
+                        [
+                          ["url", "URL"],
+                          ["keyword", "Keyword"],
+                          ["searchVolume", "Vol"],
+                          ["position", "Position"],
+                        ] as const
+                      ).map(([field, label]) => (
+                        <th key={field} className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => handleSort(field)}
+                            className={`group inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+                              sortField === field
+                                ? "text-accent"
+                                : "text-ink-muted hover:text-snow"
+                            }`}
                           >
-                            <span className="truncate">{row.url}</span>
-                            <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
-                          </a>
-                        </td>
-                        <td className="px-4 py-3.5 font-semibold text-accent tabular-nums">
-                          {row.traffic?.toLocaleString() ?? "—"}
-                        </td>
-                        <td className="px-4 py-3.5 text-ink-muted tabular-nums">
-                          {row.keywords?.toLocaleString() ?? "—"}
+                            <span>{label}</span>
+                            {sortField === field ? (
+                              sortOrder === "desc" ? (
+                                <ArrowDown className="h-3.5 w-3.5 text-accent" />
+                              ) : (
+                                <ArrowUp className="h-3.5 w-3.5 text-accent" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="h-3 w-3 opacity-40 group-hover:opacity-100" />
+                            )}
+                          </button>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPages.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="py-12 text-center text-sm text-ink-muted"
+                        >
+                          No pages match the filter.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </ResultsPanel>
-        </>
+                    ) : (
+                      filteredPages.map((row, idx) => (
+                        <tr
+                          key={`${row.url}-${idx}`}
+                          className="border-b border-line/50 transition hover:bg-white/[0.02] last:border-0"
+                        >
+                          <td className="px-4 py-3.5">
+                            <a
+                              href={row.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex max-w-md items-center gap-1 truncate text-accent hover:underline"
+                              title={row.url}
+                            >
+                              <span className="truncate">{row.url}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
+                            </a>
+                          </td>
+                          <td className="px-4 py-3.5 font-medium text-snow">
+                            {row.keyword || "—"}
+                          </td>
+                          <td className="px-4 py-3.5 tabular-nums text-ink-muted">
+                            {row.searchVolume?.toLocaleString() ?? "—"}
+                          </td>
+                          <td className="px-4 py-3.5 font-semibold tabular-nums text-accent">
+                            {row.position ?? "—"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </ResultsPanel>
+          </>
+        )
       ) : (
         !loading && (
           <EmptyBlock
             icon={FileText}
             title="Analyze top pages"
-            description="Enter a domain and click Analyze to discover its most visited organic pages."
+            description="Enter a domain to see ranking URLs with keyword, volume, and position."
           />
         )
       )}

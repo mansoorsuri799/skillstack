@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import {
   KeywordResearchPanel,
@@ -20,34 +20,28 @@ import {
   saveKeywordResearchSession,
   type KeywordResearchSession,
 } from "@/lib/dashboard/keyword-research-session";
-import { type KeywordMode } from "@/lib/dashboard/locations";
+import { type KeywordMode, DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 
-function applySession(
+function applySessionPrefs(
   session: KeywordResearchSession,
   setters: {
     setSeed: (value: string) => void;
     setLocationCode: (value: number) => void;
     setLimit: (value: number) => void;
     setMode: (value: KeywordMode) => void;
-    setResults: (value: KeywordResearchRow[]) => void;
-    setSeedInsights: (value: SeedKeywordInsights | null) => void;
-    setSerpResults: (value: SerpResultRow[]) => void;
   },
 ) {
   setters.setSeed(session.seed);
   setters.setLocationCode(session.locationCode);
   setters.setLimit(session.limit);
   setters.setMode(session.mode);
-  setters.setResults(session.results);
-  setters.setSeedInsights(session.seedInsights);
-  setters.setSerpResults(session.serpResults);
 }
 
 export default function KeywordsPage() {
   const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [seed, setSeed] = useState("");
-  const [locationCode, setLocationCode] = useState<number>(2586);
+  const [locationCode, setLocationCode] = useState<number>(DEFAULT_LOCATION_CODE);
   const [limit, setLimit] = useState<number>(150);
   const [mode, setMode] = useState<KeywordMode>("auto");
   const [results, setResults] = useState<KeywordResearchRow[]>([]);
@@ -59,27 +53,30 @@ export default function KeywordsPage() {
   const [message, setMessage] = useState("");
   const [sessionReady, setSessionReady] = useState(false);
 
-  const restoreSession = useCallback((session: KeywordResearchSession) => {
-    applySession(session, {
-      setSeed,
-      setLocationCode,
-      setLimit,
-      setMode,
-      setResults,
-      setSeedInsights,
-      setSerpResults,
-    });
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
+      // Prefill seed/settings only — never restore result tables until the user searches.
       const local = readLocalKeywordSession();
-      if (local && !cancelled) restoreSession(local);
+      if (local && !cancelled) {
+        applySessionPrefs(local, {
+          setSeed,
+          setLocationCode,
+          setLimit,
+          setMode,
+        });
+      }
 
       const server = await loadKeywordResearchSession();
-      if (!cancelled && server) restoreSession(server);
+      if (server && !cancelled) {
+        applySessionPrefs(server, {
+          setSeed,
+          setLocationCode,
+          setLimit,
+          setMode,
+        });
+      }
 
       if (!cancelled) setSessionReady(true);
     })();
@@ -87,13 +84,7 @@ export default function KeywordsPage() {
     return () => {
       cancelled = true;
     };
-  }, [restoreSession]);
-
-  useEffect(() => {
-    if (project?.locationCode && results.length === 0) {
-      setLocationCode(project.locationCode);
-    }
-  }, [project, results.length]);
+  }, []);
 
   async function onResearch(searchSeed?: string) {
     const keyword = (searchSeed ?? seed).trim();

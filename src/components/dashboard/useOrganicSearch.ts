@@ -7,7 +7,7 @@ import type { OrganicReportType } from "@/lib/dataforseo/organic-search";
 const organicMemoryCache = new Map<string, unknown>();
 
 function getCacheKey(type: string, domain: string, locationCode: number, scope: string) {
-  return `ss_organic_v2_${type}_${domain.toLowerCase()}_${locationCode}_${scope}`;
+  return `ss_organic_v3_${type}_${domain.toLowerCase()}_${locationCode}_${scope}`;
 }
 
 function readCachedData<T>(key: string): T | null {
@@ -44,12 +44,11 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
   const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [domain, setDomain] = useState(() => project?.domain ?? "");
-  const [locationCode, setLocationCode] = useState(() => project?.locationCode ?? 2586);
+  // Labs organic APIs need a real country. Default Pakistan (primary SkillStack market).
+  const [locationCode, setLocationCode] = useState(2586);
   const [scope, setScope] = useState("subdomains");
-  const [data, setData] = useState<T | null>(() => {
-    if (!project?.domain) return null;
-    return readCachedData<T>(getCacheKey(type, project.domain, project.locationCode ?? 2586, "subdomains"));
-  });
+  // Never hydrate prior results on open — only show data after an explicit Analyze click.
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const syncedProjectKey = useRef<string | null>(null);
@@ -64,18 +63,16 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
       setError("Enter a domain to analyze.");
       return;
     }
-
     const nextLocation = override?.locationCode ?? locationCode;
     const nextScope = override?.scope ?? scope;
-    const cacheKey = getCacheKey(type, targetDomain, nextLocation, nextScope);
-    const cached = readCachedData<T>(cacheKey);
-    if (cached) {
-      setData(cached);
-    }
 
     setLoading(true);
     setError("");
     try {
+      const cacheKey = getCacheKey(type, targetDomain, nextLocation, nextScope);
+      const cached = readCachedData<T>(cacheKey);
+      if (cached) setData(cached);
+
       const res = await fetch("/api/dashboard/organic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,9 +85,9 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      const resultData = json.data as T;
-      setData(resultData);
-      writeCachedData(cacheKey, resultData);
+      const nextData = (json.data ?? json) as T;
+      setData(nextData);
+      writeCachedData(cacheKey, nextData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Lookup failed");
     } finally {
@@ -100,15 +97,23 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
 
   useEffect(() => {
     if (!project?.domain) return;
-    const projectKey = `${project.id ?? project.domain}|${project.locationCode}|${type}`;
+    const projectKey = `${project.id ?? project.domain}|${type}`;
     if (syncedProjectKey.current === projectKey) return;
     syncedProjectKey.current = projectKey;
     setDomain(project.domain);
-    setLocationCode(project.locationCode);
-    const cacheKey = getCacheKey(type, project.domain, project.locationCode, scope);
-    const cached = readCachedData<T>(cacheKey);
-    if (cached) setData(cached);
-  }, [project, scope, type]);
+    setData(null);
+    setError("");
+  }, [project, type]);
+
+  // Changing location/scope clears prior results until Analyze is clicked again.
+  const filtersKey = `${locationCode}|${scope}`;
+  const filtersKeyRef = useRef(filtersKey);
+  useEffect(() => {
+    if (filtersKeyRef.current === filtersKey) return;
+    filtersKeyRef.current = filtersKey;
+    setData(null);
+    setError("");
+  }, [filtersKey]);
 
   return {
     domain,
