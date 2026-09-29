@@ -13,7 +13,11 @@ import {
   OnPageLighthouseLiveJsonRequestInfo,
   AiOptimizationChatGptLlmScraperLiveAdvancedRequestInfo,
 } from "dataforseo-client";
-import { ALL_LOCATIONS_CODE, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import {
+  ALL_LOCATIONS_CODE,
+  resolveLabsLocationCode,
+  resolveLanguageForLocation,
+} from "@/lib/dashboard/locations";
 import { fetchGoogleAdsSearchVolumes, resolveVolumeMetrics } from "@/lib/dataforseo/volume";
 import {
   aiOptimizationApi,
@@ -204,11 +208,16 @@ export async function researchKeywords(
     );
   }
 
+  // Labs rejects invalid location+language pairs with 40501 Invalid Field.
+  const labsLocation = resolveLabsLocationCode(locationCode);
+  const labsLanguage = resolveLanguageForLocation(labsLocation, languageCode);
+
   const api = labsApi();
   const resolvedMode =
     mode === "auto" ? "suggestions" : mode;
   // Always request clickstream fields so Bing/clickstream-normalized volumes are available
   const includeClickstream = true;
+  const safeLimit = Math.min(Math.max(Math.round(limit) || 50, 1), 1000);
 
   let rows: KeywordResult[] = [];
 
@@ -216,9 +225,9 @@ export async function researchKeywords(
     const response = await api.googleRelatedKeywordsLive([
       {
         keyword: seed,
-        location_code: locationCode,
-        language_code: languageCode,
-        limit,
+        location_code: labsLocation,
+        language_code: labsLanguage,
+        limit: safeLimit,
         include_clickstream_data: includeClickstream,
       } as DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
     ]);
@@ -260,9 +269,9 @@ export async function researchKeywords(
     const response = await api.googleKeywordIdeasLive([
       {
         keywords: [seed],
-        location_code: locationCode,
-        language_code: languageCode,
-        limit,
+        location_code: labsLocation,
+        language_code: labsLanguage,
+        limit: safeLimit,
         include_clickstream_data: includeClickstream,
       } as DataforseoLabsGoogleKeywordIdeasLiveRequestInfo,
     ]);
@@ -291,12 +300,12 @@ export async function researchKeywords(
     const response = await api.googleKeywordSuggestionsLive([
       {
         keyword: seed,
-        location_code: locationCode,
-        language_code: languageCode,
+        location_code: labsLocation,
+        language_code: labsLanguage,
         include_seed_keyword: true,
         include_clickstream_data: includeClickstream,
         order_by: ["keyword_info.search_volume,desc"],
-        limit,
+        limit: safeLimit,
       } as DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo,
     ]);
 
@@ -325,22 +334,34 @@ export async function researchKeywords(
   }
 
   // Overview enrichment → Google Ads volumes (closer to Keywords Everywhere)
-  return enrichKeywordVolumes(rows, locationCode, languageCode);
+  return enrichKeywordVolumes(rows, labsLocation, labsLanguage);
 }
+
+/** Markets used for All locations keyword ideas (valid Labs location+language pairs). */
+const KEYWORD_ALL_MARKETS = [
+  { code: 2586, lang: "en" }, // Pakistan
+  { code: 2840, lang: "en" }, // United States
+  { code: 2826, lang: "en" }, // United Kingdom
+  { code: 2124, lang: "en" }, // Canada
+  { code: 2036, lang: "en" }, // Australia
+  { code: 2356, lang: "en" }, // India
+  { code: 2250, lang: "fr" }, // France
+  { code: 2080, lang: "de" }, // Germany
+] as const;
 
 export async function researchKeywordsAllLocations(
   seed: string,
-  languageCode = "en",
+  _languageCode = "en",
   limit = 50,
   mode: "auto" | "suggestions" | "related" | "ideas" = "auto",
   useClickstream = true,
 ): Promise<KeywordResult[]> {
   const batches = await Promise.all(
-    RESEARCH_LOCATIONS.map((location) =>
+    KEYWORD_ALL_MARKETS.map((location) =>
       researchKeywords(
         seed,
         location.code,
-        languageCode,
+        location.lang,
         limit,
         mode,
         useClickstream,
