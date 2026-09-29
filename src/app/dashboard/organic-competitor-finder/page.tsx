@@ -11,10 +11,10 @@ import {
   Users,
 } from "lucide-react";
 import { OrganicSearchLayout } from "@/components/dashboard/OrganicSearchLayout";
+import { ToolbarMenu } from "@/components/dashboard/ToolbarMenu";
 import { useOrganicSearch } from "@/components/dashboard/useOrganicSearch";
 import {
   buttonGhostClass,
-  CompactSelect,
   EmptyBlock,
   inputClass,
   LoadingBlock,
@@ -201,22 +201,41 @@ export default function OrganicCompetitorsPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <CompactSelect
+                  <ToolbarMenu
+                    size="sm"
+                    minWidth="12rem"
+                    menuMinWidth="14rem"
                     value={`${sortField}:${sortOrder}`}
-                    onChange={(e) => {
-                      const [field, order] = e.target.value.split(":") as [SortField, SortOrder];
+                    options={[
+                      { value: "avgPosition:asc", label: "Rank: Best first" },
+                      { value: "avgPosition:desc", label: "Rank: High to Low" },
+                      {
+                        value: "intersections:desc",
+                        label: "Shared Keywords: High to Low",
+                      },
+                      {
+                        value: "intersections:asc",
+                        label: "Shared Keywords: Low to High",
+                      },
+                      {
+                        value: "organicKeywords:desc",
+                        label: "Keywords: High to Low",
+                      },
+                      {
+                        value: "organicTraffic:desc",
+                        label: "Traffic: High to Low",
+                      },
+                      { value: "domain:asc", label: "Domain: A to Z" },
+                    ]}
+                    onChange={(value) => {
+                      const [field, order] = value.split(":") as [
+                        SortField,
+                        SortOrder,
+                      ];
                       setSortField(field);
                       setSortOrder(order);
                     }}
-                  >
-                    <option value="avgPosition:asc">Rank: Best first</option>
-                    <option value="avgPosition:desc">Rank: High to Low</option>
-                    <option value="intersections:desc">Shared Keywords: High to Low</option>
-                    <option value="intersections:asc">Shared Keywords: Low to High</option>
-                    <option value="organicKeywords:desc">Keywords: High to Low</option>
-                    <option value="organicTraffic:desc">Traffic: High to Low</option>
-                    <option value="domain:asc">Domain: A to Z</option>
-                  </CompactSelect>
+                  />
                 </div>
               </div>
 

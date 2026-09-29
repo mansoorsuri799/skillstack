@@ -5,16 +5,15 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
   ExternalLink,
   RotateCcw,
   Search,
-  SlidersHorizontal,
 } from "lucide-react";
 import { OrganicSearchLayout } from "@/components/dashboard/OrganicSearchLayout";
+import { ToolbarMenu } from "@/components/dashboard/ToolbarMenu";
 import { useOrganicSearch } from "@/components/dashboard/useOrganicSearch";
 import {
   buttonGhostClass,
@@ -38,6 +37,26 @@ type SortOrder = "asc" | "desc";
 type PositionFilter = "all" | "top3" | "top10" | "11-20" | "21-50" | "51-100";
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+
+const POSITION_FILTER_OPTIONS = [
+  { value: "all", label: "All Positions" },
+  { value: "top3", label: "Top 3 (#1 - #3)" },
+  { value: "top10", label: "Top 10 (#1 - #10)" },
+  { value: "11-20", label: "Positions 11 - 20" },
+  { value: "21-50", label: "Positions 21 - 50" },
+  { value: "51-100", label: "Positions 51 - 100" },
+] as const;
+
+const SORT_OPTIONS = [
+  { value: "rank:asc", label: "Position: #1 first (Best)" },
+  { value: "rank:desc", label: "Position: High to Low" },
+  { value: "searchVolume:desc", label: "Volume: High to Low" },
+  { value: "searchVolume:asc", label: "Volume: Low to High" },
+  { value: "cpc:desc", label: "CPC: High to Low" },
+  { value: "cpc:asc", label: "CPC: Low to High" },
+  { value: "keyword:asc", label: "Keyword: A to Z" },
+  { value: "keyword:desc", label: "Keyword: Z to A" },
+] as const;
 
 function SortableHeader({
   label,
@@ -289,42 +308,34 @@ export default function OrganicKeywordsPage() {
 
                 {/* Position Filter Dropdown */}
                 <div className="flex items-center gap-1.5">
-                  <CompactSelect
+                  <ToolbarMenu
+                    size="sm"
+                    minWidth="9rem"
+                    menuMinWidth="12rem"
                     value={positionFilter}
-                    onChange={(e) => {
-                      setPositionFilter(e.target.value as PositionFilter);
+                    options={[...POSITION_FILTER_OPTIONS]}
+                    onChange={(value) => {
+                      setPositionFilter(value as PositionFilter);
                       setPage(0);
                     }}
-                  >
-                    <option value="all">All Positions</option>
-                    <option value="top3">Top 3 (#1 - #3)</option>
-                    <option value="top10">Top 10 (#1 - #10)</option>
-                    <option value="11-20">Positions 11 - 20</option>
-                    <option value="21-50">Positions 21 - 50</option>
-                    <option value="51-100">Positions 51 - 100</option>
-                  </CompactSelect>
+                  />
                 </div>
 
                 {/* Sort By Dropdown (Ahrefs High/Low selector) */}
                 <div className="flex items-center gap-1.5">
-                  <CompactSelect
+                  <ToolbarMenu
+                    size="sm"
+                    minWidth="12.5rem"
+                    menuMinWidth="14rem"
                     value={`${sortField}:${sortOrder}`}
-                    onChange={(e) => {
-                      const [field, order] = e.target.value.split(":") as [SortField, SortOrder];
+                    options={[...SORT_OPTIONS]}
+                    onChange={(value) => {
+                      const [field, order] = value.split(":") as [SortField, SortOrder];
                       setSortField(field);
                       setSortOrder(order);
                       setPage(0);
                     }}
-                  >
-                    <option value="rank:asc">Position: #1 first (Best)</option>
-                    <option value="rank:desc">Position: High to Low</option>
-                    <option value="searchVolume:desc">Volume: High to Low</option>
-                    <option value="searchVolume:asc">Volume: Low to High</option>
-                    <option value="cpc:desc">CPC: High to Low</option>
-                    <option value="cpc:asc">CPC: Low to High</option>
-                    <option value="keyword:asc">Keyword: A to Z</option>
-                    <option value="keyword:desc">Keyword: Z to A</option>
-                  </CompactSelect>
+                  />
                 </div>
 
                 {isFiltered ? (

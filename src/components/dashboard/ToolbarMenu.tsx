@@ -28,6 +28,7 @@ export function ToolbarMenu({
   menuMinWidth,
   searchable = false,
   searchPlaceholder = "Search",
+  size = "md",
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -39,6 +40,7 @@ export function ToolbarMenu({
   menuMinWidth?: string;
   searchable?: boolean;
   searchPlaceholder?: string;
+  size?: "md" | "sm";
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -223,11 +225,15 @@ export function ToolbarMenu({
         aria-haspopup="listbox"
         aria-controls={listId}
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-line bg-bg px-3 py-2.5 text-left text-sm text-snow transition hover:border-line disabled:cursor-not-allowed disabled:opacity-70 ${open ? "border-line" : ""}`}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-line bg-bg text-left text-snow transition hover:border-line disabled:cursor-not-allowed disabled:opacity-70 ${
+          size === "sm"
+            ? "px-2.5 py-1.5 text-xs"
+            : "px-3 py-2.5 text-sm"
+        } ${open ? "border-accent/40" : ""}`}
       >
         <span className="truncate">{selected?.label ?? value}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-ink-muted transition ${open ? "rotate-180" : ""}`}
+          className={`${size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4"} shrink-0 text-ink-muted transition ${open ? "rotate-180" : ""}`}
         />
       </button>
 
