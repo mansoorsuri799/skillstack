@@ -47,7 +47,7 @@ const SETUP_STEPS: Array<{
       "Stream verified Google clicks, impressions, and query rankings into this workspace.",
     icon: BarChart3,
     cta: "Connect GSC",
-    href: "/dashboard/gsc",
+    href: "/dashboard/gsc-insights-tool",
     accent: "text-violet-400",
     glow: "group-hover:shadow-violet-500/10",
   },
@@ -59,7 +59,7 @@ const SETUP_STEPS: Array<{
       "Check robots.txt, Schema.org, Core Web Vitals, and ranking risk signals.",
     icon: FileCode2,
     cta: "Run Diagnostic",
-    href: "/dashboard/audit",
+    href: "/dashboard/site-audit-tool",
     accent: "text-amber-400",
     glow: "group-hover:shadow-amber-500/10",
   },
@@ -236,7 +236,7 @@ export default function DashboardOnboarding({
             </button>
             <button
               type="button"
-              onClick={() => (gscConnected ? router.push("/dashboard/gsc") : focusStep("gsc"))}
+              onClick={() => (gscConnected ? router.push("/dashboard/gsc-insights-tool") : focusStep("gsc"))}
               className="flex w-full items-center justify-between gap-2 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-white/5"
             >
               <span className="text-ink-muted">GSC LINK</span>

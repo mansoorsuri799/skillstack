@@ -24,7 +24,7 @@ export const productFeatures: ProductFeature[] = [
       "Self-serve keyword research in the SkillStack dashboard — volume, difficulty, intent, and SERP context you run yourself.",
     description:
       "The SkillStack Keyword Research Tool is a product feature, not a done-for-you service. Sign in, enter a seed keyword, review volume and competition signals, inspect SERP context, and save winners to your project. Prefer a team to research and deliver the list for you? Use our keyword research service instead.",
-    dashboardHref: "/dashboard/keywords",
+    dashboardHref: "/dashboard/keyword-research-tool",
     relatedServiceSlug: "keyword-research",
     relatedServiceLabel: "Keyword research service",
     highlights: [
@@ -54,7 +54,7 @@ export const productFeatures: ProductFeature[] = [
       "See organic traffic estimates, keyword footprint, backlink strength, and top traffic keywords for any domain.",
     description:
       "The Domain Overview Tool gives you an Ahrefs-style snapshot of a site’s SEO profile: estimated organic traffic, ranking keywords by country, referring domains, and the keywords driving the most visits.",
-    dashboardHref: "/dashboard/domain",
+    dashboardHref: "/dashboard/domain-overview-tool",
     highlights: [
       "Organic traffic and traffic value estimates",
       "Keywords by country with flags and traffic",
@@ -83,7 +83,7 @@ export const productFeatures: ProductFeature[] = [
       "Analyze any domain’s link profile in the dashboard — growth, referring domains, and top linked pages.",
     description:
       "The SkillStack Backlink Checker is a research tool for inspecting link profiles yourself. Review overview metrics, backlink rows, referring domains, and top linked pages to judge authority. Need SkillStack to build high-authority placements for you? That is our backlinking service.",
-    dashboardHref: "/dashboard/backlinks",
+    dashboardHref: "/dashboard/backlink-checker",
     relatedServiceSlug: "backlinking",
     relatedServiceLabel: "Backlinking service",
     highlights: [
@@ -113,7 +113,7 @@ export const productFeatures: ProductFeature[] = [
       "Look up brand presence and related signals to understand how a name shows up online.",
     description:
       "The Brand Lookup Tool helps you explore how a brand appears across search-related signals so you can plan content, reputation, and competitive positioning with clearer context.",
-    dashboardHref: "/dashboard/brand-lookup",
+    dashboardHref: "/dashboard/brand-lookup-tool",
     highlights: [
       "Fast brand-focused lookup workflow",
       "Useful for competitive and reputation checks",
@@ -138,7 +138,7 @@ export const productFeatures: ProductFeature[] = [
       "See the keywords a domain ranks for — positions, volume, and landing pages.",
     description:
       "The Organic Keyword Checker lists ranking terms for a target domain so you can find content that already works, gaps to fill, and pages that deserve more internal support.",
-    dashboardHref: "/dashboard/organic/keywords",
+    dashboardHref: "/dashboard/organic-keyword-checker",
     highlights: [
       "Ranked keyword table with positions",
       "Volume and traffic-oriented sorting",
@@ -164,7 +164,7 @@ export const productFeatures: ProductFeature[] = [
       "Break down ranking distribution — top spots, page-two clusters, and movement signals.",
     description:
       "The Organic Position Tracker shows how a domain’s rankings are spread across SERP buckets so you can see concentration in positions 1–3, 4–10, and beyond.",
-    dashboardHref: "/dashboard/organic/positions",
+    dashboardHref: "/dashboard/organic-position-tracker",
     highlights: [
       "Position bucket breakdown",
       "Traffic and keyword totals in one view",
@@ -189,7 +189,7 @@ export const productFeatures: ProductFeature[] = [
       "Find which URLs pull the most organic traffic and ranking keywords.",
     description:
       "The Top Pages Finder ranks a domain’s strongest organic URLs by estimated traffic and keyword count — ideal for content refreshes and internal linking priorities.",
-    dashboardHref: "/dashboard/organic/pages",
+    dashboardHref: "/dashboard/top-pages-finder",
     highlights: [
       "Pages sorted by estimated organic traffic",
       "Keyword counts per URL",
@@ -214,7 +214,7 @@ export const productFeatures: ProductFeature[] = [
       "Discover domains competing in the same organic landscape.",
     description:
       "The Organic Competitor Finder surfaces sites overlapping your keyword space so you can study their pages, content angles, and link profiles with clearer targets.",
-    dashboardHref: "/dashboard/organic/competitors",
+    dashboardHref: "/dashboard/organic-competitor-finder",
     highlights: [
       "Competitor domain discovery",
       "Overlap-focused competitive view",
@@ -239,7 +239,7 @@ export const productFeatures: ProductFeature[] = [
       "Find keywords competitors rank for that you do not — then plan content to close the gap.",
     description:
       "The Content Gap Finder compares domains to highlight missing keyword opportunities so your content roadmap targets proven demand instead of guesswork.",
-    dashboardHref: "/dashboard/competitive/content-gap",
+    dashboardHref: "/dashboard/content-gap-finder",
     highlights: [
       "Competitor vs your domain keyword gaps",
       "Opportunity-oriented research workflow",
@@ -264,7 +264,7 @@ export const productFeatures: ProductFeature[] = [
       "See which pages attract the strongest link attention on a domain.",
     description:
       "The Best by Links Finder highlights pages that earn referring domains and backlinks — useful for outreach templates, content formats that attract links, and internal promotion.",
-    dashboardHref: "/dashboard/pages/best-by-links",
+    dashboardHref: "/dashboard/best-by-links-finder",
     highlights: [
       "Pages ranked by link strength",
       "Useful for digital PR research",
@@ -289,7 +289,7 @@ export const productFeatures: ProductFeature[] = [
       "Map how pages connect inside a site — structure, anchors, and most-linked URLs.",
     description:
       "The Internal Link Checker helps you understand crawl paths and authority flow: overview links, most-linked pages, and internal anchor text so you can strengthen important URLs.",
-    dashboardHref: "/dashboard/internal-links",
+    dashboardHref: "/dashboard/internal-link-checker",
     highlights: [
       "Internal link overview",
       "Most linked pages",
@@ -314,7 +314,7 @@ export const productFeatures: ProductFeature[] = [
       "Connect Google Search Console and review clicks, queries, and performance inside SkillStack.",
     description:
       "The GSC Insights Tool pulls Search Console data into your dashboard so real clicks and impressions sit next to keyword research and rank tracking — not in a separate tab forever.",
-    dashboardHref: "/dashboard/gsc",
+    dashboardHref: "/dashboard/gsc-insights-tool",
     highlights: [
       "Google Search Console connection",
       "Query and performance insights",
@@ -339,7 +339,7 @@ export const productFeatures: ProductFeature[] = [
       "Track keyword positions over time for the markets and domains you care about.",
     description:
       "The Rank Tracker monitors the keywords you choose so you can see movement, protect wins, and report progress without rebuilding spreadsheets every week.",
-    dashboardHref: "/dashboard/rank-tracking",
+    dashboardHref: "/dashboard/rank-tracker",
     highlights: [
       "Keyword lists tied to your project",
       "Refresh and discover workflows",
@@ -364,7 +364,7 @@ export const productFeatures: ProductFeature[] = [
       "Keep a living list of keywords you want to target, track, or brief to writers.",
     description:
       "The Saved Keywords Manager stores research wins in one place so keyword research, content planning, and rank tracking stay connected inside SkillStack.",
-    dashboardHref: "/dashboard/saved",
+    dashboardHref: "/dashboard/saved-keywords-manager",
     highlights: [
       "Save keywords from research",
       "Project-scoped keyword lists",
@@ -389,7 +389,7 @@ export const productFeatures: ProductFeature[] = [
       "Self-serve technical SEO checks in the dashboard — crawl signals, schema, performance, and fix priorities.",
     description:
       "The SkillStack Site Audit Tool helps you scan for technical issues yourself: crawl directives, structured data, performance signals, and prioritized findings. Want SkillStack to audit and implement fixes as a service? See Technical SEO & site audits.",
-    dashboardHref: "/dashboard/audit",
+    dashboardHref: "/dashboard/site-audit-tool",
     relatedServiceSlug: "technical-seo",
     relatedServiceLabel: "Technical SEO & site audits",
     highlights: [

@@ -52,7 +52,6 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const autoLoadedKey = useRef<string | null>(null);
   const syncedProjectKey = useRef<string | null>(null);
 
   const analyze = useCallback(async (override?: {
@@ -110,19 +109,6 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
     const cached = readCachedData<T>(cacheKey);
     if (cached) setData(cached);
   }, [project, scope, type]);
-
-  useEffect(() => {
-    if (!project?.domain) return;
-    const autoKey = `${type}|${project.domain}|${project.locationCode}|${scope}`;
-    if (autoLoadedKey.current === autoKey) return;
-    autoLoadedKey.current = autoKey;
-    void analyze({
-      domain: project.domain,
-      locationCode: project.locationCode,
-      scope,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- project/scope driven auto-load only
-  }, [project?.domain, project?.locationCode, scope, type]);
 
   return {
     domain,

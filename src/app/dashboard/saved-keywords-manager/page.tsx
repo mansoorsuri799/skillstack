@@ -85,7 +85,7 @@ export default function SavedKeywordsPage() {
       title="Saved Keywords"
       description="Your keyword list — save from research and track over time"
       actions={
-        <Link href="/dashboard/keywords" className={buttonPrimaryClass}>
+        <Link href="/dashboard/keyword-research-tool" className={buttonPrimaryClass}>
           <Search className="h-4 w-4" /> Research more
         </Link>
       }

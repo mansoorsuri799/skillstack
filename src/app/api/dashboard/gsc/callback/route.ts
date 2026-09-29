@@ -25,20 +25,20 @@ export async function GET(request: Request) {
         ? " Google sign-in could not be completed. Please ensure Authorized Redirect URIs in Google Cloud Console includes the callback URL."
         : "";
     return NextResponse.redirect(
-      `${authUrl}/dashboard/gsc?error=${encodeURIComponent(error + hint)}`,
+      `${authUrl}/dashboard/gsc-insights-tool?error=${encodeURIComponent(error + hint)}`,
     );
   }
 
   if (!code || !state) {
     return NextResponse.redirect(
-      `${authUrl}/dashboard/gsc?error=${encodeURIComponent("Missing OAuth code")}`,
+      `${authUrl}/dashboard/gsc-insights-tool?error=${encodeURIComponent("Missing OAuth code")}`,
     );
   }
 
   const verified = verifyOAuthState(state);
   if (!verified) {
     return NextResponse.redirect(
-      `${authUrl}/dashboard/gsc?error=${encodeURIComponent("Invalid or expired OAuth state")}`,
+      `${authUrl}/dashboard/gsc-insights-tool?error=${encodeURIComponent("Invalid or expired OAuth state")}`,
     );
   }
 
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
         ...tokenBundle,
         siteUrl: matching[0],
       });
-      return NextResponse.redirect(`${authUrl}/dashboard/gsc?connected=1`);
+      return NextResponse.redirect(`${authUrl}/dashboard/gsc-insights-tool?connected=1`);
     }
 
     if (matching.length > 1) {
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
         ...tokenBundle,
         siteOptions: matching,
       });
-      return NextResponse.redirect(`${authUrl}/dashboard/gsc?select=1`);
+      return NextResponse.redirect(`${authUrl}/dashboard/gsc-insights-tool?select=1`);
     }
 
     // If no exact match with project.domain or project domain is default example.com:
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
         ...tokenBundle,
         siteUrl: sites[0],
       });
-      return NextResponse.redirect(`${authUrl}/dashboard/gsc?connected=1`);
+      return NextResponse.redirect(`${authUrl}/dashboard/gsc-insights-tool?connected=1`);
     }
 
     // Multiple properties available: allow user to select the right one
@@ -103,11 +103,11 @@ export async function GET(request: Request) {
       ...tokenBundle,
       siteOptions: sites,
     });
-    return NextResponse.redirect(`${authUrl}/dashboard/gsc?select=1`);
+    return NextResponse.redirect(`${authUrl}/dashboard/gsc-insights-tool?select=1`);
   } catch (err) {
     const message = err instanceof Error ? err.message : "GSC connection failed";
     return NextResponse.redirect(
-      `${authUrl}/dashboard/gsc?error=${encodeURIComponent(message)}`,
+      `${authUrl}/dashboard/gsc-insights-tool?error=${encodeURIComponent(message)}`,
     );
   }
 }

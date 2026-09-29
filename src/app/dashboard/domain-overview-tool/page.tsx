@@ -96,7 +96,6 @@ export default function DomainPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const autoLoadedKey = useRef<string | null>(null);
   const syncedProjectKey = useRef<string | null>(null);
 
   const onLookup = useCallback(async (override?: {
@@ -149,21 +148,6 @@ export default function DomainPage() {
     const cached = readDomainCache(cacheKey);
     if (cached) setOverview(cached);
   }, [project, scope]);
-
-  // Auto-load project domain once (and when scope changes for that project).
-  useEffect(() => {
-    if (!project?.domain) return;
-    const autoKey = `${project.domain}|${project.locationCode}|${scope}`;
-    if (autoLoadedKey.current === autoKey) return;
-    autoLoadedKey.current = autoKey;
-    void onLookup({
-      domain: project.domain,
-      locationCode: project.locationCode,
-      scope,
-    });
-    // Intentionally omit onLookup — it changes when the user types.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- project/scope driven auto-load only
-  }, [project?.domain, project?.locationCode, scope]);
 
   const sortedKeywords = useMemo(() => {
     if (!overview) return [];

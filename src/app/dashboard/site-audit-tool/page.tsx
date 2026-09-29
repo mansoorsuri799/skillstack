@@ -559,7 +559,7 @@ export default function SiteAuditPage() {
                               Link your Search Console account to unlock automated click-loss analysis and real search query CTR opportunities.
                             </p>
                           </div>
-                          <Link href="/dashboard/gsc" className={buttonPrimaryClass}>
+                          <Link href="/dashboard/gsc-insights-tool" className={buttonPrimaryClass}>
                             Connect GSC <ExternalLink className="h-3.5 w-3.5" />
                           </Link>
                         </div>

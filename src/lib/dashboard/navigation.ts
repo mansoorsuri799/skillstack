@@ -47,10 +47,26 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
   {
     label: "Research",
     items: [
-      { href: "/dashboard/keywords", label: "Keyword Research", icon: Search },
-      { href: "/dashboard/domain", label: "Domain Overview", icon: Globe },
-      { href: "/dashboard/backlinks", label: "Backlinks", icon: Link2 },
-      { href: "/dashboard/brand-lookup", label: "Brand Lookup", icon: Sparkles },
+      {
+        href: "/dashboard/keyword-research-tool",
+        label: "Keyword Research",
+        icon: Search,
+      },
+      {
+        href: "/dashboard/domain-overview-tool",
+        label: "Domain Overview",
+        icon: Globe,
+      },
+      {
+        href: "/dashboard/backlink-checker",
+        label: "Backlinks",
+        icon: Link2,
+      },
+      {
+        href: "/dashboard/brand-lookup-tool",
+        label: "Brand Lookup",
+        icon: Sparkles,
+      },
     ],
   },
   {
@@ -59,19 +75,19 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
     defaultOpen: true,
     items: [
       {
-        href: "/dashboard/organic/keywords",
+        href: "/dashboard/organic-keyword-checker",
         label: "Organic keywords",
       },
       {
-        href: "/dashboard/organic/positions",
+        href: "/dashboard/organic-position-tracker",
         label: "Organic positions",
       },
       {
-        href: "/dashboard/organic/pages",
+        href: "/dashboard/top-pages-finder",
         label: "Top pages",
       },
       {
-        href: "/dashboard/organic/competitors",
+        href: "/dashboard/organic-competitor-finder",
         label: "Organic competitors",
       },
     ],
@@ -82,7 +98,7 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
     defaultOpen: true,
     items: [
       {
-        href: "/dashboard/competitive/content-gap",
+        href: "/dashboard/content-gap-finder",
         label: "Content gap",
       },
     ],
@@ -93,7 +109,7 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
     defaultOpen: true,
     items: [
       {
-        href: "/dashboard/pages/best-by-links",
+        href: "/dashboard/best-by-links-finder",
         label: "Best by links",
       },
     ],
@@ -104,16 +120,16 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
     defaultOpen: true,
     items: [
       {
-        href: "/dashboard/internal-links",
+        href: "/dashboard/internal-link-checker",
         label: "Internal links",
         exact: true,
       },
       {
-        href: "/dashboard/internal-links/most-linked",
+        href: "/dashboard/internal-link-checker/most-linked",
         label: "Most linked pages",
       },
       {
-        href: "/dashboard/internal-links/anchors",
+        href: "/dashboard/internal-link-checker/anchors",
         label: "Internal anchors",
       },
     ],
@@ -121,14 +137,26 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
   {
     label: "My Site",
     items: [
-      { href: "/dashboard/gsc", label: "GSC Insights", icon: BarChart3 },
       {
-        href: "/dashboard/rank-tracking",
+        href: "/dashboard/gsc-insights-tool",
+        label: "GSC Insights",
+        icon: BarChart3,
+      },
+      {
+        href: "/dashboard/rank-tracker",
         label: "Rank Tracking",
         icon: TrendingUp,
       },
-      { href: "/dashboard/saved", label: "Saved Keywords", icon: Bookmark },
-      { href: "/dashboard/audit", label: "Site Audit", icon: ClipboardCheck },
+      {
+        href: "/dashboard/saved-keywords-manager",
+        label: "Saved Keywords",
+        icon: Bookmark,
+      },
+      {
+        href: "/dashboard/site-audit-tool",
+        label: "Site Audit",
+        icon: ClipboardCheck,
+      },
     ],
   },
   connectNavGroup,

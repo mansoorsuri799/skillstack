@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const message = error instanceof Error ? error.message : "Connect failed";
     return NextResponse.redirect(
       new URL(
-        `/dashboard/gsc?error=${encodeURIComponent(message)}`,
+        `/dashboard/gsc-insights-tool?error=${encodeURIComponent(message)}`,
         getAppBaseUrl(request),
       ),
     );

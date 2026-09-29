@@ -404,7 +404,6 @@ export function BacklinksDashboard({
   const [recent, setRecent] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(DEFAULT_ROWS_PER_PAGE);
-  const autoLoadedKey = useRef<string | null>(null);
   const syncedInitialDomain = useRef<string | null>(null);
 
   useEffect(() => {
@@ -515,15 +514,6 @@ export function BacklinksDashboard({
       setLoadingOverview(false);
     }
   }, [domain, fetchTab, linkMode, scope]);
-
-  useEffect(() => {
-    if (!initialDomain.trim()) return;
-    const autoKey = `${initialDomain}|${scope}`;
-    if (autoLoadedKey.current === autoKey) return;
-    autoLoadedKey.current = autoKey;
-    void onAnalyze(initialDomain);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- project domain / scope only
-  }, [initialDomain, scope]);
 
   function switchTab(next: BacklinksTab) {
     setTab(next);

@@ -68,7 +68,7 @@ export default async function PricingSuccessPage({
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
-            href="/dashboard/keywords"
+            href="/dashboard/keyword-research-tool"
             className="inline-flex items-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-medium text-snow hover:bg-white/10 transition"
           >
             Start Keyword Research
