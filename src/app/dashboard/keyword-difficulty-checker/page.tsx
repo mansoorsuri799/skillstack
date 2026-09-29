@@ -264,7 +264,7 @@ export default function KeywordDifficultyCheckerPage() {
                 value={keywordsText}
                 onChange={(e) => setKeywordsText(e.target.value)}
                 rows={6}
-                placeholder={"card rummy\nrummy apk\nonline card games"}
+                placeholder="Enter one keyword per line"
                 className={`${inputClass} min-h-[140px] resize-y font-mono text-sm`}
                 disabled={loading || projectLoading}
               />
