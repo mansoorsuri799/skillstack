@@ -1,7 +1,7 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
+import type { ReactNode, SelectHTMLAttributes } from "react";
 
 export function DashboardCard({
   title,
@@ -308,6 +308,28 @@ export const buttonPrimaryClass =
 
 export const buttonGhostClass =
   "inline-flex items-center justify-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-ink transition hover:border-accent/30 hover:bg-white/5 disabled:opacity-50";
+
+/** Native select with a centered custom chevron (browser arrows misalign across widths). */
+export function CompactSelect({
+  className = "",
+  children,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className={`relative inline-flex max-w-full ${className}`}>
+      <select
+        {...props}
+        className="w-full appearance-none rounded-lg border border-line bg-bg py-1.5 pl-2.5 pr-7 text-xs leading-5 text-snow outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {children}
+      </select>
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-muted"
+      />
+    </div>
+  );
+}
 
 export function DifficultyBadge({ value }: { value: number | null }) {
   if (value === null) return <span className="text-ink-muted">—</span>;

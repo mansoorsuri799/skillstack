@@ -79,7 +79,7 @@ export const dashboardNavGroups: DashboardNavGroup[] = [
         label: "Organic keywords",
       },
       {
-        href: "/dashboard/organic-position-tracker",
+        href: "/dashboard/organic-position-checker",
         label: "Organic positions",
       },
       {

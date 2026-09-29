@@ -14,6 +14,7 @@ import { OrganicSearchLayout } from "@/components/dashboard/OrganicSearchLayout"
 import { useOrganicSearch } from "@/components/dashboard/useOrganicSearch";
 import {
   buttonGhostClass,
+  CompactSelect,
   EmptyBlock,
   inputClass,
   LoadingBlock,
@@ -200,14 +201,13 @@ export default function OrganicCompetitorsPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <select
+                  <CompactSelect
                     value={`${sortField}:${sortOrder}`}
                     onChange={(e) => {
                       const [field, order] = e.target.value.split(":") as [SortField, SortOrder];
                       setSortField(field);
                       setSortOrder(order);
                     }}
-                    className="rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none transition focus:border-accent"
                   >
                     <option value="avgPosition:asc">Rank: Best first</option>
                     <option value="avgPosition:desc">Rank: High to Low</option>
@@ -216,7 +216,7 @@ export default function OrganicCompetitorsPage() {
                     <option value="organicKeywords:desc">Keywords: High to Low</option>
                     <option value="organicTraffic:desc">Traffic: High to Low</option>
                     <option value="domain:asc">Domain: A to Z</option>
-                  </select>
+                  </CompactSelect>
                 </div>
               </div>
 

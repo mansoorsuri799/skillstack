@@ -18,6 +18,7 @@ import { OrganicSearchLayout } from "@/components/dashboard/OrganicSearchLayout"
 import { useOrganicSearch } from "@/components/dashboard/useOrganicSearch";
 import {
   buttonGhostClass,
+  CompactSelect,
   EmptyBlock,
   inputClass,
   LoadingBlock,
@@ -32,7 +33,7 @@ type KeywordsData = {
   keywords: OrganicKeywordRow[];
 };
 
-type SortField = "rank" | "searchVolume" | "cpc" | "etv" | "keyword";
+type SortField = "rank" | "searchVolume" | "cpc" | "keyword";
 type SortOrder = "asc" | "desc";
 type PositionFilter = "all" | "top3" | "top10" | "11-20" | "21-50" | "51-100";
 
@@ -59,22 +60,22 @@ function SortableHeader({
     <button
       type="button"
       onClick={() => onSort(field)}
-      className={`group inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+      className={`group inline-flex h-5 items-center gap-1.5 text-[11px] font-semibold uppercase leading-none tracking-[0.1em] transition-colors ${
         isActive ? "text-accent" : "text-ink-muted hover:text-snow"
       } ${align === "right" ? "ml-auto" : ""}`}
       title={`Click to sort by ${label} (${
         isActive && sortOrder === "desc" ? "High to Low" : "Low to High"
       })`}
     >
-      <span>{label}</span>
+      <span className="leading-none">{label}</span>
       {isActive ? (
         sortOrder === "desc" ? (
-          <ArrowDown className="h-3.5 w-3.5 text-accent shrink-0" />
+          <ArrowDown className="h-3.5 w-3.5 shrink-0 text-accent" />
         ) : (
-          <ArrowUp className="h-3.5 w-3.5 text-accent shrink-0" />
+          <ArrowUp className="h-3.5 w-3.5 shrink-0 text-accent" />
         )
       ) : (
-        <ArrowUpDown className="h-3 w-3 opacity-40 transition-opacity group-hover:opacity-100 shrink-0" />
+        <ArrowUpDown className="h-3.5 w-3.5 shrink-0 opacity-40 transition-opacity group-hover:opacity-100" />
       )}
     </button>
   );
@@ -109,7 +110,7 @@ export default function OrganicKeywordsPage() {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
-      // Default natural order: rank and keyword start asc; metrics (volume, cpc, traffic) start desc (high to low)
+      // Default natural order: rank and keyword start asc; volume/cpc start desc
       if (field === "rank" || field === "keyword") {
         setSortOrder("asc");
       } else {
@@ -199,13 +200,12 @@ export default function OrganicKeywordsPage() {
 
   function exportCsv() {
     if (!filteredKeywords.length) return;
-    const header = ["Keyword", "Position", "Volume", "CPC", "Est. Traffic", "URL"];
+    const header = ["Keyword", "Position", "Volume", "CPC", "URL"];
     const rows = filteredKeywords.map((k) => [
       `"${(k.keyword || "").replace(/"/g, '""')}"`,
       k.rank ?? "",
       k.searchVolume ?? "",
       k.cpc ?? "",
-      k.etv ?? "",
       `"${(k.url || "").replace(/"/g, '""')}"`,
     ]);
     const csvContent = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -289,13 +289,12 @@ export default function OrganicKeywordsPage() {
 
                 {/* Position Filter Dropdown */}
                 <div className="flex items-center gap-1.5">
-                  <select
+                  <CompactSelect
                     value={positionFilter}
                     onChange={(e) => {
                       setPositionFilter(e.target.value as PositionFilter);
                       setPage(0);
                     }}
-                    className="rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none transition focus:border-accent"
                   >
                     <option value="all">All Positions</option>
                     <option value="top3">Top 3 (#1 - #3)</option>
@@ -303,12 +302,12 @@ export default function OrganicKeywordsPage() {
                     <option value="11-20">Positions 11 - 20</option>
                     <option value="21-50">Positions 21 - 50</option>
                     <option value="51-100">Positions 51 - 100</option>
-                  </select>
+                  </CompactSelect>
                 </div>
 
                 {/* Sort By Dropdown (Ahrefs High/Low selector) */}
                 <div className="flex items-center gap-1.5">
-                  <select
+                  <CompactSelect
                     value={`${sortField}:${sortOrder}`}
                     onChange={(e) => {
                       const [field, order] = e.target.value.split(":") as [SortField, SortOrder];
@@ -316,7 +315,6 @@ export default function OrganicKeywordsPage() {
                       setSortOrder(order);
                       setPage(0);
                     }}
-                    className="rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs text-snow outline-none transition focus:border-accent"
                   >
                     <option value="rank:asc">Position: #1 first (Best)</option>
                     <option value="rank:desc">Position: High to Low</option>
@@ -324,11 +322,9 @@ export default function OrganicKeywordsPage() {
                     <option value="searchVolume:asc">Volume: Low to High</option>
                     <option value="cpc:desc">CPC: High to Low</option>
                     <option value="cpc:asc">CPC: Low to High</option>
-                    <option value="etv:desc">Est. Traffic: High to Low</option>
-                    <option value="etv:asc">Est. Traffic: Low to High</option>
                     <option value="keyword:asc">Keyword: A to Z</option>
                     <option value="keyword:desc">Keyword: Z to A</option>
-                  </select>
+                  </CompactSelect>
                 </div>
 
                 {isFiltered ? (
@@ -403,15 +399,6 @@ export default function OrganicKeywordsPage() {
                           onSort={handleSort}
                         />
                       </th>
-                      <th className="px-4 py-3 w-28">
-                        <SortableHeader
-                          label="Est. Traffic"
-                          field="etv"
-                          activeField={sortField}
-                          sortOrder={sortOrder}
-                          onSort={handleSort}
-                        />
-                      </th>
                       <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
                         URL
                       </th>
@@ -420,7 +407,7 @@ export default function OrganicKeywordsPage() {
                   <tbody>
                     {pagedKeywords.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-12 text-center text-sm text-ink-muted">
+                        <td colSpan={5} className="py-12 text-center text-sm text-ink-muted">
                           No keywords match the selected filters.
                         </td>
                       </tr>
@@ -443,13 +430,6 @@ export default function OrganicKeywordsPage() {
                           </td>
                           <td className="px-4 py-3.5 text-ink-muted tabular-nums">
                             {row.cpc != null ? `$${row.cpc.toFixed(2)}` : "—"}
-                          </td>
-                          <td className="px-4 py-3.5 text-ink-muted tabular-nums">
-                            {row.etv != null
-                              ? Number(row.etv).toLocaleString(undefined, {
-                                  maximumFractionDigits: 1,
-                                })
-                              : "—"}
                           </td>
                           <td className="px-4 py-3.5">
                             {row.url ? (
@@ -484,20 +464,19 @@ export default function OrganicKeywordsPage() {
 
                 <label className="flex items-center gap-2">
                   <span>Rows per page</span>
-                  <select
+                  <CompactSelect
                     value={pageSize}
                     onChange={(e) => {
                       setPageSize(Number(e.target.value));
                       setPage(0);
                     }}
-                    className="rounded-lg border border-line bg-bg px-2.5 py-1 text-xs text-snow outline-none focus:border-accent"
                   >
                     {PAGE_SIZE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>
                         {opt}
                       </option>
                     ))}
-                  </select>
+                  </CompactSelect>
                 </label>
 
                 <div className="flex items-center gap-2">

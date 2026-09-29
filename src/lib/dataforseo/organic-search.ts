@@ -3,6 +3,10 @@ import {
   DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
 } from "dataforseo-client";
 import { labsApi, normalizeDomain, taskItems, taskResultItems } from "@/lib/dataforseo/client";
+import {
+  isAllLocations,
+  RESEARCH_LOCATIONS,
+} from "@/lib/dashboard/locations";
 
 export type OrganicKeywordRow = {
   keyword: string;
@@ -41,14 +45,31 @@ type OrganicMetrics = {
   etv?: number | null;
 };
 
-export async function getOrganicKeywords(
+/** Markets used when Location = All locations (same set as keyword research). */
+const ORGANIC_ALL_MARKETS = RESEARCH_LOCATIONS;
+
+function preferKeywordRow(
+  current: OrganicKeywordRow,
+  next: OrganicKeywordRow,
+): OrganicKeywordRow {
+  const currentRank = current.rank ?? Number.POSITIVE_INFINITY;
+  const nextRank = next.rank ?? Number.POSITIVE_INFINITY;
+  if (nextRank < currentRank) return next;
+  if (nextRank > currentRank) return current;
+  if ((next.searchVolume ?? 0) > (current.searchVolume ?? 0)) return next;
+  return current;
+}
+
+async function getOrganicKeywordsForLocation(
   domain: string,
-  locationCode = 2586,
-  languageCode = "en",
-  includeSubdomains = true,
-  limit = 100,
-): Promise<{ domain: string; keywords: OrganicKeywordRow[] }> {
+  locationCode: number,
+  languageCode: string,
+  includeSubdomains: boolean,
+  limit: number,
+): Promise<OrganicKeywordRow[]> {
   const api = labsApi();
+  // ignore_synonyms must stay false — true collapses head terms like
+  // "card rummy" into near-duplicates ("rummy card game") and drops them.
   const response = await api.googleRankedKeywordsLive([
     {
       target: domain,
@@ -56,12 +77,16 @@ export async function getOrganicKeywords(
       language_code: languageCode,
       limit,
       include_subdomains: includeSubdomains,
-      ignore_synonyms: true,
-      order_by: ["ranked_serp_element.serp_item.rank_group,asc"],
+      ignore_synonyms: false,
+      // Prefer high-volume / high-traffic keywords so head terms aren't buried.
+      order_by: [
+        "keyword_data.keyword_info.search_volume,desc",
+        "ranked_serp_element.serp_item.etv,desc",
+      ],
     } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   ]);
 
-  const keywords = taskResultItems<{
+  return taskResultItems<{
     keyword_data?: {
       keyword?: string | null;
       keyword_info?: {
@@ -90,6 +115,60 @@ export async function getOrganicKeywords(
       etv: item.ranked_serp_element?.serp_item?.etv ?? null,
     }))
     .filter((row) => row.keyword);
+}
+
+async function getOrganicKeywordsAllLocations(
+  domain: string,
+  includeSubdomains: boolean,
+  limit: number,
+): Promise<OrganicKeywordRow[]> {
+  const batches = await Promise.all(
+    ORGANIC_ALL_MARKETS.map((market) =>
+      getOrganicKeywordsForLocation(
+        domain,
+        market.code,
+        market.lang,
+        includeSubdomains,
+        limit,
+      ).catch(() => [] as OrganicKeywordRow[]),
+    ),
+  );
+
+  const merged = new Map<string, OrganicKeywordRow>();
+  for (const batch of batches) {
+    for (const row of batch) {
+      const key = row.keyword.toLowerCase();
+      const existing = merged.get(key);
+      merged.set(key, existing ? preferKeywordRow(existing, row) : row);
+    }
+  }
+
+  return [...merged.values()]
+    .sort((a, b) => {
+      const rankA = a.rank ?? Number.POSITIVE_INFINITY;
+      const rankB = b.rank ?? Number.POSITIVE_INFINITY;
+      if (rankA !== rankB) return rankA - rankB;
+      return (b.searchVolume ?? 0) - (a.searchVolume ?? 0);
+    })
+    .slice(0, limit);
+}
+
+export async function getOrganicKeywords(
+  domain: string,
+  locationCode = 2586,
+  languageCode = "en",
+  includeSubdomains = true,
+  limit = 250,
+): Promise<{ domain: string; keywords: OrganicKeywordRow[] }> {
+  const keywords = isAllLocations(locationCode)
+    ? await getOrganicKeywordsAllLocations(domain, includeSubdomains, limit)
+    : await getOrganicKeywordsForLocation(
+        domain,
+        locationCode,
+        languageCode,
+        includeSubdomains,
+        limit,
+      );
 
   return { domain, keywords };
 }
@@ -105,7 +184,7 @@ export async function getOrganicPositions(
     locationCode,
     languageCode,
     includeSubdomains,
-    100,
+    250,
   );
   return { domain, keywords };
 }
@@ -180,12 +259,12 @@ export async function getOrganicTopPages(
   return { domain, pages };
 }
 
-export async function getOrganicCompetitors(
+async function getOrganicCompetitorsForLocation(
   domain: string,
-  locationCode = 2586,
-  languageCode = "en",
-  limit = 50,
-): Promise<{ domain: string; competitors: OrganicCompetitorRow[] }> {
+  locationCode: number,
+  languageCode: string,
+  limit: number,
+): Promise<OrganicCompetitorRow[]> {
   const api = labsApi();
   const response = await api.googleCompetitorsDomainLive([
     {
@@ -208,7 +287,7 @@ export async function getOrganicCompetitors(
   }>(response)[0];
 
   const target = normalizeDomain(domain);
-  const competitors = (result?.items ?? [])
+  return (result?.items ?? [])
     .map((item) => ({
       domain: normalizeDomain(item.domain ?? ""),
       intersections: item.intersections ?? null,
@@ -224,6 +303,67 @@ export async function getOrganicCompetitors(
         !target.endsWith(`.${row.domain}`)
       );
     });
+}
+
+function preferCompetitorRow(
+  current: OrganicCompetitorRow,
+  next: OrganicCompetitorRow,
+): OrganicCompetitorRow {
+  const currentIntersections = current.intersections ?? 0;
+  const nextIntersections = next.intersections ?? 0;
+  if (nextIntersections > currentIntersections) return next;
+  if (nextIntersections < currentIntersections) return current;
+
+  const currentPos = current.avgPosition ?? Number.POSITIVE_INFINITY;
+  const nextPos = next.avgPosition ?? Number.POSITIVE_INFINITY;
+  if (nextPos < currentPos) return next;
+  return current;
+}
+
+async function getOrganicCompetitorsAllLocations(
+  domain: string,
+  limit: number,
+): Promise<OrganicCompetitorRow[]> {
+  const batches = await Promise.all(
+    ORGANIC_ALL_MARKETS.map((market) =>
+      getOrganicCompetitorsForLocation(
+        domain,
+        market.code,
+        market.lang,
+        limit,
+      ).catch(() => [] as OrganicCompetitorRow[]),
+    ),
+  );
+
+  const merged = new Map<string, OrganicCompetitorRow>();
+  for (const batch of batches) {
+    for (const row of batch) {
+      const key = row.domain.toLowerCase();
+      const existing = merged.get(key);
+      merged.set(key, existing ? preferCompetitorRow(existing, row) : row);
+    }
+  }
+
+  return [...merged.values()]
+    .sort((a, b) => (b.intersections ?? 0) - (a.intersections ?? 0))
+    .slice(0, limit);
+}
+
+export async function getOrganicCompetitors(
+  domain: string,
+  locationCode = 2586,
+  languageCode = "en",
+  limit = 50,
+): Promise<{ domain: string; competitors: OrganicCompetitorRow[] }> {
+  const target = normalizeDomain(domain);
+  const competitors = isAllLocations(locationCode)
+    ? await getOrganicCompetitorsAllLocations(target, limit)
+    : await getOrganicCompetitorsForLocation(
+        target,
+        locationCode,
+        languageCode,
+        limit,
+      );
 
   return { domain: target, competitors };
 }

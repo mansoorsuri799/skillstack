@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDashboardProject } from "@/components/dashboard/useDashboardProject";
 import type { OrganicReportType } from "@/lib/dataforseo/organic-search";
+import { DEFAULT_LOCATION_CODE } from "@/lib/dashboard/locations";
 
 const organicMemoryCache = new Map<string, unknown>();
 
 function getCacheKey(type: string, domain: string, locationCode: number, scope: string) {
-  return `ss_organic_v3_${type}_${domain.toLowerCase()}_${locationCode}_${scope}`;
+  return `ss_organic_v5_${type}_${domain.toLowerCase()}_${locationCode}_${scope}`;
 }
 
 function readCachedData<T>(key: string): T | null {
@@ -44,8 +45,7 @@ export function useOrganicSearch<T>(type: OrganicReportType) {
   const { project, dataForSeoConfigured, firecrawlConfigured, loading: projectLoading } =
     useDashboardProject();
   const [domain, setDomain] = useState(() => project?.domain ?? "");
-  // Labs organic APIs need a real country. Default Pakistan (primary SkillStack market).
-  const [locationCode, setLocationCode] = useState(2586);
+  const [locationCode, setLocationCode] = useState(DEFAULT_LOCATION_CODE);
   const [scope, setScope] = useState("subdomains");
   // Never hydrate prior results on open — only show data after an explicit Analyze click.
   const [data, setData] = useState<T | null>(null);

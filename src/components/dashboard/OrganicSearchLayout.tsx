@@ -13,7 +13,7 @@ import {
   LoadingBlock,
   PageStack,
 } from "@/components/dashboard/ui";
-import { DOMAIN_SCOPES, RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
+import { DOMAIN_SCOPES, KEYWORD_RESEARCH_LOCATIONS } from "@/lib/dashboard/locations";
 
 export function OrganicSearchLayout({
   title,
@@ -77,7 +77,7 @@ export function OrganicSearchLayout({
                 label="Location"
                 value={locationCode}
                 onChange={(v) => setLocationCode(Number(v))}
-                options={RESEARCH_LOCATIONS.map((l) => ({
+                options={KEYWORD_RESEARCH_LOCATIONS.map((l) => ({
                   value: l.code,
                   label: l.label,
                 }))}

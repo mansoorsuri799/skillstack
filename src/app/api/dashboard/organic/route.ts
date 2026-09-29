@@ -11,7 +11,7 @@ import { getProjectForUser } from "@/lib/dashboard/project";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import {
   DEFAULT_LOCATION_CODE,
-  resolveLabsLocationCode,
+  isAllLocations,
 } from "@/lib/dashboard/locations";
 
 const REPORT_TYPES = new Set<OrganicReportType>([
@@ -45,16 +45,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const locationCode = resolveLabsLocationCode(
-      Number(body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE),
+    // Keep All locations (0) as-is — organic-search merges major markets.
+    const locationCode = Number(
+      body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE,
     );
     const languageCode = body.languageCode ?? project.languageCode;
     const includeSubdomains = body.scope !== "domain";
     const key = cacheKey([
-      "organic",
+      "organic-v2",
       type,
       domain,
-      locationCode,
+      isAllLocations(locationCode) ? "all" : locationCode,
       languageCode,
       includeSubdomains,
     ]);

@@ -156,18 +156,18 @@ export const productFeatures: ProductFeature[] = [
     ],
   },
   {
-    slug: "organic-position-tracker",
-    title: "Organic Position Tracker",
+    slug: "organic-position-checker",
+    title: "Organic Position Checker",
     shortTitle: "Positions",
     group: "Organic search",
     summary:
-      "Break down ranking distribution — top spots, page-two clusters, and movement signals.",
+      "See ranked keywords with volume, position, and landing URL in one view.",
     description:
-      "The Organic Position Tracker shows how a domain’s rankings are spread across SERP buckets so you can see concentration in positions 1–3, 4–10, and beyond.",
-    dashboardHref: "/dashboard/organic-position-tracker",
+      "The Organic Position Checker shows the keywords a domain ranks for — with search volume, SERP position, and URL — so you can spot wins and gaps quickly.",
+    dashboardHref: "/dashboard/organic-position-checker",
     highlights: [
-      "Position bucket breakdown",
-      "Traffic and keyword totals in one view",
+      "Keyword, volume, position, and URL table",
+      "Filter and sort by position or volume",
       "Useful for tracking visibility health",
     ],
     outcomes: [
@@ -175,8 +175,9 @@ export const productFeatures: ProductFeature[] = [
       "Prioritize pages close to page one",
     ],
     keywords: [
+      "organic position checker",
       "organic position tracker",
-      "SERP position distribution tool",
+      "SERP position checker tool",
       "SkillStack organic positions",
     ],
   },

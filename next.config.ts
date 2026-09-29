@@ -52,7 +52,17 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/dashboard/organic/positions",
-        destination: "/dashboard/organic-position-tracker",
+        destination: "/dashboard/organic-position-checker",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/organic-position-tracker",
+        destination: "/dashboard/organic-position-checker",
+        permanent: true,
+      },
+      {
+        source: "/features/organic-position-tracker",
+        destination: "/features/organic-position-checker",
         permanent: true,
       },
       {

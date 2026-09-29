@@ -3,6 +3,10 @@ import {
   getOrganicCompetitors,
   type OrganicCompetitorRow,
 } from "@/lib/dataforseo/organic-search";
+import {
+  isAllLocations,
+  resolveLabsLocationCode,
+} from "@/lib/dashboard/locations";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
 import { isSameSite, liveSerpForDomain } from "@/lib/firecrawl/live-serp";
 
@@ -40,8 +44,11 @@ export async function getOrganicCompetitorsReport(
 
   const labsByHost = labsMetricsByDomain(labs.competitors, domain);
 
-  if (isFirecrawlConfigured()) {
-    const live = await liveSerpForDomain(domain, { locationCode });
+  // All locations is multi-market Labs merge — Firecrawl is a single SERP snapshot.
+  if (isFirecrawlConfigured() && !isAllLocations(locationCode)) {
+    const live = await liveSerpForDomain(domain, {
+      locationCode: resolveLabsLocationCode(locationCode),
+    });
     const competitors = live.listings
       .filter((row) => !row.isYours && !isSameSite(row.host, domain))
       .map((row) => {
@@ -71,7 +78,7 @@ export async function getOrganicCompetitorsReport(
   return {
     domain,
     keyword: null,
-    location: null,
+    location: isAllLocations(locationCode) ? "All locations" : null,
     source: "dataforseo",
     competitors: [...labsByHost.values()],
   };
