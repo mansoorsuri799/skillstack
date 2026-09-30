@@ -9,7 +9,7 @@ import {
 } from "@/lib/dataforseo/keyword-research";
 import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import { researchKeywords } from "@/lib/dataforseo/services";
-import { getProjectForUser } from "@/lib/dashboard/project";
+import { getOptionalProjectForUser } from "@/lib/dashboard/project";
 import { DEFAULT_LOCATION_CODE, isAllLocations, ALL_LOCATIONS_CODE, resolveLabsLocationCode, resolveLanguageForLocation } from "@/lib/dashboard/locations";
 import { isDataForSeoConfigured } from "@/lib/dataforseo/client";
 import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   const { user } = result;
 
   try {
-    const project = await getProjectForUser(user.id);
+    const project = await getOptionalProjectForUser(user.id);
     const body = await request.json();
     const seed = String(body.seed ?? "").trim();
     if (!seed) {
@@ -71,13 +71,13 @@ export async function POST(request: Request) {
     }
 
     const locationCode = Number(
-      body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE,
+      body.locationCode ?? project?.locationCode ?? DEFAULT_LOCATION_CODE,
     );
     const languageCode =
       body.languageCode ??
       resolveLanguageForLocation(
         locationCode,
-        project.languageCode ?? "en",
+        project?.languageCode ?? "en",
       );
     const limit = Math.min(Number(body.limit ?? 50) || 50, 75);
     const mode = body.mode ?? "auto";
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       ? ALL_LOCATIONS_CODE
       : locationCode;
     const serpLocation = isAllLocations(locationCode)
-      ? resolveLabsLocationCode(project.locationCode ?? DEFAULT_LOCATION_CODE)
+      ? resolveLabsLocationCode(project?.locationCode ?? DEFAULT_LOCATION_CODE)
       : resolveLabsLocationCode(locationCode);
 
     const researchCacheKey = cacheKey([

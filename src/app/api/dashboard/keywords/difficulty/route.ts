@@ -7,7 +7,7 @@ import {
   parseKeywordList,
   MAX_KEYWORDS,
 } from "@/lib/dataforseo/keyword-difficulty";
-import { getProjectForUser } from "@/lib/dashboard/project";
+import { getOptionalProjectForUser } from "@/lib/dashboard/project";
 import {
   DEFAULT_LOCATION_CODE,
   RESEARCH_LOCATIONS,
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const { user } = result;
 
   try {
-    const project = await getProjectForUser(user.id);
+    const project = await getOptionalProjectForUser(user.id);
     const body = await request.json();
     const raw = String(body.keywords ?? body.seed ?? "").trim();
     const keywords = parseKeywordList(raw);
@@ -51,12 +51,12 @@ export async function POST(request: Request) {
     }
 
     const locationCode = Number(
-      body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE,
+      body.locationCode ?? project?.locationCode ?? DEFAULT_LOCATION_CODE,
     );
     const languageCode =
       body.languageCode ??
       RESEARCH_LOCATIONS.find((l) => l.code === locationCode)?.lang ??
-      project.languageCode ??
+      project?.languageCode ??
       "en";
 
     const key = cacheKey([

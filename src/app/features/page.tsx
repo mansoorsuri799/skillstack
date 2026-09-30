@@ -5,6 +5,7 @@ import JsonLd from "@/components/JsonLd";
 import PageCTA from "@/components/PageCTA";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
+import { auth } from "@/auth";
 import { productFeatures } from "@/lib/features";
 import {
   SITE_URL,
@@ -40,7 +41,13 @@ export const metadata: Metadata = {
   }),
 };
 
-export default function FeaturesPage() {
+export default async function FeaturesPage() {
+  const session = await auth();
+  const isLoggedIn = Boolean(session?.user);
+  const primaryHref = isLoggedIn ? "/dashboard" : "/register";
+  const primaryLabel = isLoggedIn ? "Open dashboard" : "Start free";
+  const ctaLabel = isLoggedIn ? "Open dashboard" : "Create account";
+
   return (
     <PageShell>
       <JsonLd
@@ -85,10 +92,10 @@ export default function FeaturesPage() {
       >
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/register"
+            href={primaryHref}
             className="inline-flex rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-[#010409] hover:bg-accent-deep"
           >
-            Start free
+            {primaryLabel}
           </Link>
           <Link
             href="/pricing"
@@ -102,7 +109,7 @@ export default function FeaturesPage() {
       <FeaturesCatalog />
 
       <PageCTA
-        primary={{ href: "/register", label: "Create account" }}
+        primary={{ href: primaryHref, label: ctaLabel }}
         secondary={{ href: "/pricing", label: "SkillStack Pro" }}
       >
         Ready to run these tools on your own projects?

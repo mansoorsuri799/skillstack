@@ -434,6 +434,23 @@ export async function getProjectForUser(userId: string): Promise<ProjectDto> {
   return toProjectDto(project);
 }
 
+/** Prefer an active/real project, but do not require one (keyword tools, etc.). */
+export async function getOptionalProjectForUser(
+  userId: string,
+): Promise<ProjectDto | null> {
+  try {
+    return await getProjectForUser(userId);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith("No project yet")
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function updateGscTokens(
   projectId: mongoose.Types.ObjectId,
   tokens: { accessToken: string; refreshToken: string; expiresAt: Date },

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
 import RegisterForm from "@/components/RegisterForm";
+import { auth } from "@/auth";
 import {
   absoluteUrl,
   pageOpenGraph,
@@ -31,7 +33,12 @@ export const metadata: Metadata = {
   }),
 };
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
+
   return (
     <AuthShell
       title="Sign up to SkillStack"

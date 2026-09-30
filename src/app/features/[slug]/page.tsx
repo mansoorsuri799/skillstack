@@ -6,6 +6,7 @@ import JsonLd from "@/components/JsonLd";
 import PageCTA from "@/components/PageCTA";
 import PageHero from "@/components/PageHero";
 import PageShell from "@/components/PageShell";
+import { auth } from "@/auth";
 import {
   getFeatureBySlug,
   getFeatureSlugs,
@@ -55,6 +56,11 @@ export default async function FeatureDetailPage({ params }: Props) {
   const { slug } = await params;
   const feature = getFeatureBySlug(slug);
   if (!feature) notFound();
+
+  const session = await auth();
+  const isLoggedIn = Boolean(session?.user);
+  const accountHref = isLoggedIn ? "/dashboard" : "/register";
+  const accountLabel = isLoggedIn ? "Open dashboard" : "Create account";
 
   const path = `/features/${feature.slug}`;
   const related = productFeatures
@@ -188,10 +194,10 @@ export default async function FeatureDetailPage({ params }: Props) {
                   Open {feature.shortTitle}
                 </Link>
                 <Link
-                  href="/register"
+                  href={accountHref}
                   className="inline-flex justify-center rounded-md border border-white/20 px-5 py-2.5 text-sm font-medium text-snow hover:bg-white/5"
                 >
-                  Create account
+                  {accountLabel}
                 </Link>
               </div>
             </aside>

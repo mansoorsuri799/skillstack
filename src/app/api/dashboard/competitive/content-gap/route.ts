@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth-session";
 import { isDataForSeoConfigured, normalizeDomain } from "@/lib/dataforseo/client";
-import { getContentGap } from "@/lib/dataforseo/competitive-analysis";
+import { getCompetitiveContentReport } from "@/lib/dataforseo/competitive-analysis";
 import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
-import { getProjectForUser } from "@/lib/dashboard/project";
+import { getOptionalProjectForUser } from "@/lib/dashboard/project";
 import {
   DEFAULT_LOCATION_CODE,
   resolveLabsLocationCode,
+  resolveLanguageForLocation,
 } from "@/lib/dashboard/locations";
-import { isFirecrawlConfigured } from "@/lib/firecrawl/search";
-import { liveSerpForDomain } from "@/lib/firecrawl/live-serp";
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -24,11 +23,11 @@ export async function POST(request: Request) {
   const { user } = result;
 
   try {
-    const project = await getProjectForUser(user.id);
+    const project = await getOptionalProjectForUser(user.id);
     const body = await request.json();
 
     const yourDomain = normalizeDomain(
-      String(body.domain ?? body.yourDomain ?? project.domain),
+      String(body.domain ?? body.yourDomain ?? project?.domain ?? ""),
     );
     const competitorDomain = normalizeDomain(String(body.competitor ?? ""));
 
@@ -47,53 +46,35 @@ export async function POST(request: Request) {
     }
 
     const locationCode = resolveLabsLocationCode(
-      Number(body.locationCode ?? project.locationCode ?? DEFAULT_LOCATION_CODE),
+      Number(body.locationCode ?? project?.locationCode ?? DEFAULT_LOCATION_CODE),
     );
-    const languageCode = body.languageCode ?? project.languageCode ?? "en";
-    const limit = Math.min(Number(body.limit ?? 50) || 50, 75);
+    const languageCode =
+      body.languageCode ??
+      resolveLanguageForLocation(locationCode, project?.languageCode ?? "en");
+    const includeLinks = body.includeLinks === true;
 
     const key = cacheKey([
-      "content-gap-v1",
+      "competitive-report-v2",
       yourDomain,
       competitorDomain,
       locationCode,
       languageCode,
-      limit,
+      includeLinks ? "links" : "lite",
     ]);
     const cached = getCached<{ data: unknown }>(key);
     if (cached) {
       return NextResponse.json({ ...cached, cached: true });
     }
 
-    const [data, live] = await Promise.all([
-      getContentGap(
-        yourDomain,
-        competitorDomain,
-        locationCode,
-        languageCode,
-        limit,
-      ),
-      isFirecrawlConfigured()
-        ? liveSerpForDomain(competitorDomain, { locationCode }).catch(() => null)
-        : Promise.resolve(null),
-    ]);
+    const data = await getCompetitiveContentReport(
+      yourDomain,
+      competitorDomain,
+      locationCode,
+      languageCode,
+      includeLinks,
+    );
 
-    const liveSerp = live
-      ? {
-          keyword: live.keyword,
-          location: live.location,
-          listings: live.listings
-            .filter((row) => !row.isYours)
-            .map((row) => ({
-              position: row.position,
-              domain: row.host,
-              title: row.title,
-              url: row.url,
-            })),
-        }
-      : null;
-
-    const payload = { data: { ...data, liveSerp } };
+    const payload = { data };
     setCached(key, payload, DATAFORSEO_CACHE_TTL_MS);
     return NextResponse.json(payload);
   } catch (error) {

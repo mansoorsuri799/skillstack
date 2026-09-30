@@ -265,22 +265,23 @@ export const productFeatures: ProductFeature[] = [
     shortTitle: "Content gap",
     group: "Competitive analysis",
     summary:
-      "Find keywords competitors rank for that you do not — then plan content to close the gap.",
+      "Analyze your content first, then compare keywords, pages, backlinks, and referring domains against a competitor with a fact-based verdict.",
     description:
-      "The Content Gap Finder compares domains to highlight missing keyword opportunities so your content roadmap targets proven demand instead of guesswork.",
+      "The Content Gap Finder builds a competitive content report: your organic keywords and pages, the competitor’s profile, keyword gaps and overlaps, backlinks, referring domains, and a clear score of who is performing better.",
     dashboardHref: "/dashboard/content-gap-finder",
     highlights: [
-      "Competitor vs your domain keyword gaps",
-      "Opportunity-oriented research workflow",
-      "Supports editorial planning",
+      "Your-site analysis before competitor comparison",
+      "Keywords, pages, backlinks, and referring domains",
+      "Fact-based leading / trailing / close verdict",
     ],
     outcomes: [
-      "Fill missing topics competitors already own",
-      "Reduce wasted content ideas",
+      "See whether you are ahead or behind with measurable signals",
+      "Prioritize keyword gaps and link opportunities that matter",
     ],
     keywords: [
       "content gap finder",
       "keyword gap analysis tool",
+      "competitive content report",
       "SkillStack content gap finder",
     ],
   },
