@@ -37,6 +37,14 @@ import type {
   DomainContentSnapshot,
 } from "@/lib/dataforseo/competitive-analysis";
 
+type BacklinksEntitlement = {
+  used: number;
+  limit: number;
+  remaining: number;
+  unlimited: boolean;
+  available: boolean;
+};
+
 function formatNum(value: number | null | undefined) {
   if (value == null) return "—";
   return Math.round(value).toLocaleString();
@@ -280,15 +288,46 @@ export default function ContentGapPage() {
   const [competitor, setCompetitor] = useState("");
   const [locationCode, setLocationCode] = useState(DEFAULT_LOCATION_CODE);
   const [includeLinks, setIncludeLinks] = useState(false);
+  const [backlinksEntitlement, setBacklinksEntitlement] =
+    useState<BacklinksEntitlement | null>(null);
   const [data, setData] = useState<CompetitiveContentReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const backlinksLocked = Boolean(
+    backlinksEntitlement &&
+      !backlinksEntitlement.unlimited &&
+      !backlinksEntitlement.available,
+  );
 
   useEffect(() => {
     if (project?.domain && project.domain !== "example.com") {
       setYourDomain(project.domain);
     }
   }, [project]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/dashboard/competitive/content-gap");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled && json.entitlement) {
+          setBacklinksEntitlement(json.entitlement as BacklinksEntitlement);
+        }
+      } catch {
+        /* optional */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (backlinksLocked && includeLinks) setIncludeLinks(false);
+  }, [backlinksLocked, includeLinks]);
 
   async function analyze() {
     if (!yourDomain.trim()) {
@@ -297,6 +336,12 @@ export default function ContentGapPage() {
     }
     if (!competitor.trim()) {
       setError("Enter a competitor domain.");
+      return;
+    }
+    if (includeLinks && backlinksLocked) {
+      setError(
+        "You've already used your one free Include backlinks run. Upgrade to unlock more.",
+      );
       return;
     }
 
@@ -316,6 +361,9 @@ export default function ContentGapPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
       setData(json.data as CompetitiveContentReport);
+      if (json.entitlement) {
+        setBacklinksEntitlement(json.entitlement as BacklinksEntitlement);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
@@ -379,16 +427,29 @@ export default function ContentGapPage() {
                 }))}
                 disabled={loading}
               />
-              <label className="flex items-center gap-2 text-sm text-ink-muted xl:pb-2">
-                <input
-                  type="checkbox"
-                  checked={includeLinks}
-                  onChange={(e) => setIncludeLinks(e.target.checked)}
-                  disabled={loading}
-                  className="rounded border-line"
-                />
-                Include backlinks (+2 API calls)
-              </label>
+              <div className="flex flex-col gap-1 xl:pb-1">
+                <label
+                  className={`flex items-center gap-2 text-sm ${
+                    backlinksLocked ? "text-ink-muted/60" : "text-ink-muted"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={includeLinks && !backlinksLocked}
+                    onChange={(e) => setIncludeLinks(e.target.checked)}
+                    disabled={loading || backlinksLocked}
+                    className="rounded border-line"
+                  />
+                  Include backlinks
+                  {!backlinksEntitlement?.unlimited ? (
+                    <span className="text-[11px] text-ink-muted">
+                      {backlinksLocked
+                        ? "(used — upgrade for more)"
+                        : "(1 free use per account)"}
+                    </span>
+                  ) : null}
+                </label>
+              </div>
               <button type="submit" disabled={loading} className={buttonPrimaryClass}>
                 {loading ? "Building report..." : "Generate comparison report"}
               </button>

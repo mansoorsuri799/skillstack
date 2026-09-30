@@ -59,6 +59,8 @@ const UserSchema = new Schema(
     dashboardPro: { type: Boolean, default: false },
     brandLookupUsageCount: { type: Number, default: 0, min: 0 },
     promptExplorerUsageCount: { type: Number, default: 0, min: 0 },
+    /** Content Gap "Include backlinks" — one free use per account (Pro = unlimited). */
+    contentGapBacklinksUsageCount: { type: Number, default: 0, min: 0 },
 
     /** Per-user dashboard UI state (syncs across devices). */
     keywordRecentSearches: {

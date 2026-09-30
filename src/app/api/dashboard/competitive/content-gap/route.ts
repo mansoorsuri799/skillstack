@@ -5,10 +5,31 @@ import { getCompetitiveContentReport } from "@/lib/dataforseo/competitive-analys
 import { cacheKey, getCached, setCached, DATAFORSEO_CACHE_TTL_MS } from "@/lib/dataforseo/cache";
 import { getOptionalProjectForUser } from "@/lib/dashboard/project";
 import {
+  assertContentGapBacklinksAvailable,
+  consumeContentGapBacklinksOnce,
+  ContentGapBacklinksLimitError,
+  contentGapBacklinksLimitJson,
+  getContentGapBacklinksEntitlement,
+} from "@/lib/dashboard/content-gap-backlinks-limit";
+import {
   DEFAULT_LOCATION_CODE,
   resolveLabsLocationCode,
   resolveLanguageForLocation,
 } from "@/lib/dashboard/locations";
+
+export async function GET(request: Request) {
+  const result = await requireUser(request);
+  if ("response" in result) return result.response;
+
+  try {
+    const entitlement = await getContentGapBacklinksEntitlement(result.user.id);
+    return NextResponse.json({ entitlement });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not load entitlement";
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   if (!isDataForSeoConfigured()) {
@@ -53,6 +74,10 @@ export async function POST(request: Request) {
       resolveLanguageForLocation(locationCode, project?.languageCode ?? "en");
     const includeLinks = body.includeLinks === true;
 
+    if (includeLinks) {
+      await assertContentGapBacklinksAvailable(user.id);
+    }
+
     const key = cacheKey([
       "competitive-report-v3",
       yourDomain,
@@ -62,8 +87,18 @@ export async function POST(request: Request) {
       includeLinks ? "links" : "lite",
     ]);
     const cached = getCached<{ data: unknown }>(key);
+
+    let entitlement = await getContentGapBacklinksEntitlement(user.id);
+
     if (cached) {
-      return NextResponse.json({ ...cached, cached: true });
+      // Cached lite reports are free to replay. Cached link reports still count
+      // as the one-time use if not yet consumed (Pro skips).
+      if (includeLinks && entitlement.available && !entitlement.unlimited) {
+        entitlement = await consumeContentGapBacklinksOnce(user.id);
+      } else {
+        entitlement = await getContentGapBacklinksEntitlement(user.id);
+      }
+      return NextResponse.json({ ...cached, cached: true, entitlement });
     }
 
     const data = await getCompetitiveContentReport(
@@ -74,10 +109,19 @@ export async function POST(request: Request) {
       includeLinks,
     );
 
-    const payload = { data };
-    setCached(key, payload, DATAFORSEO_CACHE_TTL_MS);
+    if (includeLinks) {
+      entitlement = await consumeContentGapBacklinksOnce(user.id);
+    }
+
+    const payload = { data, entitlement };
+    setCached(key, { data }, DATAFORSEO_CACHE_TTL_MS);
     return NextResponse.json(payload);
   } catch (error) {
+    if (error instanceof ContentGapBacklinksLimitError) {
+      return NextResponse.json(contentGapBacklinksLimitJson(error), {
+        status: 402,
+      });
+    }
     const message = error instanceof Error ? error.message : "Lookup failed";
     return NextResponse.json({ message }, { status: 500 });
   }
