@@ -199,10 +199,12 @@ function DomainSnapshotPanel({
                 },
                 {
                   key: "vol",
-                  header: "Vol",
+                  header: "Monthly vol",
                   cell: (row) => (
-                    <span className="text-ink-muted">
-                      {formatNum(row.searchVolume)}
+                    <span className="tabular-nums text-ink-muted">
+                      {row.searchVolume != null
+                        ? `${formatNum(row.searchVolume)} / mo`
+                        : "—"}
                     </span>
                   ),
                 },
@@ -332,7 +334,7 @@ export default function ContentGapPage() {
 
         <SearchPanel
           title="Competitive content report"
-          description="Credit-efficient mode: ~5 DataForSEO calls by default (your content first, then competitor metrics + keyword gaps). Link metrics are optional."
+          description="Credit-efficient mode: ~4 DataForSEO calls by default (your content first, then competitor). Keyword & page gaps are computed locally for accuracy. Link metrics are optional."
         >
           <form
             onSubmit={(e) => {
@@ -409,7 +411,7 @@ export default function ContentGapPage() {
 
             <DomainSnapshotPanel
               title={`1. Your content · ${data.yourDomain}`}
-              description="Organic metrics plus a small sample of your top keywords/pages (derived from rankings — no extra pages API)."
+              description="Organic metrics plus your highest-volume ranking keywords (monthly search volume). Pages are derived from those ranking URLs."
               snapshot={data.yours}
               accent
               showLinks={data.includeLinks}
@@ -423,8 +425,8 @@ export default function ContentGapPage() {
             />
 
             <ResultsPanel
-              title="3. Keyword gaps (they rank, you don’t)"
-              description={`Opportunity keywords ${data.competitorDomain} ranks for that ${data.yourDomain} does not.`}
+              title="3. Topics & keywords you miss"
+              description={`Head terms / topics ${data.competitorDomain} ranks for that ${data.yourDomain} does not (from volume-ranked samples).`}
             >
               {data.keywordGaps.length > 0 ? (
                 <DataTable
@@ -433,17 +435,19 @@ export default function ContentGapPage() {
                   columns={[
                     {
                       key: "keyword",
-                      header: "Keyword",
+                      header: "Topic / keyword",
                       cell: (row) => (
                         <span className="font-medium text-snow">{row.keyword}</span>
                       ),
                     },
                     {
                       key: "volume",
-                      header: "Volume",
+                      header: "Monthly vol",
                       cell: (row) => (
-                        <span className="text-ink-muted">
-                          {formatNum(row.searchVolume)}
+                        <span className="tabular-nums text-ink-muted">
+                          {row.searchVolume != null
+                            ? `${formatNum(row.searchVolume)} / mo`
+                            : "—"}
                         </span>
                       ),
                     },
@@ -463,7 +467,7 @@ export default function ContentGapPage() {
                     },
                     {
                       key: "url",
-                      header: "Their URL",
+                      header: "Their page",
                       cell: (row) => (
                         <span className="block max-w-xs truncate text-xs text-accent">
                           {row.competitorUrl ?? "—"}
@@ -474,13 +478,70 @@ export default function ContentGapPage() {
                 />
               ) : (
                 <p className="text-sm text-ink-muted">
-                  No clear keyword gaps found for this market pairing.
+                  No clear topic gaps in this keyword sample — try another competitor or market.
                 </p>
               )}
             </ResultsPanel>
 
             <ResultsPanel
-              title="4. Shared keywords (both rank)"
+              title="4. Pages / blogs they cover (you don’t)"
+              description={`Competitor URLs whose path is not on your sampled pages — missed articles, landing pages, or blog posts.`}
+            >
+              {data.pageGaps.length > 0 ? (
+                <DataTable
+                  rows={data.pageGaps}
+                  rowKey={(row) => row.url}
+                  columns={[
+                    {
+                      key: "topic",
+                      header: "Topic (from URL)",
+                      cell: (row) => (
+                        <span className="font-medium text-snow">{row.topic}</span>
+                      ),
+                    },
+                    {
+                      key: "url",
+                      header: "Competitor page",
+                      cell: (row) => (
+                        <a
+                          href={
+                            row.url.startsWith("http") ? row.url : `https://${row.url}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block max-w-[260px] truncate text-xs text-accent hover:underline"
+                          title={row.url}
+                        >
+                          {truncateUrl(row.url, 56)}
+                        </a>
+                      ),
+                    },
+                    {
+                      key: "traffic",
+                      header: "Est. traffic",
+                      cell: (row) => (
+                        <span className="text-ink-muted">{formatNum(row.traffic)}</span>
+                      ),
+                    },
+                    {
+                      key: "kw",
+                      header: "KWs",
+                      cell: (row) => (
+                        <span className="text-ink-muted">{formatNum(row.keywords)}</span>
+                      ),
+                    },
+                  ]}
+                />
+              ) : (
+                <p className="text-sm text-ink-muted">
+                  No extra competitor pages found beyond overlapping paths in this sample
+                  (both may only show the homepage).
+                </p>
+              )}
+            </ResultsPanel>
+
+            <ResultsPanel
+              title="5. Shared keywords (both rank)"
               description="Where you already compete on the same queries — compare positions."
             >
               {data.sharedKeywords.length > 0 ? (
@@ -497,10 +558,12 @@ export default function ContentGapPage() {
                     },
                     {
                       key: "volume",
-                      header: "Volume",
+                      header: "Monthly vol",
                       cell: (row) => (
-                        <span className="text-ink-muted">
-                          {formatNum(row.searchVolume)}
+                        <span className="tabular-nums text-ink-muted">
+                          {row.searchVolume != null
+                            ? `${formatNum(row.searchVolume)} / mo`
+                            : "—"}
                         </span>
                       ),
                     },
@@ -526,94 +589,24 @@ export default function ContentGapPage() {
                 />
               ) : (
                 <p className="text-sm text-ink-muted">
-                  No overlapping ranked keywords found in this sample.
+                  No exact overlapping keywords in this sample (near-duplicates like
+                  “cardrummy” vs “card rummy” count as different topics above).
                 </p>
               )}
             </ResultsPanel>
 
-            {data.includeLinks &&
-            (data.yours.topReferringDomains.length > 0 ||
-              data.competitor.topReferringDomains.length > 0) ? (
-            <ResultsPanel
-              title="5. Referring domains"
-              description="Top linking domains for each site — stronger referral profiles usually support rankings."
-            >
-              <div className="grid gap-5 lg:grid-cols-2">
-                <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                    Your referring domains
-                  </h4>
-                  {data.yours.topReferringDomains.length > 0 ? (
-                    <DataTable
-                      rows={data.yours.topReferringDomains}
-                      rowKey={(row) => row.domain}
-                      columns={[
-                        {
-                          key: "domain",
-                          header: "Domain",
-                          cell: (row) => (
-                            <span className="font-medium text-snow">{row.domain}</span>
-                          ),
-                        },
-                        {
-                          key: "links",
-                          header: "Links",
-                          cell: (row) => (
-                            <span className="text-ink-muted">
-                              {formatNum(row.backlinks)}
-                            </span>
-                          ),
-                        },
-                      ]}
-                    />
-                  ) : (
-                    <p className="text-sm text-ink-muted">No referring domain sample.</p>
-                  )}
-                </div>
-                <div>
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                    Competitor referring domains
-                  </h4>
-                  {data.competitor.topReferringDomains.length > 0 ? (
-                    <DataTable
-                      rows={data.competitor.topReferringDomains}
-                      rowKey={(row) => row.domain}
-                      columns={[
-                        {
-                          key: "domain",
-                          header: "Domain",
-                          cell: (row) => (
-                            <span className="font-medium text-snow">{row.domain}</span>
-                          ),
-                        },
-                        {
-                          key: "links",
-                          header: "Links",
-                          cell: (row) => (
-                            <span className="text-ink-muted">
-                              {formatNum(row.backlinks)}
-                            </span>
-                          ),
-                        },
-                      ]}
-                    />
-                  ) : (
-                    <p className="text-sm text-ink-muted">No referring domain sample.</p>
-                  )}
-                </div>
-              </div>
-            </ResultsPanel>
-            ) : data.includeLinks ? (
+            {data.includeLinks ? (
               <ResultsPanel
-                title="5. Link totals"
-                description="Backlink and referring-domain counts are included in the verdict above. Detailed referring-domain lists are skipped to save credits."
+                title="6. Link totals"
+                description="Backlink and referring-domain counts (optional). Detailed referring-domain lists are skipped to save credits."
               >
                 <p className="text-sm text-ink-muted">
                   {data.yourDomain}: {formatNum(data.yours.backlinks)} backlinks ·{" "}
                   {formatNum(data.yours.referringDomains)} referring domains
                   <br />
-                  {data.competitorDomain}: {formatNum(data.competitor.backlinks)} backlinks ·{" "}
-                  {formatNum(data.competitor.referringDomains)} referring domains
+                  {data.competitorDomain}: {formatNum(data.competitor.backlinks)}{" "}
+                  backlinks · {formatNum(data.competitor.referringDomains)} referring
+                  domains
                 </p>
               </ResultsPanel>
             ) : null}

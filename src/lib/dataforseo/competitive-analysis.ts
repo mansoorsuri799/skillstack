@@ -1,9 +1,8 @@
 import {
-  DataforseoLabsGoogleDomainIntersectionLiveRequestInfo,
   DataforseoLabsGoogleDomainRankOverviewLiveRequestInfo,
   DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
 } from "dataforseo-client";
-import { labsApi, normalizeDomain, taskItems, taskResultItems } from "@/lib/dataforseo/client";
+import { labsApi, normalizeDomain, taskResultItems } from "@/lib/dataforseo/client";
 import { getBacklinksSummary } from "@/lib/dataforseo/services";
 
 export type ContentGapRow = {
@@ -21,6 +20,14 @@ export type ContentGapResult = {
   yourDomain: string;
   competitorDomain: string;
   keywords: ContentGapRow[];
+};
+
+export type ContentPageGap = {
+  url: string;
+  /** Humanized path used as a topic / heading label (e.g. blog slug). */
+  topic: string;
+  traffic: number | null;
+  keywords: number | null;
 };
 
 export type DomainContentSnapshot = {
@@ -79,14 +86,15 @@ export type CompetitiveContentReport = {
   locationCode: number;
   languageCode: string;
   generatedAt: string;
-  /** When false, backlink metrics were skipped to save credits. */
   includeLinks: boolean;
-  /** How many paid DataForSEO tasks this report used (approx). */
   apiCallsUsed: number;
   yours: DomainContentSnapshot;
   competitor: DomainContentSnapshot;
   verdict: CompetitiveVerdict;
+  /** Keywords / topics competitor ranks for that you do not (from samples). */
   keywordGaps: ContentGapRow[];
+  /** Competitor pages/blogs whose path you do not have. */
+  pageGaps: ContentPageGap[];
   sharedKeywords: Array<{
     keyword: string;
     searchVolume: number | null;
@@ -97,8 +105,8 @@ export type CompetitiveContentReport = {
   }>;
 };
 
-const KEYWORD_SAMPLE = 10;
-const GAP_LIMIT = 20;
+/** Prefer accuracy of head terms over traffic-sorted long-tails. */
+const KEYWORD_SAMPLE = 15;
 
 function formatCount(value: number | null | undefined): string {
   if (value == null) return "—";
@@ -151,7 +159,99 @@ function pagesFromKeywords(
       keywords: stats.keywords,
     }))
     .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0))
-    .slice(0, 8);
+    .slice(0, 10);
+}
+
+function normalizePath(url: string): string {
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+    let path = parsed.pathname.toLowerCase().replace(/\/+$/, "") || "/";
+    // Drop common index suffixes
+    path = path.replace(/\/(index|home)\.(html?|php)$/i, "") || "/";
+    return path;
+  } catch {
+    return url.toLowerCase();
+  }
+}
+
+function topicFromUrl(url: string): string {
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    if (parts.length === 0) return "Homepage";
+    const slug = decodeURIComponent(parts[parts.length - 1] ?? "")
+      .replace(/\.(html?|php)$/i, "")
+      .replace(/[-_]+/g, " ")
+      .trim();
+    if (!slug) return "Homepage";
+    return slug.replace(/\b\w/g, (c) => c.toUpperCase());
+  } catch {
+    return url;
+  }
+}
+
+function buildPageGaps(
+  yours: DomainContentSnapshot["topPages"],
+  competitor: DomainContentSnapshot["topPages"],
+): ContentPageGap[] {
+  const yourPaths = new Set(yours.map((p) => normalizePath(p.url)));
+  return competitor
+    .filter((page) => {
+      const path = normalizePath(page.url);
+      // Homepage vs homepage is not a content gap
+      if (path === "/") return false;
+      return !yourPaths.has(path);
+    })
+    .map((page) => ({
+      url: page.url,
+      topic: topicFromUrl(page.url),
+      traffic: page.traffic,
+      keywords: page.keywords,
+    }))
+    .sort((a, b) => (b.traffic ?? 0) - (a.traffic ?? 0));
+}
+
+function buildKeywordGaps(
+  yours: DomainContentSnapshot["topKeywords"],
+  competitor: DomainContentSnapshot["topKeywords"],
+): ContentGapRow[] {
+  const yourSet = new Set(yours.map((k) => k.keyword.toLowerCase().trim()));
+  return competitor
+    .filter((row) => !yourSet.has(row.keyword.toLowerCase().trim()))
+    .map((row) => ({
+      keyword: row.keyword,
+      searchVolume: row.searchVolume,
+      cpc: null,
+      difficulty: row.difficulty,
+      competitorRank: row.rank,
+      competitorUrl: row.url,
+      trafficValue: row.etv,
+    }))
+    .sort((a, b) => (b.searchVolume ?? 0) - (a.searchVolume ?? 0));
+}
+
+function buildSharedKeywords(
+  yours: DomainContentSnapshot["topKeywords"],
+  competitor: DomainContentSnapshot["topKeywords"],
+) {
+  const competitorByKeyword = new Map(
+    competitor.map((row) => [row.keyword.toLowerCase().trim(), row]),
+  );
+  return yours
+    .map((row) => {
+      const other = competitorByKeyword.get(row.keyword.toLowerCase().trim());
+      if (!other) return null;
+      return {
+        keyword: row.keyword,
+        searchVolume: row.searchVolume ?? other.searchVolume,
+        yourRank: row.rank,
+        competitorRank: other.rank,
+        yourUrl: row.url,
+        competitorUrl: other.url,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row != null)
+    .sort((a, b) => (b.searchVolume ?? 0) - (a.searchVolume ?? 0));
 }
 
 function buildVerdict(
@@ -232,15 +332,15 @@ function buildVerdict(
   if (margin >= 2) {
     status = "leading";
     headline = `You are ahead of ${competitor.domain}`;
-    summary = `Across ${facts.length} measured signals, your site wins ${scoreYou} and the competitor wins ${scoreCompetitor}. Close remaining keyword gaps while protecting your lead.`;
+    summary = `Across ${facts.length} measured signals, your site wins ${scoreYou} and the competitor wins ${scoreCompetitor}. Close remaining topic and page gaps while protecting your lead.`;
   } else if (margin <= -2) {
     status = "trailing";
     headline = `${competitor.domain} is currently stronger`;
-    summary = `They win ${scoreCompetitor} of ${facts.length} comparison signals versus your ${scoreYou}. Prioritize gap keywords and stronger pages.`;
+    summary = `They win ${scoreCompetitor} of ${facts.length} comparison signals versus your ${scoreYou}. Cover their missing topics and pages listed below.`;
   } else {
     status = "close";
     headline = "Competitive race is close";
-    summary = `Score is ${scoreYou}–${scoreCompetitor} across the measured signals. Small content gains can tip the market.`;
+    summary = `Score is ${scoreYou}–${scoreCompetitor}. Focus on the topic and page gaps below to pull ahead.`;
   }
 
   return {
@@ -291,7 +391,10 @@ async function fetchDomainMetrics(domain: string, locationCode: number, language
   };
 }
 
-/** 1 Labs call — small ranked-keyword sample (also used to derive pages). */
+/**
+ * 1 Labs call — head terms first (search volume), not ETV.
+ * ignore_synonyms false so near-duplicates like "card rummy" stay visible.
+ */
 async function fetchTopKeywords(
   domain: string,
   locationCode: number,
@@ -306,8 +409,8 @@ async function fetchTopKeywords(
       language_code: languageCode,
       limit,
       include_subdomains: true,
-      ignore_synonyms: true,
-      order_by: ["ranked_serp_element.serp_item.etv,desc"],
+      ignore_synonyms: false,
+      order_by: ["keyword_data.keyword_info.search_volume,desc"],
     } as unknown as DataforseoLabsGoogleRankedKeywordsLiveRequestInfo,
   ]);
 
@@ -336,95 +439,38 @@ async function fetchTopKeywords(
     .filter((row) => row.keyword);
 }
 
-/** 1 Labs call — competitor ranks, you do not. */
-async function fetchKeywordGaps(
-  competitorDomain: string,
-  yourDomain: string,
-  locationCode: number,
-  languageCode: string,
-  limit = GAP_LIMIT,
-): Promise<ContentGapRow[]> {
-  const api = labsApi();
-  const response = await api.googleDomainIntersectionLive([
-    {
-      target_1: competitorDomain,
-      target_2: yourDomain,
-      intersections: false,
-      location_code: locationCode,
-      language_code: languageCode,
-      item_types: ["organic"],
-      limit,
-      order_by: ["keyword_data.keyword_info.search_volume,desc"],
-    } as DataforseoLabsGoogleDomainIntersectionLiveRequestInfo,
-  ]);
-
-  const result = taskItems<{
-    items?: Array<{
-      keyword_data?: {
-        keyword?: string | null;
-        keyword_info?: {
-          search_volume?: number | null;
-          cpc?: number | null;
-        } | null;
-        keyword_properties?: { keyword_difficulty?: number | null } | null;
-      } | null;
-      first_domain_serp_element?: {
-        rank_absolute?: number | null;
-        url?: string | null;
-        etv?: number | null;
-      } | null;
-    }> | null;
-  }>(response)[0];
-
-  return (result?.items ?? [])
-    .map((item) => ({
-      keyword: item.keyword_data?.keyword ?? "",
-      searchVolume: item.keyword_data?.keyword_info?.search_volume ?? null,
-      cpc: item.keyword_data?.keyword_info?.cpc ?? null,
-      difficulty: item.keyword_data?.keyword_properties?.keyword_difficulty ?? null,
-      competitorRank: item.first_domain_serp_element?.rank_absolute ?? null,
-      competitorUrl: item.first_domain_serp_element?.url ?? null,
-      trafficValue: item.first_domain_serp_element?.etv ?? null,
-    }))
-    .filter((row) => row.keyword);
-}
-
-/** Legacy gap-only helper. */
+/** Legacy helper — still one intersection call if something else imports it. */
 export async function getContentGap(
   yourDomain: string,
   competitorDomain: string,
   locationCode = 2586,
   languageCode = "en",
-  limit = 50,
+  _limit = 50,
 ): Promise<ContentGapResult> {
   const target1 = normalizeDomain(competitorDomain);
   const target2 = normalizeDomain(yourDomain);
   if (target1 === target2) {
     throw new Error("Enter a competitor domain different from your site.");
   }
-  const keywords = await fetchKeywordGaps(
-    target1,
-    target2,
-    locationCode,
-    languageCode,
-    limit,
-  );
-  return { yourDomain: target2, competitorDomain: target1, keywords };
+  const [yours, competitor] = await Promise.all([
+    fetchTopKeywords(target2, locationCode, languageCode),
+    fetchTopKeywords(target1, locationCode, languageCode),
+  ]);
+  return {
+    yourDomain: target2,
+    competitorDomain: target1,
+    keywords: buildKeywordGaps(yours, competitor),
+  };
 }
 
 /**
- * Credit-efficient competitive report.
+ * Credit-efficient competitive content report.
  *
- * Default = **5 Labs calls**:
+ * Default = **4 Labs calls** (no intersection bill):
  * 1–2) Domain rank overview (you + competitor)
- * 3) Ranked keywords sample — your site (content first)
- * 4) Ranked keywords sample — competitor
- * 5) Keyword gap intersection
+ * 3–4) Ranked keywords by monthly search volume (you + competitor)
  *
- * Shared keywords are computed locally (no extra call).
- * Pages are derived from keyword URLs (no Relevant Pages call).
- * Referring-domain lists are skipped.
- *
+ * Keyword gaps + page/topic gaps + shared keywords are computed locally.
  * Optional `includeLinks` adds **2** Backlinks Summary calls.
  */
 export async function getCompetitiveContentReport(
@@ -447,26 +493,17 @@ export async function getCompetitiveContentReport(
     throw new Error("Enter a competitor domain different from your site.");
   }
 
-  const [
-    yourMetrics,
-    competitorMetrics,
-    yourKeywords,
-    competitorKeywords,
-    keywordGaps,
-  ] = await Promise.all([
-    fetchDomainMetrics(yourDomain, locationCode, languageCode).catch(() => null),
-    fetchDomainMetrics(competitorDomain, locationCode, languageCode).catch(() => null),
-    fetchTopKeywords(yourDomain, locationCode, languageCode).catch(() => []),
-    fetchTopKeywords(competitorDomain, locationCode, languageCode).catch(() => []),
-    fetchKeywordGaps(
-      competitorDomain,
-      yourDomain,
-      locationCode,
-      languageCode,
-    ).catch(() => [] as ContentGapRow[]),
-  ]);
+  const [yourMetrics, competitorMetrics, yourKeywords, competitorKeywords] =
+    await Promise.all([
+      fetchDomainMetrics(yourDomain, locationCode, languageCode).catch(() => null),
+      fetchDomainMetrics(competitorDomain, locationCode, languageCode).catch(
+        () => null,
+      ),
+      fetchTopKeywords(yourDomain, locationCode, languageCode).catch(() => []),
+      fetchTopKeywords(competitorDomain, locationCode, languageCode).catch(() => []),
+    ]);
 
-  let apiCallsUsed = 5;
+  let apiCallsUsed = 4;
 
   const yours: DomainContentSnapshot = {
     ...emptySnapshot(yourDomain),
@@ -496,24 +533,9 @@ export async function getCompetitiveContentReport(
     competitor.domainRank = competitorLinks?.domainRank ?? null;
   }
 
-  // Local overlap — no second intersection call.
-  const competitorByKeyword = new Map(
-    competitorKeywords.map((row) => [row.keyword.toLowerCase(), row]),
-  );
-  const sharedKeywords = yourKeywords
-    .map((row) => {
-      const other = competitorByKeyword.get(row.keyword.toLowerCase());
-      if (!other) return null;
-      return {
-        keyword: row.keyword,
-        searchVolume: row.searchVolume ?? other.searchVolume,
-        yourRank: row.rank,
-        competitorRank: other.rank,
-        yourUrl: row.url,
-        competitorUrl: other.url,
-      };
-    })
-    .filter((row): row is NonNullable<typeof row> => row != null);
+  const keywordGaps = buildKeywordGaps(yourKeywords, competitorKeywords);
+  const pageGaps = buildPageGaps(yours.topPages, competitor.topPages);
+  const sharedKeywords = buildSharedKeywords(yourKeywords, competitorKeywords);
 
   return {
     yourDomain,
@@ -527,6 +549,7 @@ export async function getCompetitiveContentReport(
     competitor,
     verdict: buildVerdict(yours, competitor, includeLinks),
     keywordGaps,
+    pageGaps,
     sharedKeywords,
   };
 }

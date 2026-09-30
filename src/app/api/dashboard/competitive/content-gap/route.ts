@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const includeLinks = body.includeLinks === true;
 
     const key = cacheKey([
-      "competitive-report-v2",
+      "competitive-report-v3",
       yourDomain,
       competitorDomain,
       locationCode,
