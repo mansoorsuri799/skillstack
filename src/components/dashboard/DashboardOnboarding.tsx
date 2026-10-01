@@ -173,30 +173,6 @@ export default function DashboardOnboarding({
                 " All steps are ready."
               )}
             </p>
-
-            {nextStep ? (
-              <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                {nextStep.href ? (
-                  <Link
-                    href={nextStep.href}
-                    prefetch
-                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
-                  >
-                    Continue: {nextStep.title}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => focusStep(nextStep.id)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-[#010409] shadow-md shadow-accent/20 transition hover:bg-accent-deep"
-                  >
-                    Continue: {nextStep.title}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-            ) : null}
           </div>
 
           <div className="rounded-xl border border-line/80 bg-bg p-3 font-mono text-xs w-full lg:w-64 shrink-0 space-y-0.5">
