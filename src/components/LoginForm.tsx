@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, Suspense, useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
@@ -95,6 +96,15 @@ function LoginFormInner() {
             className={inputClass}
           />
         </label>
+
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-accent hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         <button
           type="submit"

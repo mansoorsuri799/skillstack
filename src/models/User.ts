@@ -15,6 +15,8 @@ const UserSchema = new Schema(
     emailVerified: { type: Date, default: null },
     verificationToken: { type: String, default: null },
     verificationTokenExpires: { type: Date, default: null },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordTokenExpires: { type: Date, default: null },
     googleId: { type: String, default: undefined, index: true, sparse: true },
     image: { type: String, required: false },
 

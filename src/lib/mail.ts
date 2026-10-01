@@ -230,6 +230,140 @@ https://skillstack.com.pk`,
   });
 }
 
+function buildPasswordResetHtml(name: string, resetUrl: string) {
+  const safeName = escapeHtml(name);
+  const safeUrl = escapeHtml(resetUrl);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Reset your SkillStack password</title>
+</head>
+<body style="margin:0;padding:0;background:#010409;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#010409;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;border-collapse:separate;">
+          <tr>
+            <td style="height:4px;background:#2dd4bf;border-radius:12px 12px 0 0;font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="background:#0d1117;border:1px solid #21262d;border-top:none;border-radius:0 0 12px 12px;padding:40px 36px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                      <tr>
+                        <td style="width:36px;height:36px;vertical-align:middle;background:#ffffff;border-radius:8px;padding:4px;">
+                          ${logoImgTag()}
+                        </td>
+                        <td style="padding-left:12px;vertical-align:middle;">
+                          <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.03em;color:#f0f3f6;">SkillStack<span style="color:#2dd4bf;font-size:10px;vertical-align:super;">●</span></span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <h1 style="margin:36px 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:28px;line-height:1.25;font-weight:700;letter-spacing:-0.03em;color:#f0f3f6;">
+                Reset your password
+              </h1>
+              <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#8b949e;">
+                Hi ${safeName},
+              </p>
+              <p style="margin:0 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#c9d1d9;">
+                We received a request to reset your <strong style="color:#f0f3f6;font-weight:600;">SkillStack</strong> password. Click below to choose a new one.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="border-radius:8px;background:#2dd4bf;">
+                    <a href="${safeUrl}" style="display:inline-block;padding:14px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#010409;text-decoration:none;letter-spacing:-0.01em;">
+                      Reset password →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#2dd4bf;">
+                      Button not working?
+                    </p>
+                    <p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#8b949e;">
+                      Paste this link into your browser:
+                    </p>
+                    <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.5;word-break:break-all;">
+                      <a href="${safeUrl}" style="color:#79c0ff;text-decoration:none;">${safeUrl}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:24px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6e7681;">
+                This link expires in <strong style="color:#8b949e;font-weight:600;">1 hour</strong>. If you didn’t request a reset, you can ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 8px 0;text-align:center;">
+              <p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:600;color:#8b949e;">
+                SkillStack · smc-private limited
+              </p>
+              <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#484f58;">
+                https://skillstack.com.pk<br />
+                Pakistan &amp; international
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendPasswordResetEmail(options: {
+  to: string;
+  name: string;
+  token: string;
+}) {
+  const baseUrl = siteBaseUrl();
+  const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(options.token)}`;
+
+  const transporter = getTransporter();
+  const logo = logoAttachment();
+
+  await transporter.sendMail({
+    from: mailFromAddress(),
+    to: options.to,
+    subject: "Reset your password · SkillStack",
+    text: `Hi ${options.name},
+
+We received a request to reset your SkillStack password. Open this link to choose a new one:
+
+${resetUrl}
+
+This link expires in 1 hour. If you didn’t request a reset, ignore this email.
+
+— SkillStack
+https://skillstack.com.pk`,
+    html: buildPasswordResetHtml(options.name, resetUrl),
+    attachments: logo ? [logo] : undefined,
+    headers: {
+      "X-Entity-Ref-ID": options.token.slice(0, 16),
+      "List-Unsubscribe": `<mailto:hello@skillstack.com.pk?subject=unsubscribe>`,
+    },
+  });
+}
+
 function buildContactInquiryHtml(options: {
   name: string;
   email: string;
