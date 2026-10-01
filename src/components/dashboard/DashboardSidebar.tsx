@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutToHome } from "@/lib/sign-out";
 import {
   Check,
   ChevronDown,
@@ -690,7 +691,7 @@ function SidebarPanel({ onNavigate }: { onNavigate?: () => void }) {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => void signOut({ callbackUrl: "/" })}
+                  onClick={() => void signOutToHome()}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-white/5"
                 >
                   <LogOut className="h-4 w-4" /> Sign out

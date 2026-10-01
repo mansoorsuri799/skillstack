@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutToHome } from "@/lib/sign-out";
 import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import { HEADER_HEIGHT_CLASS } from "@/lib/layout";
@@ -86,7 +87,7 @@ export default function Header() {
               </Link>
               <button
                 type="button"
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={() => void signOutToHome()}
                 className="hidden rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 sm:inline-flex sm:px-4 sm:py-2 sm:text-sm"
               >
                 Sign out
@@ -177,7 +178,7 @@ export default function Header() {
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
-                    void signOut({ callbackUrl: "/" });
+                    void signOutToHome();
                   }}
                   className="w-full rounded-md border border-white/20 px-4 py-3 text-sm font-medium text-white"
                 >
