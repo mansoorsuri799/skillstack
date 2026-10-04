@@ -1,6 +1,12 @@
 import NextAuth from "next-auth";
 import { NextResponse, type NextRequest } from "next/server";
 import authConfig from "@/auth.config";
+import {
+  ATTRIBUTION_COOKIE,
+  attributionCookieOptions,
+  attributionFromSearchParams,
+  serializeAttribution,
+} from "@/lib/attribution";
 
 const { auth } = NextAuth(authConfig);
 
@@ -14,6 +20,24 @@ const PROTECTED_PATHS = ["/profile", "/pricing/success", "/dashboard"];
 const CRAWLER_UA =
   /LinkedInBot|Twitterbot|facebookexternalhit|Facebot|Slackbot|Discordbot|WhatsApp|TelegramBot|Googlebot|bingbot|Baiduspider|DuckDuckBot|Applebot|Embedly|Quora Link Preview|Showyoubot|outbrain|pinterest|redditbot|vkShare|W3C_Validator/i;
 
+function withAttributionCookie(req: NextRequest, res: NextResponse) {
+  // First-touch only — do not overwrite an existing Instagram/ad cookie.
+  if (req.cookies.get(ATTRIBUTION_COOKIE)?.value) return res;
+
+  const attr = attributionFromSearchParams(
+    req.nextUrl.searchParams,
+    req.nextUrl.pathname,
+  );
+  if (!attr) return res;
+
+  res.cookies.set(
+    ATTRIBUTION_COOKIE,
+    serializeAttribution(attr),
+    attributionCookieOptions(req.nextUrl.protocol === "https:"),
+  );
+  return res;
+}
+
 const authProxy = auth((req) => {
   const { pathname } = req.nextUrl;
 
@@ -24,10 +48,10 @@ const authProxy = auth((req) => {
   if (isProtected && !req.auth) {
     const loginUrl = new URL("/login", req.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    return withAttributionCookie(req, NextResponse.redirect(loginUrl));
   }
 
-  return NextResponse.next();
+  return withAttributionCookie(req, NextResponse.next());
 });
 
 export default function proxy(req: NextRequest) {

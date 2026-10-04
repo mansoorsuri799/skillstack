@@ -20,6 +20,26 @@ const UserSchema = new Schema(
     googleId: { type: String, default: undefined, index: true, sparse: true },
     image: { type: String, required: false },
 
+    /**
+     * First-touch acquisition tag from UTM — e.g. "instagram" when the visitor
+     * arrived via skillstack.com.pk/?utm_source=instagram&utm_medium=bio
+     */
+    signupSource: {
+      type: String,
+      default: undefined,
+      index: true,
+      lowercase: true,
+      trim: true,
+      maxlength: 64,
+    },
+    utmSource: { type: String, default: undefined, lowercase: true, trim: true, maxlength: 120 },
+    utmMedium: { type: String, default: undefined, lowercase: true, trim: true, maxlength: 120 },
+    utmCampaign: { type: String, default: undefined, lowercase: true, trim: true, maxlength: 120 },
+    utmContent: { type: String, default: undefined, lowercase: true, trim: true, maxlength: 120 },
+    utmTerm: { type: String, default: undefined, lowercase: true, trim: true, maxlength: 120 },
+    landingPath: { type: String, default: undefined, trim: true, maxlength: 200 },
+    attributionCapturedAt: { type: Date, default: null },
+
     /** Public profile — omit until the user chooses a handle (sparse unique). */
     username: {
       type: String,

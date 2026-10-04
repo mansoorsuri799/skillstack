@@ -2,7 +2,13 @@ import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 import { connectDB } from "@/lib/db";
+import {
+  ATTRIBUTION_COOKIE,
+  parseAttribution,
+  userAttributionFields,
+} from "@/lib/attribution";
 import { User } from "@/models/User";
 import authConfig from "@/auth.config";
 
@@ -138,6 +144,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         let dbUser = await User.findOne({ email });
 
         if (!dbUser) {
+          let attribution: ReturnType<typeof userAttributionFields> = null;
+          try {
+            const jar = await cookies();
+            attribution = userAttributionFields(
+              parseAttribution(jar.get(ATTRIBUTION_COOKIE)?.value),
+            );
+          } catch {
+            // cookies() unavailable in some edge cases — signup still proceeds
+          }
+
           dbUser = await User.create({
             name: user.name?.trim() || "SkillStack user",
             email,
@@ -145,6 +161,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             emailVerified: new Date(),
             googleId: account.providerAccountId,
             image: user.image ?? undefined,
+            ...(attribution ?? {}),
           });
         } else {
           dbUser.googleId = account.providerAccountId;

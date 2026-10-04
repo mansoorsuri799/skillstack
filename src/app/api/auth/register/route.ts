@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { cookies } from "next/headers";
 import { connectDB } from "@/lib/db";
+import {
+  ATTRIBUTION_COOKIE,
+  parseAttribution,
+  userAttributionFields,
+} from "@/lib/attribution";
 import { sendVerificationEmail } from "@/lib/mail";
 import { User } from "@/models/User";
 
@@ -12,6 +18,11 @@ export async function POST(request: Request) {
     const email =
       typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
     const password = typeof body.password === "string" ? body.password : "";
+
+    const jar = await cookies();
+    const attribution = userAttributionFields(
+      parseAttribution(jar.get(ATTRIBUTION_COOKIE)?.value),
+    );
 
     if (!name || name.length < 2) {
       return NextResponse.json(
@@ -62,6 +73,9 @@ export async function POST(request: Request) {
       existing.password = hashed;
       existing.verificationToken = verificationToken;
       existing.verificationTokenExpires = verificationTokenExpires;
+      if (attribution && !existing.signupSource) {
+        Object.assign(existing, attribution);
+      }
       await existing.save();
     } else {
       await User.create({
@@ -71,6 +85,7 @@ export async function POST(request: Request) {
         emailVerified: null,
         verificationToken,
         verificationTokenExpires,
+        ...(attribution ?? {}),
       });
     }
 

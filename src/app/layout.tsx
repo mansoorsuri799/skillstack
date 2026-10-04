@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Syne, Public_Sans } from "next/font/google";
 import Providers from "@/components/Providers";
+import AttributionCapture from "@/components/AttributionCapture";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL, siteGraphJsonLd } from "@/lib/seo";
 import "./globals.css";
@@ -167,7 +168,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <JsonLd data={siteGraphJsonLd()} />
-        <Providers>{children}</Providers>
+        <Providers>
+          <AttributionCapture />
+          {children}
+        </Providers>
       </body>
     </html>
   );
